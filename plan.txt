@@ -1,0 +1,1 @@
+Look into <FlipMove> npm package for animating a post that is just getting placed into the feed for flare
