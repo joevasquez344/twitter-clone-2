@@ -14,9 +14,11 @@ import {
   TWEET_DETAILS_SUCCESS,
   LIKE_COMMENT_DETAILS,
   LIKE_TWEET_DETAILS,
+  LIKE_REPLIED_TO_POST,
 } from "./tweet-details.types";
 
 const initialState = {
+  repliedToPosts: [],
   post: {},
   comments: [],
   loading: true,
@@ -39,9 +41,11 @@ const tweetDetailsReducer = (state = initialState, { type, payload }) => {
       };
 
     case TWEET_DETAILS_SUCCESS:
+
       return {
         ...state,
         post: payload,
+        repliedToPosts: payload.replyToUsers,
         loading: false,
       };
     case LIKE_TWEET_DETAILS:
@@ -78,6 +82,17 @@ const tweetDetailsReducer = (state = initialState, { type, payload }) => {
         ...state,
         comments: updatedComments,
       };
+      case LIKE_REPLIED_TO_POST: 
+      const updatedPosts = state.repliedToPosts.map((post) => {
+        if (post.id === payload.postId) {
+          post.likes = payload.likes;
+        }
+        return post;
+      });
+      return {
+        ...state,
+        repliedToPosts: updatedPosts
+      }
 
     default:
       return state;

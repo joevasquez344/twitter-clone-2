@@ -5,8 +5,35 @@ import {
   getDoc,
   getDocs,
   writeBatch,
+  where,
+  orderBy
 } from "firebase/firestore/lite";
 import { auth, db } from "../../firebase/config";
+
+export const fetchPosts = async (query) => {
+  const postsRef = (db, `posts`);
+
+  const postsQuery = query(
+    postsRef,
+    where(query.where),
+    orderBy(query.orderBy)
+  );
+
+  const postsSnapshot = await getDocs(postsQuery);
+
+  const posts = await Promise.all(
+    postsSnapshot.docs.map(async (doc) => ({
+      id: doc.id,
+      followers: await (await getDocs(collection(db, `users/${doc.data().uid}/followers`))).docs.map(doc => ({id: doc.id, ...doc.data()})),
+      likes: await (
+        await getDocs(collection(db, `posts/${doc.id}/likes`))
+      ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+      ...doc.data(),
+    }))
+  );
+
+  return posts
+}
 
 export const getPostById = async (id) => {
   const ref = doc(db, "posts", id);

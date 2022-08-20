@@ -35,48 +35,6 @@ export const fetchTweets = async () => {
   return tweets;
 };
 
-export const createTweet = async (input, authUser) => {
-  const data = {
-    uid: authUser.id,
-    userRef: doc(db, `users/${authUser.id}`) ,
-    name: authUser.name,
-    email: authUser.email,
-    username: authUser.username,
-    message: input,
-    media: "",
-    avatar: "",
-    timestamp: serverTimestamp(),
-    postType: "tweet",
-  };
-
-  const createdTweetRef = await addDoc(collection(db, "tweets"), data);
-
-  const userTweetsRef = doc(
-    db,
-    `users/${authUser.id}/tweets/${createdTweetRef.id}`
-  );
-  const createdTweet = await getDoc(doc(db, `tweets/${createdTweetRef.id}`));
-
-  const batch = writeBatch(db);
-  batch.set(userTweetsRef, { ...createdTweet.data() });
-  await batch.commit();
-};
-
-const deleteTweetById = async (id) => {};
-
-export const getTweetById = async (id) => {
-  const tweetRef = doc(db, "tweets", id);
-  const tweet = await getDoc(tweetRef);
-  const likes = await (
-    await getDocs(collection(db, `tweets/${id}/likes`))
-  ).docs.map((doc) => ({ id: doc.id }));
-
-  return {
-    id: tweet.id,
-    likes,
-    ...tweet.data(),
-  };
-};
 
 export const toggleLikeTweet = async (id) => {
   const batch = writeBatch(db);
@@ -117,25 +75,3 @@ export const toggleLikeTweet = async (id) => {
     return likes.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   }
 };
-
-export const unlikeTweetById = async (id) => {
-  const tweet = await getTweetById(id);
-
-  const userId = auth.currentUser.uid;
-  const match = tweet.likes?.find((like) => like.uid === userId);
-
-  const likes = tweet.likes.filter((like) => like.uid !== match.uid);
-  await updateDoc(tweet, { likes });
-
-  return likes;
-};
-
-const createComment = async () => {};
-
-const likeCommentById = async (id) => {};
-
-const unlikeCommentById = async (id) => {};
-
-const deleteCommentById = async (id) => {};
-
-const getComments = async (id) => {};

@@ -4,7 +4,7 @@ import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "./layout/Sidebar";
 import Widgets from "./layout/Widgets";
 import routes from "./routes";
-import { useState, useEffect, useReducer } from "react";
+import { useState, useEffect } from "react";
 import Landing from "./pages/Landing";
 import uuid from "react-uuid";
 import { useSelector, useDispatch } from "react-redux";
@@ -34,6 +34,7 @@ function App() {
         //   type: LOGIN_SUCCESS,
         //   payload: { id: userCredentials.uid, email: userCredentials.email },
         // });
+
 
         if (location.pathname === "/") navigate("/home");
 

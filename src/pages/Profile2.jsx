@@ -19,7 +19,7 @@ import { getDocs, orderBy, where } from "firebase/firestore";
 import { toggleLikePost } from "../utils/api/posts";
 import { collection, doc, getDoc, query } from "firebase/firestore/lite";
 
-const Profile = () => {
+const Profile2 = () => {
   const params = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -445,4 +445,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default Profile2;

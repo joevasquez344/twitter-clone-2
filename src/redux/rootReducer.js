@@ -8,12 +8,14 @@ import { firestoreReducer } from 'redux-firestore' // <- needed if using firesto
 import {
     firebaseReducer
   } from 'react-redux-firebase'
+import themeReducer from './theme/theme.reducer';
 
 const rootReducer = combineReducers({
     tweets: tweetsReducer,
     home: homeReducer,
     tweetDetails: tweetDetailsReducer,
     users: usersReducer,
+    theme: themeReducer,
     firebase: firebaseReducer,
     firestore: firestoreReducer
 })

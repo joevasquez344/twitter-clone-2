@@ -4,8 +4,6 @@ import {
   HeartIcon,
   SwitchHorizontalIcon,
   UploadIcon,
-  DotsHorizontalIcon,
-  UserCircleIcon,
 } from "@heroicons/react/outline";
 import { useNavigate } from "react-router-dom";
 

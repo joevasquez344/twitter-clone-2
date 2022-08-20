@@ -12,33 +12,16 @@ import {
   getDoc,
   getDocFromServer,
 } from "firebase/firestore";
-import { auth } from "../../firebase/config";
+
 import {
-  GET_TWEET_DETAILS,
-  SET_LOADING,
   LIKE_TWEET_DETAILS,
   LIKE_COMMENT,
   GET_COMMENTS,
-  LIKE_COMMENT_DETAILS,
   TWEET_DETAILS_SUCCESS,
   TWEET_DETAILS_REQUEST,
-  CREATE_COMMENT,
-  LIKE_TWEET,
+  LIKE_REPLIED_TO_POST,
 } from "./tweet-details.types";
 
-import {
-  createTweet,
-  fetchTweets,
-  getTweetById,
-  toggleLikeTweet,
-  untoggleLikeTweet,
-} from "../../utils/api/tweets";
-import {
-  createComment,
-  getCommentById,
-  getCommentsByTweetId,
-  toggleLikeComment,
-} from "../../utils/api/comments";
 import { getPostById, getPostLikes, toggleLikePost } from "../../utils/api/posts";
 
 const getPostDetails = (postId) => async (dispatch) => {
@@ -78,6 +61,18 @@ const fetchComments = (postId, postType) => async (dispatch) => {
   });
 };
 
+const likeRepliedToPost = (postId) => async dispatch => {
+  const likes = await toggleLikePost(postId)
+
+  dispatch({
+    type: LIKE_REPLIED_TO_POST,
+    payload: {
+      likes,
+      postId
+    }
+  })
+}
+
 
 const likePostDetails = (tweetId) => async (dispatch) => {
  await toggleLikePost(tweetId);
@@ -112,4 +107,5 @@ export {
   fetchComments,
   likeComment,
   getPostDetails,
+  likeRepliedToPost
 };

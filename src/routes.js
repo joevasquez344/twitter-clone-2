@@ -4,7 +4,7 @@ import Landing from './pages/Landing';
 import Home from "./pages/Home";
 import TweetDetails from "./pages/TweetDetails";
 import Profile from "./pages/Profile";
-import Modal from './components/Modal';
+import FollowersAndFollowing from './pages/FollowersAndFollowing';
 
 const routes = [
     // TODO: move new routes to separate section
@@ -29,6 +29,21 @@ const routes = [
       component: Profile,
       private: false
     },
+    {
+      path: '/:username/followers',
+      exact: true,
+      name: 'Followers',
+      component: FollowersAndFollowing,
+      private: false
+    },
+    {
+      path: '/:username/following',
+      exact: true,
+      name: 'Following',
+      component: FollowersAndFollowing,
+      private: false
+    },
+   
     // {   path: "/CreateNewPlan",   exact: true,   name: "NewPlan", component:
     // NewPlan, },
    

@@ -15,15 +15,13 @@ import {
 } from "@heroicons/react/outline";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { refreshPost, likePost } from "../redux/home/home.actions";
+import { refreshPost } from "../redux/home/home.actions";
 import { followUser, unfollowUser } from "../utils/api/users";
-import { likeComment } from "../redux/tweet-details/tweet-details.actions";
 
 const Tweet = ({
   id,
-  likeTweet,
-  stateType,
-  tweet: {
+  handleLikePost,
+  post: {
     name,
     avatar,
     media,
@@ -42,7 +40,6 @@ const Tweet = ({
   const user = useSelector((state) => state.users.user);
   const [modal, setModal] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const dispatch = useDispatch();
@@ -58,21 +55,6 @@ const Tweet = ({
     else setIsLiked(false);
   };
 
-  // This function wont work on the home tweet feed due to not having the dispatch function attached
-  // const handleLikeTweet = () => likeTweet(id, postType);
-
-  // const handleLikePost = () => dispatch(toggleLikePost(id, user.id));
-  const handleLikePost = () => {
-    if (stateType === "redux") {
-      dispatch(likePost(id, user.id));
-    } else if (stateType === "local") {
-      likeTweet(id);
-    } else if (stateType === "redux-comments") {
-      dispatch(likeComment(id));
-    } else if (stateType === "redux-repliedToPosts") {
-      dispatch(likeTweet(id));
-    }
-  };
 
   const followPostUser = async () => {
     await followUser(uid, user.id);
@@ -81,11 +63,6 @@ const Tweet = ({
   };
   const unfollowPostUser = async () => {
     await unfollowUser(uid, user.id);
-    if (stateType === "redux") {
-      dispatch(refreshPost(id));
-    } else if (stateType === "local") {
-      // const post = await getPostById(postId);
-    }
 
     closeModal();
   };
@@ -199,7 +176,9 @@ const Tweet = ({
             </div>
 
             <div className="flex">
-              {postType === "comment" ? <div className="mr-1">Replying to </div> : null}
+              {postType === "comment" ? (
+                <div className="mr-1">Replying to </div>
+              ) : null}
               <div className="flex items-center">
                 {" "}
                 {replyToUsers?.map((user) => (
@@ -235,7 +214,7 @@ const Tweet = ({
                 <SwitchHorizontalIcon className={`h-5 w-5 `} />
               </div>
               <div
-                onClick={handleLikePost}
+                onClick={() => handleLikePost(id)}
                 className={`flex cursor-pointer items-center space-x-3 text-${
                   isLiked ? "red" : "gray"
                 }-400`}

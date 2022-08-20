@@ -1,41 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+
 import Modal from "../components/Modal";
+import Comments from "../components/Comments";
+import Tweet from "../components/Tweet";
+
 import {
-  createTweet,
   getPostDetails,
   likePostDetails,
-  likeTweetDetails,
+  likeRepliedToPost,
 } from "../redux/tweet-details/tweet-details.actions";
-import Comment from "../components/Comment";
 
 import {
   ChatAlt2Icon,
   HeartIcon,
   SwitchHorizontalIcon,
   UploadIcon,
-  DotsHorizontalIcon,
-  UserCircleIcon,
 } from "@heroicons/react/outline";
-import { getTweetById, likeTweetById } from "../utils/api/tweets";
-import Like from "../components/Like";
-import Comments from "../components/Comments";
-import {
-  getCommentById,
-  likeCommentById,
-  createComment,
-} from "../utils/api/comments";
-import {
-  fetchComments,
-  getTweetDetails,
-} from "../redux/tweet-details/tweet-details.actions";
+
+import { createComment } from "../utils/api/comments";
+
+import { fetchComments } from "../redux/tweet-details/tweet-details.actions";
+import Loader from "../components/Loader";
 
 const TweetDetails = () => {
   const user = useSelector((state) => state.users.user);
-  const { post, loading, postType } = useSelector(
-    (state) => state.tweetDetails
-  );
+  const { post, loading } = useSelector((state) => state.tweetDetails);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -53,8 +44,8 @@ const TweetDetails = () => {
   const handleCreateTweet = async (e) => {
     e.preventDefault();
 
-    createComment(input, post.id, user, postType);
-    dispatch(fetchComments(post.id, postType));
+    createComment(input, post, user, post.postType);
+    dispatch(fetchComments(post.id, post.postType));
 
     setInput("");
   };
@@ -86,10 +77,12 @@ const TweetDetails = () => {
   return (
     <>
       {loading ? (
-        <div>Loading</div>
+        <div className="mt-10">
+          <Loader />
+        </div>
       ) : (
         <div className="">
-          <Modal modal={modal}  closeModal={closeModal}>
+          <Modal modal={modal} closeModal={closeModal}>
             {post?.likes?.map((like) => (
               <div className="hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200 p-3">
                 <div className="flex items-center">
@@ -116,6 +109,15 @@ const TweetDetails = () => {
               </div>
             ))}
           </Modal>
+          {post.replyToUsers?.map((post) => (
+            <Tweet
+              stateType="redux-repliedToPosts"
+              likeTweet={likeRepliedToPost}
+              key={post.id}
+              id={post.id}
+              tweet={post}
+            />
+          ))}
           <div className="flex px-4 py-3">
             <img
               onClick={handleUserDetails}
@@ -126,6 +128,24 @@ const TweetDetails = () => {
             <div>
               <div className="font-bold">{post.name}</div>
               <div className="text-gray-500 text-sm">@{post.username}</div>
+            </div>
+          </div>
+          <div className="flex">
+            <div className="text-gray-500 mr-1">Replying to </div>
+            <div className="flex items-center">
+              {" "}
+              {post.replyToUsers?.map((user) => (
+                <div className="tweet__userWhoReplied flex items-center text-blue-500">
+                  <div
+                    onClick={() => handleUserDetails(user.username)}
+                    className="mr-1 hover:underline"
+                    key={user.username}
+                  >
+                    @{user?.username}
+                  </div>{" "}
+                  <div className="username mr-1">and</div>
+                </div>
+              ))}
             </div>
           </div>
           <div className="text-xl px-4 pb-3">{post.message}</div>

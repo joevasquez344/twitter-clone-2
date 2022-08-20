@@ -1,0 +1,3 @@
+.tweet__userWhoReplied:last-of-type > .username{
+    display:none
+}

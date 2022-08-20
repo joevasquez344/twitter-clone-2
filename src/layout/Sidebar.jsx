@@ -1,10 +1,6 @@
 import React from "react";
 import {
-  BellIcon,
-  HashtagIcon,
   CollectionIcon,
-  DotsCircleHorizontalIcon,
-  MailIcon,
   UserIcon,
   HomeIcon,
   BookmarkIcon,

@@ -121,11 +121,14 @@ const usersReducer = (state = initialState, { type, payload }) => {
         },
       };
 
-      case EDIT_PROFILE: 
+    case EDIT_PROFILE:
       return {
         ...state,
-        userDetails: payload
-      }
+        userDetails: {
+          ...state.userDetails,
+          ...payload,
+        },
+      };
 
     case LIKE_TWEET:
       const updatedTweets = state.userDetails.tweets.map((tweet) => {

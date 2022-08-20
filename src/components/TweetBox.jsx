@@ -7,8 +7,6 @@ import {
   SearchCircleIcon,
 } from "@heroicons/react/outline";
 import { useDispatch, useSelector } from "react-redux";
-import { getTweets, newTweet } from "../redux/tweets/tweets.actions";
-import { createTweet, fetchTweets } from "../utils/api/tweets";
 import { db } from "../firebase/config";
 import {
   collection,
@@ -19,7 +17,7 @@ import {
 import { addDoc } from "firebase/firestore";
 import { fetchPosts } from "../redux/home/home.actions";
 
-const TweetBox = () => {
+const TweetBox = ({setLoading}) => {
   const user = useSelector((state) => state.users.user);
   const [input, setInput] = useState("");
 
@@ -29,18 +27,11 @@ const TweetBox = () => {
     setInput(e.target.value);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    createTweet(input, user);
-    dispatch(getTweets());
-    setInput("");
-
-    // Notify that tweet has been successfully created with a toast animation or other form of animation
-  };
-
   const handleCreatePost = async (e) => {
     e.preventDefault();
+
+    setLoading(true);
+    
 
     const postData = {
       uid: user.id,
@@ -59,7 +50,11 @@ const TweetBox = () => {
     const ref = collection(db, `posts`);
     await addDoc(ref, postData);
 
-    dispatch(fetchPosts(user));
+
+    await dispatch(fetchPosts(user));
+
+    setLoading(false);
+
 
     setInput("");
   };

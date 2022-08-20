@@ -1,6 +1,4 @@
 import { GET_POSTS, REFRESH_POST, TOGGLE_LIKE_POST } from "./home.types";
-import { auth } from "../../firebase/config";
-import { findItemById } from "../../utils/helpers";
 
 const initialState = {
   posts: [],

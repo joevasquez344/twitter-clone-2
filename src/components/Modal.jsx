@@ -1,15 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { XIcon } from "@heroicons/react/outline";
 import { useSelector } from "react-redux";
-import { collection, getDoc, getDocs } from "firebase/firestore";
-import { db } from "../firebase/config";
 const Modal = ({ modal, closeModal, postType, tweet, children, header }) => {
-  const authUser = useSelector((state) => state.users.user);
-  const [likes, setLikes] = useState([]);
 
-  useEffect(() => {
-   
-  }, []);
   return (
     <div>
       {" "}

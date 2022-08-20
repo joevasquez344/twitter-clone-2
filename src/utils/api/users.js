@@ -15,9 +15,6 @@ import {
   writeBatch,
   onSnapshot,
 } from "firebase/firestore";
-import { auth } from "../../firebase/config";
-import { getCommentsByUserId } from "./comments";
-import { data } from "autoprefixer";
 
 export const getUserDetails = async (username) => {
   const ref = collection(db, "users");
@@ -51,6 +48,8 @@ export const getUserDetails = async (username) => {
 export const unfollowUser = async (profileId, authId) => {
   const batch = writeBatch(db);
 
+  const profile = await getDoc(doc(db, `users/${profileId}`));
+
   const followingRef = doc(db, `users/${authId}/following/${profileId}`);
   const followersRef = doc(db, `users/${profileId}/followers/${authId}`);
 
@@ -66,14 +65,8 @@ export const unfollowUser = async (profileId, authId) => {
     collection(db, `users/${profileId}/following`)
   );
 
-  const following = profileFollowingSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
-  const followers = profileFollowersSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
+  const following = await getProfileFollowing(profile.data());
+  const followers = await getProfileFollowers(profile.data());
 
   return { following, followers };
 };
@@ -92,21 +85,8 @@ export const followUser = async (profileId, authId) => {
 
   await batch.commit();
 
-  const profileFollowingSnapshot = await getDocs(
-    collection(db, `users/${profileId}/following`)
-  );
-  const profileFollowersSnapshot = await getDocs(
-    collection(db, `users/${profileId}/followers`)
-  );
-
-  const following = profileFollowingSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
-  const followers = profileFollowersSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
+  const following = await getProfileFollowing(profile.data());
+  const followers = await getProfileFollowers(profile.data());
 
   return { following, followers };
 };

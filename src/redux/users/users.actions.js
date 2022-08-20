@@ -1,4 +1,3 @@
-import { firebase } from "../../firebase/config";
 import {
   LOAD_USER,
   LOGIN,
@@ -26,8 +25,8 @@ import {
 } from "firebase/auth";
 
 import { db } from "../../firebase/config";
-import { collection, writeBatch } from "firebase/firestore/lite";
-import { addDoc, doc, getDoc, setDoc } from "firebase/firestore";
+import {  writeBatch } from "firebase/firestore/lite";
+import {  doc, getDoc, setDoc } from "firebase/firestore";
 import {
   followUser,
   getProfileFollowers,
@@ -35,8 +34,6 @@ import {
   getUserDetails,
   unfollowUser,
 } from "../../utils/api/users";
-import { toggleLikeTweet } from "../../utils/api/tweets";
-import { toggleLikeComment } from "../../utils/api/comments";
 import { toggleLikePost } from "../../utils/api/posts";
 import { handleProfileCreatedAt } from "../../utils/handlers";
 
@@ -104,9 +101,8 @@ const register = (data) => (dispatch) => {
         birthday,
         bio,
         location,
-        followers: [],
-        following: [],
         createdAt: userCredentials.user.metadata.creationTime,
+        theme: 'light'
       })
         .then(() => {
           console.log("hello");
