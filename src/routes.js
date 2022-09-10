@@ -3,8 +3,9 @@ import {Route} from 'react-router-dom'
 import Landing from './pages/Landing';
 import Home from "./pages/Home";
 import TweetDetails from "./pages/TweetDetails";
-import Profile from "./pages/Profile";
+import Profile from "./pages/Profile/Profile";
 import FollowersAndFollowing from './pages/FollowersAndFollowing';
+import Bookmarks from './pages/Bookmarks';
 
 const routes = [
     // TODO: move new routes to separate section
@@ -42,6 +43,13 @@ const routes = [
       name: 'Following',
       component: FollowersAndFollowing,
       private: false
+    },
+    {
+      path: '/bookmarks',
+      exact: true,
+      name: 'Bookmarks',
+      component: Bookmarks,
+      private: true
     },
    
     // {   path: "/CreateNewPlan",   exact: true,   name: "NewPlan", component:

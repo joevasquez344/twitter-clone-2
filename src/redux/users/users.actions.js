@@ -15,6 +15,8 @@ import {
   UNFOLLOW_USER,
   LIKE_TWEET,
   EDIT_PROFILE,
+  PIN_TWEET,
+  UNPIN_TWEET,
 } from "./users.types";
 import {
   createUserWithEmailAndPassword,
@@ -25,8 +27,8 @@ import {
 } from "firebase/auth";
 
 import { db } from "../../firebase/config";
-import {  writeBatch } from "firebase/firestore/lite";
-import {  doc, getDoc, setDoc } from "firebase/firestore";
+import { writeBatch } from "firebase/firestore/lite";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import {
   followUser,
   getProfileFollowers,
@@ -34,7 +36,7 @@ import {
   getUserDetails,
   unfollowUser,
 } from "../../utils/api/users";
-import { toggleLikePost } from "../../utils/api/posts";
+import { toggleLikePost, pinPost, unpinPost } from "../../utils/api/posts";
 import { handleProfileCreatedAt } from "../../utils/handlers";
 
 const loadUserFromFirestore = (authUser) => async (dispatch) => {
@@ -101,8 +103,9 @@ const register = (data) => (dispatch) => {
         birthday,
         bio,
         location,
+        pinnedPost: {},
         createdAt: userCredentials.user.metadata.creationTime,
-        theme: 'light'
+        theme: "light",
       })
         .then(() => {
           console.log("hello");

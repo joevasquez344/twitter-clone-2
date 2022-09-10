@@ -58,15 +58,8 @@ export const unfollowUser = async (profileId, authId) => {
 
   await batch.commit();
 
-  const profileFollowersSnapshot = await getDocs(
-    collection(db, `users/${profileId}/following`)
-  );
-  const profileFollowingSnapshot = await getDocs(
-    collection(db, `users/${profileId}/following`)
-  );
-
-  const following = await getProfileFollowing(profile.data());
-  const followers = await getProfileFollowers(profile.data());
+  const following = await getProfileFollowing(profile.id);
+  const followers = await getProfileFollowers(profile.id);
 
   return { following, followers };
 };
@@ -85,14 +78,15 @@ export const followUser = async (profileId, authId) => {
 
   await batch.commit();
 
-  const following = await getProfileFollowing(profile.data());
-  const followers = await getProfileFollowers(profile.data());
+  const following = await getProfileFollowing(profile.id);
+  const followers = await getProfileFollowers(profile.id);
+
 
   return { following, followers };
 };
 
-export const getProfileFollowers = async (profile) => {
-  const ref = collection(db, `users/${profile.id}/followers`);
+export const getProfileFollowers = async (profileId) => {
+  const ref = collection(db, `users/${profileId}/followers`);
   const snapshot = await getDocs(ref);
   const followers = snapshot.docs.map((doc) => ({
     id: doc.id,
@@ -101,8 +95,8 @@ export const getProfileFollowers = async (profile) => {
 
   return followers;
 };
-export const getProfileFollowing = async (profile) => {
-  const ref = collection(db, `users/${profile.id}/following`);
+export const getProfileFollowing = async (profileId) => {
+  const ref = collection(db, `users/${profileId}/following`);
   const snapshot = await getDocs(ref);
   const following = snapshot.docs.map((doc) => ({
     id: doc.id,

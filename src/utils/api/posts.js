@@ -1,22 +1,26 @@
 import { getAuth } from "firebase/auth";
 import {
   collection,
+  setDoc,
   doc,
   getDoc,
   getDocs,
+  updateDoc,
   writeBatch,
   where,
-  orderBy
+  orderBy,
+  query,
+  deleteDoc,
 } from "firebase/firestore/lite";
 import { auth, db } from "../../firebase/config";
 
-export const fetchPosts = async (query) => {
-  const postsRef = (db, `posts`);
+export const fetchPosts = async (filter) => {
+  const postsRef = collection(db, `posts`);
 
   const postsQuery = query(
     postsRef,
-    where(query.where),
-    orderBy(query.orderBy)
+    where(...filter.where),
+    orderBy(...filter.orderBy)
   );
 
   const postsSnapshot = await getDocs(postsQuery);
@@ -24,7 +28,9 @@ export const fetchPosts = async (query) => {
   const posts = await Promise.all(
     postsSnapshot.docs.map(async (doc) => ({
       id: doc.id,
-      followers: await (await getDocs(collection(db, `users/${doc.data().uid}/followers`))).docs.map(doc => ({id: doc.id, ...doc.data()})),
+      followers: await (
+        await getDocs(collection(db, `users/${doc.data().uid}/followers`))
+      ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
       likes: await (
         await getDocs(collection(db, `posts/${doc.id}/likes`))
       ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
@@ -32,21 +38,29 @@ export const fetchPosts = async (query) => {
     }))
   );
 
-  return posts
-}
+  return posts;
+};
 
 export const getPostById = async (id) => {
   const ref = doc(db, "posts", id);
   const post = await getDoc(ref);
 
-const likes = await getPostLikes(id);
+  const likes = await getPostLikes(id);
 
   return {
     id: post.id,
     likes,
-    followers: await (await getDocs(collection(db, `users/${post.data().uid}/followers`))).docs.map(doc => ({id: doc.id, ...doc.data()})),
+    followers: await (
+      await getDocs(collection(db, `users/${post.data().uid}/followers`))
+    ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
     ...post.data(),
   };
+};
+
+export const refreshPost = async (postId) => {
+  const post = await getPostById(postId);
+
+  return post;
 };
 
 export const getPostLikes = async (id) => {
@@ -56,8 +70,8 @@ export const getPostLikes = async (id) => {
   );
   const users = userDocs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-  return users
-}
+  return users;
+};
 
 export const toggleLikePost = async (id) => {
   const batch = writeBatch(db);
@@ -91,4 +105,107 @@ export const toggleLikePost = async (id) => {
 
     return likes.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   }
+};
+
+export const deletePost = async (postId, authId) => {
+  const postRef = doc(db, `posts/${postId}`);
+  const postSnapshot = await getDoc(postRef);
+
+  const post = { id: postSnapshot.id, ...postSnapshot.data() };
+
+  if (post && post.uid === authId) {
+    const batch = writeBatch(db);
+
+    batch.delete(postRef, {});
+
+    await batch.commit();
+
+    return post.id;
+  }
+};
+
+export const pinPost = async (postId, authId) => {
+  const userRef = doc(db, `users/${authId}`);
+  const postRef = doc(db, `posts/${postId}`);
+
+  const postSnapshot = await getDoc(postRef);
+  const post = { id: postSnapshot.id, ...postSnapshot.data() };
+  const likes = await getPostLikes(post.id);
+
+  if (post.uid === authId) {
+    await updateDoc(userRef, { pinnedPost: post });
+
+    return { ...post, likes };
+  }
+};
+export const unpinPost = async (postId, authId) => {
+  const userRef = doc(db, `users/${authId}`);
+  const postRef = doc(db, `posts/${postId}`);
+
+  const postSnapshot = await getDoc(postRef);
+  const post = { id: postSnapshot.id, ...postSnapshot.data() };
+  const likes = await getPostLikes(post.id);
+
+  if (post.uid === authId) {
+    await updateDoc(userRef, { pinnedPost: {} });
+
+    return { ...post, likes };
+  }
+};
+
+export const addBookmark = async (postId, authId) => {
+  const userRef = doc(db, `users/${authId}`);
+  await setDoc(doc(db, "bookmarks", postId), { userRef });
+};
+
+export const getBookmarks = async (userId) => {
+  const userRef = doc(db, `users/${userId}`);
+  const usersPinnedPost = await getDoc(userRef);
+  const bookmarksRef = collection(db, "bookmarks");
+  const bookmarksQuery = query(bookmarksRef, where("userRef", "==", userRef));
+  const bookmarkIds = await getDocs(bookmarksQuery);
+
+  const bookmarkDocs = await Promise.all(
+    bookmarkIds.docs.map(async (d) => await getDoc(doc(db, `posts/${d.id}`)))
+  );
+
+  const bookmarks = await Promise.all(
+    bookmarkDocs.map(async (doc) => ({
+      id: doc.id,
+      pinnedPost: usersPinnedPost.id === doc.id ? usersPinnedPost.data() : {},
+      followers: await (
+        await getDocs(collection(db, `users/${doc.data().uid}/followers`))
+      ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+      likes: await getPostLikes(doc.id),
+      ...doc.data(),
+    }))
+  );
+  return bookmarks;
+};
+
+export const clearBookmarks = async (userId) => {
+  const userRef = doc(db, `users/${userId}`);
+
+  const ref = collection(db, "bookmarks");
+  const filter = query(ref, where("userRef", "==", userRef));
+
+  const ids = await getDocs(filter);
+
+  const bookmarks = await Promise.all(
+    ids.docs.map(async (d) => await deleteDoc(doc(db, `bookmarks/${d.id}`)))
+  );
+
+  if(bookmarks[0] === undefined) {
+    return {
+      message: "Bookmarks deleted",
+      success: true
+    }
+  } else {
+    return {
+      message: "Error",
+      success: false
+    }
+  }
+
+
 };

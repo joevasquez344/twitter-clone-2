@@ -15,7 +15,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore/lite";
 import { addDoc } from "firebase/firestore";
-import { fetchPosts } from "../redux/home/home.actions";
+import { getPosts } from "../redux/home/home.actions";
 
 const TweetBox = ({setLoading}) => {
   const user = useSelector((state) => state.users.user);
@@ -51,7 +51,7 @@ const TweetBox = ({setLoading}) => {
     await addDoc(ref, postData);
 
 
-    await dispatch(fetchPosts(user));
+    await dispatch(getPosts(user));
 
     setLoading(false);
 

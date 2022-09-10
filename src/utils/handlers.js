@@ -1,9 +1,9 @@
-export const handleActiveTab = (tabId, tabs, userDetails, setTabs) => {
+export const handleActiveTab = (tabId, tabs, profile, setTabs) => {
     const updatedTabs = tabs.map((tab) => {
       tab.isActive = false;
       if (tab.id === tabId) {
         tab.isActive = true;
-        tab.fetchData(userDetails.id);
+        tab.fetchData(profile);
       }
       return tab;
     });

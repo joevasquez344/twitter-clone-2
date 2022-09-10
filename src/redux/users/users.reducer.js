@@ -15,6 +15,8 @@ import {
   UNFOLLOW_USER,
   LIKE_TWEET,
   EDIT_PROFILE,
+  PIN_TWEET,
+  UNPIN_TWEET,
 } from "./users.types";
 
 const initialState = {

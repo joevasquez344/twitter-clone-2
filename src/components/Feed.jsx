@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Tweet from "./Tweet";
 import { useDispatch, useSelector } from "react-redux";
 import { likeTweet } from "../redux/tweets/tweets.actions";
-import { fetchPosts } from "../redux/home/home.actions";
+import { getPosts } from "../redux/home/home.actions";
 import Loader from "./Loader";
 
 const Feed = ({loading, setLoading}) => {
@@ -12,7 +12,7 @@ const Feed = ({loading, setLoading}) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(fetchPosts(user));
+    dispatch(getPosts(user));
     setLoading(false);
   }, []);
 

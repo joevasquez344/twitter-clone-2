@@ -4,7 +4,7 @@ import {
   UserIcon,
   HomeIcon,
   BookmarkIcon,
- ColorSwatchIcon
+  ColorSwatchIcon,
 } from "@heroicons/react/outline";
 import SidebarRow from "../components/SidebarRow";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,6 +20,7 @@ const Sidebar = () => {
   const handleHomeNavigation = () => navigate("/home");
   const handleProfileNavigation = () =>
     navigate(`/${user.username}`, { state: { userId: user.id } });
+  const handleBookmarksNavigation = () => navigate("/bookmarks");
   const handleLogout = () => dispatch(logout());
 
   return (
@@ -35,7 +36,10 @@ const Sidebar = () => {
       {/* <SidebarRow Icon={HashtagIcon} title="Explore" />
       <SidebarRow Icon={BellIcon} title="Notifications" />
       <SidebarRow Icon={MailIcon} title="Messages" /> */}
-      <SidebarRow Icon={BookmarkIcon} title="Bookmarks" />
+      <div className="w-full" onClick={handleBookmarksNavigation}>
+        <SidebarRow Icon={BookmarkIcon} title="Bookmarks" />
+      </div>
+
       <SidebarRow Icon={CollectionIcon} title="Lists" />
       <div className="w-full" onClick={handleProfileNavigation}>
         <SidebarRow Icon={UserIcon} title="Profile" />

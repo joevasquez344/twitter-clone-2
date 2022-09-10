@@ -1,5 +1,6 @@
 import {combineReducers} from 'redux';
 import usersReducer from './users/users.reducer';
+import profileReducer from './profile/profile.reducer'
 import tweetsReducer from './tweets/tweets.reducer';
 import tweetDetailsReducer from './tweet-details/tweet-details.reducer';
 import homeReducer from './home/home.reducer';
@@ -15,6 +16,7 @@ const rootReducer = combineReducers({
     home: homeReducer,
     tweetDetails: tweetDetailsReducer,
     users: usersReducer,
+    profile: profileReducer,
     theme: themeReducer,
     firebase: firebaseReducer,
     firestore: firestoreReducer

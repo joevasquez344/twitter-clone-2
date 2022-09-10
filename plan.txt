@@ -1,1 +1,26 @@
 Look into <FlipMove> npm package for animating a post that is just getting placed into the feed for flare
+
+
+TODO:
+Profile Screen Sections 
+
+- Profile Info
+    - Fetch and display basic Info 
+
+- Followers and Following
+    - Fetch and display
+    - On click to open modal with list of users
+    - Follow/Unfollow user from list
+    - On click more options icon to open modal and block, share profile link
+
+- Feed 
+    -
+
+Dom Profile 
+
+- Dom's followers container Joe
+
+Joe's Profile 
+
+- Joe's following contains Dom and Dee
+- Joe's followers contains Dom

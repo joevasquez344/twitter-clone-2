@@ -2,31 +2,45 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 
-import Tweet from "../components/Tweet";
-import Modal from "../components/Modal";
+// import { getTweets, getTweetsAndReplies, getLikedPosts } from "./helpers";
 
+import Tweet from "../../components/Tweet";
+import Tweet2 from "../../components/Tweet2";
+
+import Modal from "../../components/Modal";
+
+import { handleActiveTab } from "../../utils/handlers";
+
+import { db } from "../../firebase/config";
+import { getDocs, orderBy, where } from "firebase/firestore";
+
+import Feed2 from "../../components/Feed2";
 import {
-  getProfile,
+  getPosts,
+  getUsersLikedPosts,
+  getTweetsAndReplies,
   followProfile,
   unfollowProfile,
   editProfile,
-} from "../redux/users/users.actions";
-
-import { handleActiveTab } from "../utils/handlers";
-
-import { db } from "../firebase/config";
-import { getDocs, orderBy, where } from "firebase/firestore";
-import { toggleLikePost } from "../utils/api/posts";
-import { collection, doc, getDoc, query } from "firebase/firestore/lite";
+  refreshPost,
+  toggleLikeTweet,
+  getProfile,
+  addPinnedPost,
+  removePinnedPost,
+  toggleLikePinPost,
+  getPinnedPost,
+} from "../../redux/profile/profile.actions";
+import { getUserDetails } from "../../utils/api/users";
 
 const Profile = () => {
   const params = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { userDetails, user, loading } = useSelector((state) => state.users);
-  const [feedLoading, setFeedLoading] = useState(true);
+  const { profile, feed, profileLoading, feedLoading, pinnedPost } =
+    useSelector((state) => state.profile);
+  // const [feedLoading, setFeedLoading] = useState(true);
 
-  const [tweets, setTweets] = useState([]);
   const {
     username,
     name,
@@ -37,7 +51,8 @@ const Profile = () => {
     followers,
     createdAt,
     birthday,
-  } = useSelector((state) => state.users.userDetails);
+    id,
+  } = useSelector((state) => state.profile.profile);
 
   const [birthdayInput, setBirthdayInput] = useState("");
   const [bioInput, setBioInput] = useState("");
@@ -51,30 +66,29 @@ const Profile = () => {
       id: 1,
       text: "Tweets",
       isActive: false,
-      fetchData: async (profileId) => await getTweets(profileId),
+      fetchData: (profile) => handleGetPosts(profile),
     },
     {
       id: 2,
       text: "Tweets & Replies",
       isActive: false,
-      fetchData: async (profileId) => await getTweetsAndReplies(profileId),
+      fetchData: (profile) => handleGetTweetsAndReplies(profile),
     },
     {
       id: 3,
       text: "Media",
       isActive: false,
-      fetchData: async (profileId) => await getTweets(profileId),
+      fetchData: (profile) => handleGetPosts(profile),
     },
     {
       id: 4,
       text: "Likes",
       isActive: false,
-      fetchData: async (profileId) => await getUsersLikedPosts(profileId),
+      fetchData: (profile) => handleGetLikedPosts(profile),
     },
   ]);
 
-  const handleTabs = (tabId) =>
-    handleActiveTab(tabId, tabs, userDetails, setTabs);
+  const handleTabs = (tabId) => handleActiveTab(tabId, tabs, profile, setTabs);
 
   const handleAuthLayout = (profile) => {
     const match = profile?.followers?.find((u) => u.id === user.id);
@@ -87,118 +101,50 @@ const Profile = () => {
   };
 
   const handleFollowProfile = async () => {
-    const profile = await dispatch(followProfile(userDetails.id, user.id));
+    const profile = await dispatch(followProfile(id, user.id));
     handleAuthLayout(profile);
   };
 
   const handleUnfollowProfile = async () => {
-    const profile = await dispatch(unfollowProfile(userDetails.id, user.id));
+    const profile = await dispatch(unfollowProfile(id, user.id));
     handleAuthLayout(profile);
   };
 
-  const likeTweet = async (id) => {
-    const likes = await toggleLikePost(id);
+  const handleLikePost = (id) => dispatch(toggleLikeTweet(id));
 
-    const updatedTweets = tweets.map((tweet) => {
-      if (tweet.id === id) {
-        tweet.likes = likes;
-      }
+  const handleRefreshPost = (postId) => dispatch(refreshPost(postId));
 
-      return tweet;
-    });
+  const handleGetPosts = async (profile) => {
+    const user = await getUserDetails(profile.username);
 
-    setTweets(updatedTweets);
+    dispatch(getPinnedPost(user.pinnedPost?.id));
+    dispatch(getPosts(profile.id));
   };
 
-  const getTweets = async (profileId) => {
-    setFeedLoading(true);
-    const tweetsRef = collection(db, `posts`);
-    const tweetsQuery = query(
-      tweetsRef,
-      where("uid", "==", profileId),
-      where("postType", "==", "tweet"),
-      orderBy("timestamp", "desc")
-    );
-    const tweetsData = await Promise.all(
-      await (
-        await getDocs(tweetsQuery)
-      ).docs.map(async (doc) => ({
-        id: doc.id,
-        followers: await (
-          await getDocs(collection(db, `users/${doc.data().uid}/followers`))
-        ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-        likes: await (
-          await getDocs(collection(db, `posts/${doc.id}/likes`))
-        ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-        ...doc.data(),
-      }))
-    );
-    setTweets(tweetsData);
+  const handleGetTweetsAndReplies = (profile) =>
+    dispatch(getTweetsAndReplies(profile.id));
 
-    setFeedLoading(false);
-    return tweetsData;
+  const handleGetLikedPosts = (profile) =>
+    dispatch(getUsersLikedPosts(profile.id));
+
+  const handlePinPost = (postId) => {
+    const currentActiveTab = tabs.find((tab) => tab.isActive);
+
+    dispatch(addPinnedPost(postId, user.id));
+
+    currentActiveTab.fetchData(profile);
   };
 
-  const getTweetsAndReplies = async (profileId) => {
-    setFeedLoading(true);
+  const handleUnpinPost = (postId) => {
+    const currentActiveTab = tabs.find((tab) => tab.isActive);
 
-    const postsRef = collection(db, `posts`);
-    const userRef = doc(db, `users/${profileId}`);
+    dispatch(removePinnedPost(postId, user.id));
 
-    const postsQuery = query(
-      postsRef,
-      where("userRef", "==", userRef),
-      orderBy("timestamp", "desc")
-    );
-    const posts = await Promise.all(
-      await (
-        await getDocs(postsQuery)
-      ).docs.map(async (doc) => ({
-        id: doc.id,
-        followers: await (
-          await getDocs(collection(db, `users/${doc.data().uid}/followers`))
-        ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-        likes: await (
-          await getDocs(collection(db, `posts/${doc.id}/likes`))
-        ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-        ...doc.data(),
-      }))
-    );
-
-    setTweets(posts);
-    setFeedLoading(false);
-
-    return posts;
+    currentActiveTab.fetchData(profile);
   };
 
-  const getUsersLikedPosts = async (profileId) => {
-    setFeedLoading(true);
-
-    const likesRef = collection(db, `users/${profileId}/likes`);
-    const postIds = await getDocs(likesRef);
-
-    const postDocs = await Promise.all(
-      postIds.docs.map(
-        async (post) => await getDoc(doc(db, `posts/${post.id}`))
-      )
-    );
-
-    const posts = await Promise.all(
-      postDocs.map(async (doc) => ({
-        id: doc.id,
-        followers: await (
-          await getDocs(collection(db, `users/${doc.data().uid}/followers`))
-        ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-        likes: await (
-          await getDocs(collection(db, `posts/${doc.id}/likes`))
-        ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-        ...doc.data(),
-      }))
-    );
-
-    setTweets(posts);
-    setFeedLoading(false);
-  };
+  const handleToggleLikePinPost = (postId) =>
+    dispatch(toggleLikePinPost(postId));
 
   const openModal = () => {
     setModal(true);
@@ -225,16 +171,14 @@ const Profile = () => {
       bio: bioInput,
     };
 
-    dispatch(editProfile(updatedProfile, userDetails.id));
+    dispatch(editProfile(updatedProfile, profile.id));
 
     closeModal();
   };
 
-  const handleFollowersRoute = () =>
-    navigate(`/${userDetails.username}/followers`);
+  const handleFollowersRoute = () => navigate(`/${username}/followers`);
 
-  const handleFollowingRoute = () =>
-    navigate(`/${userDetails.username}/following`);
+  const handleFollowingRoute = () => navigate(`/${username}/following`);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -257,8 +201,8 @@ const Profile = () => {
 
       setTabs(updatedTabs);
 
-      const userTweets = await getTweets(profile.id);
-      setTweets(userTweets);
+      dispatch(getPinnedPost(profile.pinnedPost?.id));
+      dispatch(getPosts(profile.id));
     };
 
     fetchProfile();
@@ -267,7 +211,7 @@ const Profile = () => {
   return (
     <>
       {" "}
-      {loading ? (
+      {profileLoading ? (
         <div className="relative h-full w-full">
           <div className="text-center mt-5 absolute top-1/2 left-1/2">
             <div role="status">
@@ -339,7 +283,7 @@ const Profile = () => {
               />
             </div>
 
-            {user.id === userDetails.id ? (
+            {user.id === profile.id ? (
               <button
                 onClick={openModal}
                 className="absolute right-5 mt-3 border rounded-full px-5 py-1 font-semibold"
@@ -429,15 +373,86 @@ const Profile = () => {
               </div>
             </div>
           ) : (
-            tweets?.map((tweet) => (
-              <Tweet
-                key={tweet.id}
-                id={tweet.id}
-                tweet={tweet}
-                likeTweet={likeTweet}
-                stateType="local"
-              />
-            ))
+            <div>
+              <div>
+                {pinnedPost?.id && pinnedPost?.uid === profile?.id &&
+                tabs?.find((tab) => tab.isActive && tab.text === "Tweets") ? (
+                  <Tweet2
+                    key={pinnedPost.id}
+                    id={pinnedPost.id}
+                    post={pinnedPost}
+                    isPinned={true}
+                    handleLikePost={handleToggleLikePinPost}
+                    handleRefreshPost={handleRefreshPost}
+                    // handleRefreshPosts={handleGetPosts}
+                    handlePinPost={handlePinPost}
+                    handleUnpinPost={handleUnpinPost}
+                    tabs={tabs}
+                  />
+                ) : null}
+                {/* {pinnedTweet?.id && (
+                  <Tweet2
+                    key={pinnedTweet.id}
+                    id={pinnedTweet.id}
+                    post={pinnedTweet}
+                    isPinned={true}
+                    // handleLikePost={likePinnedPost}
+                    // handleRefreshPost={handleRefreshPost}
+                    // handleRefreshPosts={handleGetTweets}
+                  />
+                )} */}
+              </div>
+              {tabs?.find((tab) => tab.isActive && tab.text === "Tweets")
+                ? feed
+                    .filter((post) => post.id !== pinnedPost?.id)
+                    .map((post) => (
+                      <Tweet2
+                        key={post.id}
+                        id={post.id}
+                        post={post}
+                        isPinned={false}
+                        handleLikePost={handleLikePost}
+                        handleRefreshPost={handleRefreshPost}
+                        // handleRefreshPosts={handleGetPosts}
+                        handlePinPost={handlePinPost}
+                        handleUnpinPost={handleUnpinPost}
+                        tabs={tabs}
+                      />
+                    ))
+                : feed?.map((post) => (
+                    <Tweet2
+                      key={post.id}
+                      id={post.id}
+                      post={post}
+                      isPinned={post.id === pinnedPost?.id}
+                      handleLikePost={handleLikePost}
+                      handleRefreshPost={handleRefreshPost}
+                      // handleRefreshPosts={handleGetPosts}
+                      handlePinPost={handlePinPost}
+                      handleUnpinPost={handleUnpinPost}
+                      tabs={tabs}
+                    />
+                  ))}
+              {/* {feed
+                .filter(
+                  (post) =>
+                    post.id !== pinnedPost.id ||
+                    tabs?.find((tab) => tab.isActive && tab.text !== "Tweets")
+                )
+                .map((post) => (
+                  <Tweet2
+                    key={post.id}
+                    id={post.id}
+                    post={post}
+                    isPinned={false}
+                    handleLikePost={handleLikePost}
+                    handleRefreshPost={handleRefreshPost}
+                    handleRefreshPosts={handleGetPosts}
+                    handlePinPost={handlePinPost}
+                    handleUnpinPost={handleUnpinPost}
+                  />
+                ))} */}
+            </div>
           )}
         </>
       )}
