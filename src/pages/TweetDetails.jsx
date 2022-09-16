@@ -24,6 +24,12 @@ import { createComment } from "../utils/api/comments";
 import { fetchComments } from "../redux/tweet-details/tweet-details.actions";
 import Loader from "../components/Loader";
 
+// TODOs: 
+// Reply to users - above tweet details
+// Create comment modal
+// Add tweet details/comment to bookmarks
+// Pin tweet details/comment to your profile
+
 const TweetDetails = () => {
   const user = useSelector((state) => state.users.user);
   const { post, loading } = useSelector((state) => state.tweetDetails);
@@ -44,7 +50,7 @@ const TweetDetails = () => {
   const handleCreateTweet = async (e) => {
     e.preventDefault();
 
-    createComment(input, post, user, post.postType);
+    await createComment(input, post, user, post.postType);
     dispatch(fetchComments(post.id, post.postType));
 
     setInput("");

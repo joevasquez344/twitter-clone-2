@@ -11,6 +11,8 @@ import {
 } from "../utils/api/users";
 import Loader from "../components/Loader";
 
+// TODOs: 
+// Route back
 const FollowersAndFollowing = () => {
   const location = useLocation();
   const { username } = useParams();

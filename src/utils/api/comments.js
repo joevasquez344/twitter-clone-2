@@ -17,7 +17,6 @@ import {
 } from "firebase/firestore";
 import { auth } from "../../firebase/config";
 
-
 export const createComment = async (input, post, user, postType) => {
   const userData = {
     name: user.name,
@@ -35,6 +34,7 @@ export const createComment = async (input, post, user, postType) => {
       timestamp: serverTimestamp(),
       postType: "comment",
       avatar: "",
+      media: "",
       replyTo: doc(db, `/posts/${post.id}/`),
       replyToUsers: [...post.replyToUsers, { ...post }],
       userRef: doc(db, `/users/${user.id}/`),
@@ -55,6 +55,7 @@ export const createComment = async (input, post, user, postType) => {
       message: input,
       timestamp: serverTimestamp(),
       postType: "comment",
+      media: "",
       avatar: "",
       replyTo: doc(db, `/posts/${post.id}/`),
       replyToUsers: [{ ...post }],
@@ -69,4 +70,3 @@ export const createComment = async (input, post, user, postType) => {
     await batch.commit();
   }
 };
-

@@ -2,25 +2,21 @@ Look into <FlipMove> npm package for animating a post that is just getting place
 
 
 TODO:
-Profile Screen Sections 
 
-- Profile Info
-    - Fetch and display basic Info 
-
-- Followers and Following
-    - Fetch and display
-    - On click to open modal with list of users
-    - Follow/Unfollow user from list
-    - On click more options icon to open modal and block, share profile link
-
-- Feed 
-    -
-
-Dom Profile 
-
-- Dom's followers container Joe
-
-Joe's Profile 
-
-- Joe's following contains Dom and Dee
-- Joe's followers contains Dom
+- Dark Mode
+- Convert DB tweet posted time to Time Ago 
+- @ Feature
+- Finish Landing page
+- Fix Home page route on app mount after log in/register (seems to hit the / route instead of redirecting to /home)
+- Finish hover glow effects on tweets
+- Fix app overflow for clean scroll with no sidebars
+- Implement sticky headers across the app
+- Implement widgets api (Look back at youtube twitter clone course project)
+- Redesign to edit profile modal according to twitter
+- Fix pinned tweet display on Profile Page (Clickin unpin the first time doesn't unpin, only when you click a second time does it unpin)
+- Implement Mobile scaling
+- Implement Gif API Feature
+- implement routing to previous route on page header arrows
+- Implement ability to tweet an image
+- Media Feed on Profile Page
+- Display comments length on all Tweet Components across the app

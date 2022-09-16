@@ -9,6 +9,13 @@ import { getPosts, likePost, refreshPost } from "../redux/home/home.actions";
 import { pinPost, unpinPost } from "../utils/api/posts";
 import { getUserDetails } from "../utils/api/users";
 
+// TODOs: 
+// Fix fetch posts after post creation
+// Delete Post
+// Add/Remove Bookmark
+// Create Comment Modal (also implement @ feature)
+
+
 const Home = () => {
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
@@ -56,11 +63,11 @@ const Home = () => {
   }
 
   useEffect(() => {
-    const query = {
-      where: ["postType", "==", "tweet"],
-      orderBy: ["timestamp", "desc"],
-    };
-    dispatch(getPosts(query));
+    // const query = {
+    //   where: ["postType", "==", "tweet"],
+    //   orderBy: ["timestamp", "desc"],
+    // };
+    dispatch(getPosts(user));
     setLoading(false);
   }, []);
   return (

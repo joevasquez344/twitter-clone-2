@@ -20,11 +20,15 @@ import { addBookmark } from "../utils/api/posts";
 
 const Tweet = ({
   id,
+  fetchProfile,
   handleLikePost,
   handleRefreshPost,
   handleRefreshPosts,
   handlePinPost,
   handleUnpinPost,
+  handleDeletePost,
+  handleFollowPostUser,
+  handleUnfollowPostUser,
   isPinned,
   tabs,
   post: {
@@ -44,7 +48,7 @@ const Tweet = ({
   },
 }) => {
   const user = useSelector((state) => state.users.user);
-  const { profile } = useSelector((state) => state.profile);
+
   const [modal, setModal] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -55,107 +59,61 @@ const Tweet = ({
   const openModal = () => setModal(true);
   const closeModal = () => setModal(false);
 
-  const handleIsLiked = () => {
+  const postIsLiked = () => {
     const liked = likes?.find((like) => like.id === user.id);
 
     if (liked) setIsLiked(true);
     else setIsLiked(false);
   };
 
-  const followPostUser = async () => {
-    await followUser(uid, user.id);
-    handleRefreshPost(id);
+  const followTweetUser = async () => {
+    // await handleFollowPostUser(uid, user.id)
+    await followUser(uid, user.id)
+    // handleRefreshPost(id);
+    
+    fetchProfile();
     closeModal();
   };
-  const unfollowPostUser = async () => {
-    await unfollowUser(uid, user.id);
-    handleRefreshPost(id);
+
+  const unfollowTweetUser = async () => {
+    // await handleUnfollowPostUser(uid, user.id)
+    await unfollowUser(uid, user.id)
+    // handleRefreshPost(id);
+
+    fetchProfile();
     closeModal();
   };
 
   const pinPost = async () => {
     await handlePinPost(id);
-
-    // if (location.pathname !== `/home`) await handleRefreshPosts(profile.id);
-    // else await handleRefreshPosts();
-
     closeModal();
   };
+
   const unpinPost = async () => {
     await handleUnpinPost(id);
-
-    // if (location.pathname !== `/home`) await handleRefreshPosts(profile.id);
-    // else await handleRefreshPosts();
-
     closeModal();
   };
 
-  const handleIsFollowing = () => {
-    const match = followers?.find((follower) => follower.id === user.id);
+  const handleAddBookmark = async () => await addBookmark(id, user.id);
 
-    if (match) {
-      return (
-        <div
-          onClick={() => unfollowPostUser()}
-          className=" flex items-center rounded-md p-2 hover:bg-gray-100"
-        >
-          <UserRemoveIcon className="h-5 w-5 mr-3" /> Unfollow @{username}
-        </div>
-      );
-    } else {
-      return (
-        <div
-          onClick={() => followPostUser()}
-          className=" flex items-center rounded-md p-2 hover:bg-gray-100"
-        >
-          <UserAddIcon className="h-5 w-5 mr-3" /> Follow @{username}
-        </div>
-      );
-    }
-  };
-
-  const handlePinnedPostDisplay = () => {
-    if (!isPinned) {
-      return (
-        <div
-          onClick={pinPost}
-          className="flex items-center p-2 hover:bg-gray-100"
-        >
-          <LocationMarkerIcon className="h-5 w-5 mr-3" /> Pin to your profile
-        </div>
-      );
-    } else if (isPinned) {
-      return (
-        <div
-          onClick={unpinPost}
-          className="flex items-center p-2 hover:bg-gray-100"
-        >
-          <LocationMarkerIcon className="h-5 w-5 mr-3" /> Unpin to your profile
-        </div>
-      );
-    }
-    // if (profile.pinnedPost.id === id) {
-    //   if (profile.pinnedPost === null) {
-    //   } else {
-    //   }
-    // }
-  };
-
-  const handleTweetDetails = () =>
-    navigate(`/${name}/status/${id}`, { state: { id, type: "tweet" } });
-
+  const handleTweetDetails = () => navigate(`/${username}/status/${id}`);
   const handleUserDetails = (username) => navigate(`/${username}`);
 
-  const handleAddBookmark = async () => {
-    console.log("CLICKED");
-    await addBookmark(id, user.id);
-  };
-
   useEffect(() => {
-    handleIsLiked();
+    postIsLiked();
 
     setLoading(false);
   }, [likes?.length]);
+
+  const tweetsFeedActive =
+    tabs?.find((tab) => tab.isActive && tab.text === "Tweets") 
+    &&
+    location.pathname !== "/home";
+
+  const authUsersPost = user.id === uid;
+  const authUserIsFollowingPostUser = followers?.find(
+    (follower) => follower.id === user.id
+  );
 
   return (
     <>
@@ -182,9 +140,7 @@ const Tweet = ({
             )}
 
             <div className="ml-3 w-full ">
-              {isPinned &&
-              location.pathname !== "/home" &&
-              tabs.find((tab) => tab.isActive && tab.text === "Tweets") ? (
+              {isPinned && tweetsFeedActive ? (
                 <div className="absolute top-0 flex text-gray-500 font-semibold text-sm">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -202,7 +158,7 @@ const Tweet = ({
                 </div>
               ) : null}
 
-              <div className="flex justify-between relative">
+              <div className="flex justify-between items-center relative">
                 <div className="flex">
                   <div className="font-semibold mr-2">{name}</div>
                   <div className="text-gray-500">@{username}</div>
@@ -224,16 +180,57 @@ const Tweet = ({
                 >
                   <div>
                     {user.id === uid ? (
-                      <div className="flex items-center text-red-400 p-2 hover:bg-gray-100">
+                      <div
+                        onClick={() => handleDeletePost(id)}
+                        className="flex items-center text-red-400 p-2 hover:bg-gray-100"
+                      >
                         {" "}
                         <TrashIcon className="h-5 w-5 mr-3" /> Delete
                       </div>
                     ) : (
-                      <>{handleIsFollowing()}</>
+                      <>
+                        {authUserIsFollowingPostUser ? (
+                          <div
+                            onClick={unfollowTweetUser}
+                            className=" flex items-center rounded-md p-2 hover:bg-gray-100"
+                          >
+                            <UserRemoveIcon className="h-5 w-5 mr-3" /> Unfollow
+                            @{username}
+                          </div>
+                        ) : (
+                          <div
+                            onClick={followTweetUser}
+                            className=" flex items-center rounded-md p-2 hover:bg-gray-100"
+                          >
+                            <UserAddIcon className="h-5 w-5 mr-3" /> Follow @
+                            {username}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                   <div>
-                    {user.id === uid && handlePinnedPostDisplay(id, user.id)}
+                    {authUsersPost && (
+                      <div>
+                        {isPinned ? (
+                          <div
+                            onClick={pinPost}
+                            className="flex items-center p-2 hover:bg-gray-100"
+                          >
+                            <LocationMarkerIcon className="h-5 w-5 mr-3" /> Pin
+                            to your profile
+                          </div>
+                        ) : (
+                          <div
+                            onClick={unpinPost}
+                            className="flex items-center p-2 hover:bg-gray-100"
+                          >
+                            <LocationMarkerIcon className="h-5 w-5 mr-3" />{" "}
+                            Unpin to your profile
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div>
                     {user.id !== uid && (

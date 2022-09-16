@@ -7,7 +7,17 @@ import {
   getBookmarks,
   toggleLikePost,
   clearBookmarks,
+  deleteBookmark,
 } from "../utils/api/posts";
+
+import { db } from "../firebase/config";
+import {
+  collection,
+  writeBatch,
+  doc,
+  serverTimestamp,
+} from "firebase/firestore/lite";
+import { addDoc } from "firebase/firestore";
 import {
   ChatAlt2Icon,
   HeartIcon,
@@ -20,6 +30,10 @@ import {
   UserRemoveIcon,
   BanIcon,
   XIcon,
+  CalendarIcon,
+  EmojiHappyIcon,
+  PhotographIcon,
+  SearchCircleIcon,
 } from "@heroicons/react/outline";
 import {
   followUser,
@@ -27,6 +41,15 @@ import {
   unfollowUser,
 } from "../utils/api/users";
 import Loader from "../components/Loader";
+import CommentModal from "../components/CommentModal";
+import Comments from "../components/Comments";
+import { createComment } from "../utils/api/comments";
+
+
+// TODOs:   
+// Create Comment Modal
+// Delete Post
+// Add/Remove Bookmark
 
 const Bookmarks = () => {
   const [bookmarks, setBookmarks] = useState([]);
@@ -34,6 +57,8 @@ const Bookmarks = () => {
   const user = useSelector((state) => state.users.user);
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [input, setInput] = useState("");
+  const navigate = useNavigate();
 
   const fetchBookmarks = async () => {
     let bookmarks = await getBookmarks(user.id);
@@ -58,6 +83,8 @@ const Bookmarks = () => {
       }
 
       post.modal = false;
+      post.bookmarkModal = false;
+      post.commentModal = false;
 
       return post;
     });
@@ -143,15 +170,101 @@ const Bookmarks = () => {
     }
   };
 
-  const removeBookmark = async () => {};
+  const removeBookmark = async (postId) => {
+    await deleteBookmark(postId, user.id);
+
+    const updatedBookmarks = bookmarks.filter((post) => post.id !== postId);
+
+    setBookmarks(updatedBookmarks);
+  };
+
+  const handleBookmarkModal = (postId) => {
+    const updatedBookmarks = bookmarks.map((post) => {
+      post.modal = false;
+      post.bookmarkModal = false;
+      post.commentModal = false;
+      if (post.id === postId) {
+        post.bookmarkModal = true;
+      }
+
+      return post;
+    });
+
+    setBookmarks(updatedBookmarks);
+  };
+
+  const handleCloseBookmarkModal = (postId) => {
+    const updatedBookmarks = bookmarks.map((post) => {
+      post.modal = false;
+      post.bookmarkModal = false;
+      post.commentModal = false;
+      
+      if (post.id === postId) {
+        post.bookmarkModal = false;
+      }
+
+      return post;
+    });
+
+    setBookmarks(updatedBookmarks);
+  };
 
   const deletePost = async () => {};
 
-  const createComment = async () => {};
+  const handleOpenBookmarkModal = (postId) => {
+    const updatedBookmarks = bookmarks.map((post) => {
+      post.modal = false;
+      post.bookmarkModal = false;
+      post.commentModal = false;
+      if (post.id === postId) {
+        post.commentModal = true;
+      }
+
+      return post;
+    });
+
+    setBookmarks(updatedBookmarks);
+  };
+
+  const createPost = async (e, post) => {
+    e.preventDefault();
+
+
+
+    // const postData = {
+    //   uid: user.id,
+    //   userRef: doc(db, `users/${user.id}`),
+    //   name: user.name,
+    //   email: user.email,
+    //   username: user.username,
+    //   message: input,
+    //   media: "",
+    //   avatar: "",
+    //   timestamp: serverTimestamp(),
+    //   postType: "comment",
+    //   replyTo: doc(db, `posts/${post.id}`),
+    // };
+
+    // const ref = collection(db, `posts`);
+    // await addDoc(ref, postData);
+
+    await createComment(input, post, user, post.postType);
+
+
+    setInput("");
+
+    const rerender = true;
+
+    fetchBookmarks(rerender);
+  };
+
+  const handleInputChange = (e) => setInput(e.target.value);
 
   const openModal = (postId) => {
     const updatedBookmarks = bookmarks.map((post) => {
       post.modal = false;
+      post.bookmarkModal = false;
+      post.commentModal = false;
 
       if (post.id === postId) {
         post.modal = true;
@@ -165,6 +278,8 @@ const Bookmarks = () => {
   const closeModal = (postId) => {
     const updatedBookmarks = bookmarks.map((post) => {
       post.modal = false;
+      post.bookmarkModal = false;
+      post.commentModal = false;
       if (post.id === postId) {
         post.modal = false;
       }
@@ -175,8 +290,12 @@ const Bookmarks = () => {
     setBookmarks(updatedBookmarks);
   };
 
-  const routeTweetDetails = async () => {};
-  const routeUserDetails = async () => {};
+  const routeTweetDetails = async (postId) => {
+    navigate(`/${user.username}/status/${postId}`)
+  };
+  const routeUserDetails = async (username) => {
+    navigate(`/${username}`)
+  };
 
   useEffect(() => {
     fetchBookmarks();
@@ -206,11 +325,11 @@ const Bookmarks = () => {
               onClick={clearAllBookmarks}
               className={`${
                 modal
-                  ? "flex flex-col absolute right-0 top-0 bg-white shadow-lg rounded-lg z-50"
+                  ? "flex flex-col absolute right-3 top-3 bg-white shadow-lg border rounded-lg z-50 text-red-600 p-4 hover:bg-neutral-50 transition ease-in-out cursor-pointer duration-200"
                   : "hidden"
               }`}
             >
-              Clear All
+              Clear all Bookmarks
             </div>
           </div>
           {bookmarks.length > 0 ? (
@@ -222,25 +341,26 @@ const Bookmarks = () => {
               {bookmarks.map((post) => (
                 <div key={post.id} className={`${post.isPinned && "pt-2"}`}>
                   <div className="relative p-5 w-full flex hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200 border-b">
+                    {post.commentModal ? <CommentModal post={post} createPost={createPost} input={input} handleInputChange={handleInputChange} /> : null}
                     {post.avatar === "" ? (
                       // <UserCircleIcon className="h-16 w-16" />
 
                       <img
-                        // onClick={() => handleUserDetails(username)}
+                        onClick={() => routeUserDetails(post.username)}
                         className="h-12 w-12 rounded-full object-cover"
                         src="https://picsum.photos/200"
                         alt="Profile Image"
                       />
                     ) : (
                       <img
-                        // onClick={handleUserDetails}
+                      onClick={() => routeUserDetails(post.username)}
                         src={post.avatar}
                         alt="Profile Image"
                       />
                     )}
 
                     <div className="ml-3 w-full ">
-                      <div className="flex justify-between relative">
+                      <div className="flex justify-between items-center relative">
                         <div className="flex">
                           <div className="font-semibold mr-2">{post.name}</div>
                           <div className="text-gray-500">@{post.username}</div>
@@ -331,7 +451,7 @@ const Bookmarks = () => {
                       </div>
 
                       <div
-                        //  onClick={handleTweetDetails}
+                         onClick={() => routeTweetDetails(post.id)}
                         className="mb-4 "
                       >
                         {post.message}
@@ -342,10 +462,13 @@ const Bookmarks = () => {
        className="w-full h-100 rounded-xl mb-4"
        alt="Media Content"
      /> */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex cursor-pointer items-center space-x-3 text-gray-400">
+                      <div className="relative flex items-center justify-between">
+                        <div
+                          onClick={() => handleOpenBookmarkModal(post.id)}
+                          className="flex cursor-pointer items-center space-x-3 text-gray-400"
+                        >
                           <ChatAlt2Icon className="h-5 w-5" />
-                          <p className="text-sm">2</p>
+                          <p className="text-sm">{post.comments.length === 0 ? null : post.comments.length}</p>
                         </div>
                         <div className="flex cursor-pointer items-center space-x-3 text-gray-400">
                           <SwitchHorizontalIcon className={`h-5 w-5 `} />
@@ -372,10 +495,24 @@ const Bookmarks = () => {
                         </div>
                         <div
                           // onClick={handleAddBookmark}
+                          onClick={() => handleBookmarkModal(post.id)}
                           className="flex cursor-pointer items-center space-x-3 text-gray-400"
                         >
                           <UploadIcon className="h-5 w-5" />
                         </div>
+                        {post.bookmarkModal ? (
+                          <div className="absolute right-20 rounded-lg z-50 shadow-lg bg-white">
+                            <div className="p-2" onClick={() => removeBookmark(post.id)}>
+                              Remove bookmark
+                            </div>
+                            <div
+                              onClick={() => handleCloseBookmarkModal(post.id)}
+                              className="border-t p-2"
+                            >
+                              Close
+                            </div>
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   </div>

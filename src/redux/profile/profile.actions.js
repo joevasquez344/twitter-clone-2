@@ -27,6 +27,8 @@ import {
   GET_FOLLOWERS_SUCCESS,
   GET_FOLLOWING_SUCCESS,
   TOGGLE_LIKE_PIN_POST,
+  FOLLOW_POST_USER,
+  UNFOLLOW_POST_USER,
 } from "./profile.types";
 import {
   collection,
@@ -156,6 +158,8 @@ const getUsersLikedPosts = (profileId) => async (dispatch) => {
     }))
   );
 
+  console.log("Posties: ", posts);
+
   dispatch({
     type: GET_FEED_SUCCESS,
     payload: posts,
@@ -244,6 +248,7 @@ const unfollowProfile = (profileId, authId) => async (dispatch, getState) => {
 
   const { followers, following } = await unfollowUser(profileId, authId);
   console.log("Followers: ", followers);
+
   dispatch({
     type: UNFOLLOW_USER,
     payload: {
@@ -256,6 +261,77 @@ const unfollowProfile = (profileId, authId) => async (dispatch, getState) => {
   console.log("PROFILE: ", profile);
 
   return profile;
+};
+
+const followPostUser = (postUid, authId) => async (dispatch, getState) => {
+  const profile = getState().profile.profile;
+
+  if (profile.id === authId) {
+    await followUser(postUid, authId);
+
+    const following = await getProfileFollowing(authId)
+    const followers = profile.followers;
+
+    console.log('FOLLOWING: ', following)
+
+    
+    dispatch({
+      type: FOLLOW_USER,
+      payload: {
+        followers,
+        following,
+        postUid,
+        authId,
+      },
+    });
+  } else {
+    const { following, followers } = await followUser(postUid, authId);
+    dispatch({
+      type: FOLLOW_USER,
+      payload: {
+        followers,
+        following,
+        postUid,
+        authId,
+      },
+    });
+  }
+
+
+};
+const unfollowPostUser = (postUid, authId) => async (dispatch, getState) => {
+
+  const profile = getState().profile.profile;
+
+  if (profile.id === authId) {
+    await unfollowUser(postUid, authId);
+
+    const following = await getProfileFollowing(authId)
+    const followers = profile.followers;
+
+    console.log('FOLLOWING: ', following)
+    
+    dispatch({
+      type: UNFOLLOW_POST_USER,
+      payload: {
+        followers,
+        following,
+        postUid,
+        authId,
+      },
+    });
+  } else {
+    const { following, followers } = await unfollowUser(postUid, authId);
+    dispatch({
+      type: UNFOLLOW_POST_USER,
+      payload: {
+        followers,
+        following,
+        postUid,
+        authId,
+      },
+    });
+  }
 };
 
 const editProfile = (data, profileId) => async (dispatch) => {
@@ -330,6 +406,8 @@ export {
   deleteTweet,
   followProfile,
   unfollowProfile,
+  followPostUser,
+  unfollowPostUser,
   editProfile,
   refreshPost,
   getFollowers,

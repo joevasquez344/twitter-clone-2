@@ -13,11 +13,16 @@ import {
   writeBatch,
   doc,
   serverTimestamp,
+  getDocs,
+  query,
+  where,
+  orderBy,
 } from "firebase/firestore/lite";
 import { addDoc } from "firebase/firestore";
 import { getPosts } from "../redux/home/home.actions";
+import { getProfileFollowing } from "../utils/api/users";
 
-const TweetBox = ({setLoading}) => {
+const TweetBox = ({ setLoading, stateType }) => {
   const user = useSelector((state) => state.users.user);
   const [input, setInput] = useState("");
 
@@ -29,9 +34,8 @@ const TweetBox = ({setLoading}) => {
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
-
+    setInput("");
     setLoading(true);
-    
 
     const postData = {
       uid: user.id,
@@ -50,13 +54,9 @@ const TweetBox = ({setLoading}) => {
     const ref = collection(db, `posts`);
     await addDoc(ref, postData);
 
-
     await dispatch(getPosts(user));
 
     setLoading(false);
-
-
-    setInput("");
   };
 
   return (
@@ -93,7 +93,7 @@ const TweetBox = ({setLoading}) => {
                 input === "" ? "300" : "400"
               } py-2 px-4 rounded-full cursor-${
                 input === "" ? "default" : "pointer"
-              }`}
+              } ${input === "" ? "hidden" : "flex"}`}
             >
               Tweet
             </div>

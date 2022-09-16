@@ -40,7 +40,7 @@ const Sidebar = () => {
         <SidebarRow Icon={BookmarkIcon} title="Bookmarks" />
       </div>
 
-      <SidebarRow Icon={CollectionIcon} title="Lists" />
+      {/* <SidebarRow Icon={CollectionIcon} title="Lists" /> */}
       <div className="w-full" onClick={handleProfileNavigation}>
         <SidebarRow Icon={UserIcon} title="Profile" />
       </div>

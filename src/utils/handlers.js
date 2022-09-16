@@ -11,6 +11,16 @@ export const handleActiveTab = (tabId, tabs, profile, setTabs) => {
     setTabs(updatedTabs);
   };
 
+  export const handleAuthLayout = (profile, setIsFollowing, user) => {
+    const match = profile?.followers?.find((u) => u.id === user.id);
+
+    if (match) {
+      setIsFollowing(true);
+    } else {
+      setIsFollowing(false);
+    }
+  };
+
   export const handleProfileCreatedAt = (profile) => {
     const arr = profile?.createdAt.split(" ");
     const month = arr[2];

@@ -19,6 +19,8 @@ import {
   GET_FOLLOWING_SUCCESS,
   TOGGLE_LIKE_PIN_POST,
   GET_PINNED_POST,
+  FOLLOW_POST_USER,
+  UNFOLLOW_POST_USER,
 } from "./profile.types";
 
 const initialState = {
@@ -121,10 +123,10 @@ const profileReducer = (state = initialState, { type, payload }) => {
       };
     case DELETE_POST:
       const updatedPosts = state.feed.filter((post) => post.id !== payload);
-
       return {
         ...state,
         feed: updatedPosts,
+        pinnedPost: state.pinnedPost.id === payload ? {} : state.pinnedPost,
       };
     case FOLLOW_USER:
       return {
@@ -145,6 +147,59 @@ const profileReducer = (state = initialState, { type, payload }) => {
         },
       };
 
+    case FOLLOW_POST_USER:
+      if (state.profile?.id === payload.authId) {
+        return {
+          ...state,
+          profile: {
+            ...state.profile,
+            following: payload.following,
+          },
+        };
+      } else if (payload.postUid === state.profile.id) {
+        return {
+          ...state,
+          profile: {
+            ...state.profile,
+            followers: payload.followers,
+          },
+        };
+      } else {
+        return {
+          ...state,
+          profile: {
+            ...state.profile,
+            following: payload.following,
+          },
+        };
+      }
+
+    case UNFOLLOW_POST_USER:
+      if (state.profile?.id === payload.authId) {
+        return {
+          ...state,
+          profile: {
+            ...state.profile,
+            following: payload.following,
+          },
+        };
+      } else if (payload.postUid === state.profile.id) {
+        return {
+          ...state,
+          profile: {
+            ...state.profile,
+            followers: payload.followers,
+          },
+        };
+      } else {
+        return {
+          ...state,
+          profile: {
+            ...state.profile,
+            following: payload.following,
+          },
+        };
+      }
     case EDIT_USER:
       return {
         ...state,
