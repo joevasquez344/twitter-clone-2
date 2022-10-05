@@ -1,6 +1,8 @@
 import {
-  deletePost,
+  deletePostById,
+  fetchMediaPosts,
   fetchPosts,
+  getComments,
   getPostById,
   pinPost,
   toggleLikePost,
@@ -29,6 +31,7 @@ import {
   TOGGLE_LIKE_PIN_POST,
   FOLLOW_POST_USER,
   UNFOLLOW_POST_USER,
+  GET_MEDIA_POSTS,
 } from "./profile.types";
 import {
   collection,
@@ -94,6 +97,7 @@ const getPosts = (profileId) => async (dispatch) => {
       likes: await (
         await getDocs(collection(db, `posts/${doc.id}/likes`))
       ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+      comments: await getComments(doc.id),
       ...doc.data(),
     }))
   );
@@ -134,6 +138,19 @@ const getTweetsAndReplies = (profileId) => async (dispatch) => {
   });
 };
 
+const getMediaPosts = (profileId) => async (dispatch) => {
+  dispatch({
+    type: FEED_REQUEST_SENT,
+  });
+
+  const posts = await fetchMediaPosts(profileId);
+
+  dispatch({
+    type: GET_FEED_SUCCESS,
+    payload: posts,
+  });
+};
+
 const getUsersLikedPosts = (profileId) => async (dispatch) => {
   dispatch({
     type: FEED_REQUEST_SENT,
@@ -146,16 +163,19 @@ const getUsersLikedPosts = (profileId) => async (dispatch) => {
   );
 
   const posts = await Promise.all(
-    postDocs.map(async (doc) => ({
-      id: doc.id,
-      followers: await (
-        await getDocs(collection(db, `users/${doc.data().uid}/followers`))
-      ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-      likes: await (
-        await getDocs(collection(db, `posts/${doc.id}/likes`))
-      ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-      ...doc.data(),
-    }))
+    postDocs
+      .filter((post) => post._document !== null)
+      .map(async (doc) => ({
+        id: doc.id,
+        followers: await (
+          await getDocs(collection(db, `users/${doc.data().uid}/followers`))
+        ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+        likes: await (
+          await getDocs(collection(db, `posts/${doc.id}/likes`))
+        ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+        ...doc.data(),
+        comments: await getComments(doc.id),
+      }))
   );
 
   console.log("Posties: ", posts);
@@ -216,8 +236,8 @@ const removePinnedPost = (postId, authId) => async (dispatch) => {
   });
 };
 
-const deleteTweet = (postId, authId) => async (dispatch) => {
-  const tweetId = await deletePost(postId, authId);
+const deleteTweet = (postId, authId) => async (dispatch, getState) => {
+  const tweetId = await deletePostById(postId, authId);
 
   dispatch({
     type: DELETE_POST,
@@ -269,12 +289,11 @@ const followPostUser = (postUid, authId) => async (dispatch, getState) => {
   if (profile.id === authId) {
     await followUser(postUid, authId);
 
-    const following = await getProfileFollowing(authId)
+    const following = await getProfileFollowing(authId);
     const followers = profile.followers;
 
-    console.log('FOLLOWING: ', following)
+    console.log("FOLLOWING: ", following);
 
-    
     dispatch({
       type: FOLLOW_USER,
       payload: {
@@ -296,21 +315,18 @@ const followPostUser = (postUid, authId) => async (dispatch, getState) => {
       },
     });
   }
-
-
 };
 const unfollowPostUser = (postUid, authId) => async (dispatch, getState) => {
-
   const profile = getState().profile.profile;
 
   if (profile.id === authId) {
     await unfollowUser(postUid, authId);
 
-    const following = await getProfileFollowing(authId)
+    const following = await getProfileFollowing(authId);
     const followers = profile.followers;
 
-    console.log('FOLLOWING: ', following)
-    
+    console.log("FOLLOWING: ", following);
+
     dispatch({
       type: UNFOLLOW_POST_USER,
       payload: {
@@ -398,6 +414,7 @@ export {
   getPosts,
   getUsersLikedPosts,
   getTweetsAndReplies,
+  getMediaPosts,
   toggleLikeTweet,
   getPinnedPost,
   addPinnedPost,

@@ -28,3 +28,11 @@ export const handleActiveTab = (tabId, tabs, profile, setTabs) => {
 
     return `Joined ${month} ${year}`;
   };
+
+  export const handlePostIsLiked = (likes, setIsLiked, authUser) => {
+    const liked = likes?.find((like) => like.id === authUser.id);
+
+    if (liked) setIsLiked(true);
+    else setIsLiked(false);
+  };
+

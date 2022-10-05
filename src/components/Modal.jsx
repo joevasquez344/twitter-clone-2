@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { XIcon } from "@heroicons/react/outline";
 import { useSelector } from "react-redux";
-const Modal = ({ modal, closeModal, postType, tweet, children, header }) => {
+const Modal = ({  modal, modalType, closeModal, children, header }) => {
 
   return (
     <div>
@@ -9,7 +9,7 @@ const Modal = ({ modal, closeModal, postType, tweet, children, header }) => {
       <div
         className={`${
           modal
-            ? "absolute top-1/4 left-1/5 bg-white w-1/3 h-2/3 rounded-lg z-50 shadow-lg border-t"
+            ? "absolute top-1/4   bg-white w-full  rounded-lg z-50 shadow-lg border-t"
             : "hidden"
         }`}
       >
@@ -19,7 +19,7 @@ const Modal = ({ modal, closeModal, postType, tweet, children, header }) => {
           </div>
           <div className="font-bold text-lg">{header}</div>
         </div>
-        <div className="overflow-scroll overflow-y-hidden overflow-x-hidden">
+        <div className="overflow-scroll bg-white overflow-y-hidden overflow-x-hidden">
           {children}
         </div>
       </div>

@@ -1,26 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-
-// import { getTweets, getTweetsAndReplies, getLikedPosts } from "./helpers";
-
-import Tweet from "../../components/Tweet";
-import Tweet2 from "../../components/Tweet2";
-
+import Tweet2 from "../../components/Tweet/Tweet2";
 import Modal from "../../components/Modal";
-
 import { handleActiveTab, handleAuthLayout } from "../../utils/handlers";
-
-import { db } from "../../firebase/config";
-import { getDocs, orderBy, where } from "firebase/firestore";
-
-import Feed2 from "../../components/Feed2";
 import {
   getPosts,
   getUsersLikedPosts,
   getTweetsAndReplies,
-  followProfile,
-  unfollowProfile,
   editProfile,
   refreshPost,
   toggleLikeTweet,
@@ -30,43 +17,42 @@ import {
   toggleLikePinPost,
   getPinnedPost,
   deleteTweet,
-  followPostUser,
-  unfollowPostUser,
+  getMediaPosts,
 } from "../../redux/profile/profile.actions";
-import { getUserDetails } from "../../utils/api/users";
+import {
+  followUser,
+  getUserDetails,
+  unfollowUser,
+} from "../../utils/api/users";
 import ProfileFollowButton from "./ProfileFollowButton";
 import ProfileTabs from "./ProfileTabs";
 import Loader from "../../components/Loader";
 import ProfileInfo from "./ProfileInfo";
+import CommentModal from "../../components/CommentModal";
+import { createComment } from "../../utils/api/comments";
+import { getUsersPostsCount } from "../../utils/api/posts";
 
 const Profile = () => {
   const params = useParams();
-  const navigate = useNavigate();
   const dispatch = useDispatch();
+
   const user = useSelector((state) => state.users.user);
   const { profile, feed, profileLoading, feedLoading, pinnedPost } =
     useSelector((state) => state.profile);
-  // const [feedLoading, setFeedLoading] = useState(true);
+  const { name, bio, location, birthday } = useSelector(
+    (state) => state.profile.profile
+  );
 
-  const {
-    username,
-    name,
-    bio,
-    avatar,
-    location,
-    following,
-    followers,
-    createdAt,
-    birthday,
-    id,
-  } = useSelector((state) => state.profile.profile);
-
+  const [profilePostsCount, setProfilePostsCount] = useState(null);
+  const [commentDisplay, setCommentDisplay] = useState({});
+  const [commentModal, setCommentModal] = useState(false);
   const [birthdayInput, setBirthdayInput] = useState("");
   const [bioInput, setBioInput] = useState("");
   const [locationInput, setLocationInput] = useState("");
   const [nameInput, setNameInput] = useState("");
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [input, setInput] = useState("");
 
+  const [isFollowing, setIsFollowing] = useState(false);
   const [modal, setModal] = useState(false);
   const [tabs, setTabs] = useState([
     {
@@ -85,7 +71,7 @@ const Profile = () => {
       id: 3,
       text: "Media",
       isActive: false,
-      fetchData: (profile) => handleGetPosts(profile),
+      fetchData: (profile) => handleGetMediaPosts(profile),
     },
     {
       id: 4,
@@ -95,42 +81,24 @@ const Profile = () => {
     },
   ]);
 
+  const handleOpenCommentModal = (post) => {
+    setCommentModal(true);
+    setCommentDisplay(post);
+  };
+
+  const handleCloseCommentModal = (post) => {
+    setCommentModal(false);
+  };
+
+  const handleInputChange = (e) => setInput(e.target.value);
+  const handleBirthdayChange = (e) => setBirthdayInput(e.target.value);
+  const handleBioChange = (e) => setBioInput(e.target.value);
+  const handleNameChange = (e) => setNameInput(e.target.value);
+  const handleLocationChange = (e) => setLocationInput(e.target.value);
+
   const handleTabs = (tabId) => handleActiveTab(tabId, tabs, profile, setTabs);
 
-  const handleLikePost = (id) => dispatch(toggleLikeTweet(id));
-
-  const handleRefreshPost = (postId) => dispatch(refreshPost(postId));
-
-  const handleGetPosts = async (profile) => {
-    const user = await getUserDetails(profile.username);
-
-    dispatch(getPinnedPost(user.pinnedPost?.id));
-    dispatch(getPosts(profile.id));
-  };
-
-  const handleGetTweetsAndReplies = (profile) =>
-    dispatch(getTweetsAndReplies(profile.id));
-
-  const handleGetLikedPosts = (profile) =>
-    dispatch(getUsersLikedPosts(profile.id));
-
-  const handlePinPost = (postId) => {
-    const currentActiveTab = tabs.find((tab) => tab.isActive);
-    dispatch(addPinnedPost(postId, user.id));
-    currentActiveTab.fetchData(profile);
-  };
-
-  const handleUnpinPost = (postId) => {
-    const currentActiveTab = tabs.find((tab) => tab.isActive);
-
-    dispatch(removePinnedPost(postId, user.id));
-
-    currentActiveTab.fetchData(profile);
-  };
-
-  const handleToggleLikePinPost = (postId) =>
-    dispatch(toggleLikePinPost(postId));
-
+  const closeModal = () => setModal(false);
   const openModal = () => {
     setModal(true);
 
@@ -139,41 +107,13 @@ const Profile = () => {
     setNameInput(name);
     setLocationInput(location);
   };
-  const closeModal = () => setModal(false);
-
-  const handleBirthdayChange = (e) => setBirthdayInput(e.target.value);
-  const handleBioChange = (e) => setBioInput(e.target.value);
-  const handleNameChange = (e) => setNameInput(e.target.value);
-  const handleLocationChange = (e) => setLocationInput(e.target.value);
-
-  const handleEditProfile = (e) => {
-    e.preventDefault();
-
-    const updatedProfile = {
-      name: nameInput,
-      location: locationInput,
-      birthday: birthdayInput,
-      bio: bioInput,
-    };
-
-    dispatch(editProfile(updatedProfile, profile.id));
-
-    closeModal();
-  };
-
-  const handleDeletePost = (postId) => {
-    dispatch(deleteTweet(postId, user.id));
-  };
-
-  const handleFollowPostUser = (uid, authId) => {
-    dispatch(followPostUser(uid, authId));
-  };
-  const handleUnfollowPostUser = (uid, authId) => {
-    dispatch(unfollowPostUser(uid, authId));
-  };
 
   const fetchProfile = async () => {
     const profile = await dispatch(getProfile(params.username));
+
+    const postsCount = await getUsersPostsCount(profile.id);
+
+    setProfilePostsCount(postsCount);
 
     setBioInput(profile.bio);
     setLocationInput(profile.location);
@@ -192,8 +132,88 @@ const Profile = () => {
 
     setTabs(updatedTabs);
 
-    dispatch(getPinnedPost(profile.pinnedPost?.id));
+    if (profile.pinnedPost.id) {
+      dispatch(getPinnedPost(profile.pinnedPost?.id));
+    }
+
     dispatch(getPosts(profile.id));
+  };
+
+  const handleRefreshPost = (postId) => dispatch(refreshPost(postId));
+
+  const handleGetPosts = async (profile) => {
+    const user = await getUserDetails(profile.username);
+    dispatch(getPinnedPost(user.pinnedPost?.id));
+    dispatch(getPosts(profile.id));
+  };
+
+  const handleGetTweetsAndReplies = (profile) =>
+    dispatch(getTweetsAndReplies(profile.id));
+
+  const handleGetMediaPosts = (profile) => dispatch(getMediaPosts(profile.id));
+
+  const handleGetLikedPosts = (profile) =>
+    dispatch(getUsersLikedPosts(profile.id));
+
+  const handleLikePost = (id) => dispatch(toggleLikeTweet(id));
+
+  const handlePinPost = (postId) => dispatch(addPinnedPost(postId, user.id));
+
+  const handleUnpinPost = (postId) =>
+    dispatch(removePinnedPost(postId, user.id));
+
+  const handleToggleLikePinPost = (postId) =>
+    dispatch(toggleLikePinPost(postId));
+
+  const handleDeletePost = async (postId) => {
+    dispatch(deleteTweet(postId, user.id));
+
+    setProfilePostsCount(profilePostsCount - 1);
+  };
+
+  const handleToggleFollow = async (post) => {
+    const authUsersPost = post.uid === user.id;
+
+    if (!authUsersPost) {
+      const authIsFollowing = post.followers.find((u) => u.id === user.id);
+
+      if (authIsFollowing) {
+        await unfollowUser(post.uid, user.id);
+
+        fetchProfile();
+      } else {
+        await followUser(post.uid, user.id);
+
+        fetchProfile();
+      }
+    }
+
+    fetchProfile();
+    closeModal();
+  };
+
+  const createPost = async (e, post) => {
+    e.preventDefault();
+
+    handleCloseCommentModal();
+    await createComment(input, post, user, post.postType);
+    setInput("");
+    fetchProfile();
+  };
+
+  const handleEditProfile = (e) => {
+    e.preventDefault();
+
+    const updatedProfile = {
+      name: nameInput,
+      location: locationInput,
+      birthday: birthdayInput,
+      bio: bioInput,
+    };
+    dispatch(editProfile(updatedProfile, profile.id));
+    dispatch(getPosts(profile.id));
+
+    closeModal();
   };
 
   useEffect(() => {
@@ -230,69 +250,88 @@ const Profile = () => {
         </div>
       ) : (
         <>
-          <Modal modal={modal} closeModal={closeModal} header="Edit Profile">
-            <form onSubmit={handleEditProfile} className="flex flex-col p-4">
-              <input
-                onChange={handleNameChange}
-                value={nameInput}
-                type="text"
-                placeholder={name || "Name"}
-                className="border mb-6 p-3 rounded-md"
-              />
-              <input
-                onChange={handleBirthdayChange}
-                value={birthdayInput}
-                type="date"
-                className="border mb-6 p-3 rounded-md"
-              />
-              <input
-                onChange={handleBioChange}
-                value={bioInput}
-                type="text"
-                placeholder={bio || "Bio"}
-                className="border mb-6 p-3 rounded-md"
-              />
-              <input
-                onChange={handleLocationChange}
-                value={locationInput}
-                type="text"
-                placeholder={location ? location : "Location"}
-                className="border mb-6 p-3 rounded-md"
-              />
+          <div className="relative">
+            <Modal modal={modal} closeModal={closeModal} header="Edit Profile">
+              <form onSubmit={handleEditProfile} className="flex flex-col p-4">
+                <input
+                  onChange={handleNameChange}
+                  value={nameInput}
+                  type="text"
+                  placeholder={name || "Name"}
+                  className="border mb-6 p-3 rounded-md"
+                />
+                <input
+                  onChange={handleBirthdayChange}
+                  value={birthdayInput}
+                  type="date"
+                  className="border mb-6 p-3 rounded-md"
+                />
+                <input
+                  onChange={handleBioChange}
+                  value={bioInput}
+                  type="text"
+                  placeholder={bio || "Bio"}
+                  className="border mb-6 p-3 rounded-md"
+                />
+                <input
+                  onChange={handleLocationChange}
+                  value={locationInput}
+                  type="text"
+                  placeholder={location ? location : "Location"}
+                  className="border mb-6 p-3 rounded-md"
+                />
 
-              <button onClick={handleEditProfile}>Submit</button>
-            </form>
-          </Modal>
-          <div className="relative mb-20">
-            <img
-              className="w-full h-60"
-              src="https://picsum.photos/200"
-              alt=""
-            />
-            <div className="absolute bg-white z-40 -bottom-16 left-5 rounded-full p-1">
+                <button onClick={handleEditProfile}>Submit</button>
+              </form>
+            </Modal>
+            <div className="z-50 sticky top-0 bg-white px-5 py-2 flex justify-between items-center">
+              <div>
+                <div className="text-xl font-bold">{profile.name}</div>
+                <div className="text-sm text-gray-500">
+                  {profilePostsCount} Tweets
+                </div>
+              </div>
+            </div>
+            <div className="relative mb-20">
               <img
-                className="rounded-full h-32 w-32"
+                className="w-full h-60"
                 src="https://picsum.photos/200"
                 alt=""
               />
+              <div className="absolute bg-white z-40 -bottom-16 left-5 rounded-full p-1">
+                <img
+                  className="rounded-full h-32 w-32"
+                  src="https://picsum.photos/200"
+                  alt=""
+                />
+              </div>
+
+              <ProfileFollowButton
+                openModal={openModal}
+                fetchProfile={fetchProfile}
+                isFollowing={isFollowing}
+                setIsFollowing={setIsFollowing}
+              />
             </div>
 
-            <ProfileFollowButton
-              openModal={openModal}
-              fetchProfile={fetchProfile}
-              isFollowing={isFollowing}
-              setIsFollowing={setIsFollowing}
-            />
+            <ProfileInfo />
+
+            <ProfileTabs tabs={tabs} handleTabs={handleTabs} />
           </div>
-
-          <ProfileInfo />
-
-          <ProfileTabs tabs={tabs} handleTabs={handleTabs} />
 
           {feedLoading ? (
             <Loader />
           ) : (
-            <>
+            <div className="relative">
+              {commentModal ? (
+                <CommentModal
+                  post={commentDisplay}
+                  createPost={createPost}
+                  input={input}
+                  handleInputChange={handleInputChange}
+                  handleCloseCommentModal={handleCloseCommentModal}
+                />
+              ) : null}
               <div>
                 {pinnedPost?.id &&
                 pinnedPost?.uid === profile?.id &&
@@ -307,8 +346,8 @@ const Profile = () => {
                     handleRefreshPost={handleRefreshPost}
                     handlePinPost={handlePinPost}
                     handleUnpinPost={handleUnpinPost}
-                    handleUnfollowPostUser={handleUnfollowPostUser}
-                    handleFollowPostUser={handleFollowPostUser}
+                    handleFollowUser={handleToggleFollow}
+                    handleDeletePost={handleDeletePost}
                     tabs={tabs}
                   />
                 ) : null}
@@ -328,8 +367,8 @@ const Profile = () => {
                         handlePinPost={handlePinPost}
                         handleUnpinPost={handleUnpinPost}
                         handleDeletePost={handleDeletePost}
-                        handleUnfollowPostUser={handleUnfollowPostUser}
-                        handleFollowPostUser={handleFollowPostUser}
+                        handleFollowUser={handleToggleFollow}
+                        handleOpenCommentModal={handleOpenCommentModal}
                         tabs={tabs}
                       />
                     ))
@@ -345,12 +384,12 @@ const Profile = () => {
                       handlePinPost={handlePinPost}
                       handleUnpinPost={handleUnpinPost}
                       handleDeletePost={handleDeletePost}
-                      handleUnfollowPostUser={handleUnfollowPostUser}
-                      handleFollowPostUser={handleFollowPostUser}
+                      handleFollowUser={handleToggleFollow}
+                      handleOpenCommentModal={handleOpenCommentModal}
                       tabs={tabs}
                     />
                   ))}
-            </>
+            </div>
           )}
         </>
       )}

@@ -7,7 +7,7 @@ import {Provider} from 'react-redux';
 import {createStore} from "./redux/store";
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Landing from "./pages/Landing";
+import Landing from "./pages/Landing/Landing";
 
 import {
   ReactReduxFirebaseProvider,

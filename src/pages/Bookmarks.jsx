@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import Tweet from "../components/Tweet2";
+import Tweet from "../components/Tweet/Tweet2";
 import cageImage from "../images/cage.png";
 import {
   getBookmarks,
   toggleLikePost,
   clearBookmarks,
   deleteBookmark,
+  deletePostById,
 } from "../utils/api/posts";
 
 import { db } from "../firebase/config";
@@ -44,12 +45,7 @@ import Loader from "../components/Loader";
 import CommentModal from "../components/CommentModal";
 import Comments from "../components/Comments";
 import { createComment } from "../utils/api/comments";
-
-
-// TODOs:   
-// Create Comment Modal
-// Delete Post
-// Add/Remove Bookmark
+import { removeDuplicateUsernames } from "../utils/helpers";
 
 const Bookmarks = () => {
   const [bookmarks, setBookmarks] = useState([]);
@@ -198,7 +194,7 @@ const Bookmarks = () => {
       post.modal = false;
       post.bookmarkModal = false;
       post.commentModal = false;
-      
+
       if (post.id === postId) {
         post.bookmarkModal = false;
       }
@@ -208,8 +204,35 @@ const Bookmarks = () => {
 
     setBookmarks(updatedBookmarks);
   };
+  const handleCloseCommentModal = (postId) => {
+    const updatedBookmarks = bookmarks.map((post) => {
+      post.modal = false;
+      post.bookmarkModal = false;
+      post.commentModal = false;
 
-  const deletePost = async () => {};
+      if (post.id === postId) {
+        post.commentModal = false;
+      }
+
+      return post;
+    });
+
+    setBookmarks(updatedBookmarks);
+  };
+
+  const handleDeletePost = async (postId) => {
+    const id = await deletePostById(postId, user.id);
+
+    const deletedPost = bookmarks.find((post) => post.id === id);
+
+    if (deletedPost) {
+      const updatedBookmarks = bookmarks.filter(
+        (post) => post.id !== deletedPost.id
+      );
+
+      setBookmarks(updatedBookmarks);
+    }
+  };
 
   const handleOpenBookmarkModal = (postId) => {
     const updatedBookmarks = bookmarks.map((post) => {
@@ -229,8 +252,6 @@ const Bookmarks = () => {
   const createPost = async (e, post) => {
     e.preventDefault();
 
-
-
     // const postData = {
     //   uid: user.id,
     //   userRef: doc(db, `users/${user.id}`),
@@ -249,7 +270,6 @@ const Bookmarks = () => {
     // await addDoc(ref, postData);
 
     await createComment(input, post, user, post.postType);
-
 
     setInput("");
 
@@ -291,10 +311,10 @@ const Bookmarks = () => {
   };
 
   const routeTweetDetails = async (postId) => {
-    navigate(`/${user.username}/status/${postId}`)
+    navigate(`/${user.username}/status/${postId}`);
   };
   const routeUserDetails = async (username) => {
-    navigate(`/${username}`)
+    navigate(`/${username}`);
   };
 
   useEffect(() => {
@@ -308,19 +328,21 @@ const Bookmarks = () => {
         <Loader />
       ) : (
         <div className="relative">
-          <div className="relative px-5 py-2 flex justify-between items-center">
+          <div className="z-50 sticky top-0 bg-white px-5 py-2 flex justify-between items-center">
             <div>
               <div className="text-xl font-bold">Bookmarks</div>
               <div className="text-sm text-gray-500">@{user.username}</div>
             </div>
-            {bookmarks.length > 0 && (
-              <div
-                onClick={() => setModal(true)}
-                className="w-9 h-9 flex group items-center justify-center rounded-full hover:bg-blue-100 transition ease-in-out cursor-pointer duration-200"
-              >
-                <DotsHorizontalIcon className="h-5 w-5 text-gray-500 group-hover:text-blue-400 transition ease-in-out duration-200" />
-              </div>
-            )}
+            <div className="relative py-2 flex justify-between items-center">
+              {bookmarks.length > 0 && (
+                <div
+                  onClick={() => setModal(true)}
+                  className="w-9 h-9 flex group items-center justify-center rounded-full hover:bg-blue-100 transition ease-in-out cursor-pointer duration-200"
+                >
+                  <DotsHorizontalIcon className="h-5 w-5 text-gray-500 group-hover:text-blue-400 transition ease-in-out duration-200" />
+                </div>
+              )}
+            </div>
             <div
               onClick={clearAllBookmarks}
               className={`${
@@ -332,6 +354,7 @@ const Bookmarks = () => {
               Clear all Bookmarks
             </div>
           </div>
+
           {bookmarks.length > 0 ? (
             <div className="relative">
               <div className="absolute z-10 w-44 bottom-0 left-2/3 text-white bg-blue-500 rounded transition ease-in-out duration-200">
@@ -341,7 +364,15 @@ const Bookmarks = () => {
               {bookmarks.map((post) => (
                 <div key={post.id} className={`${post.isPinned && "pt-2"}`}>
                   <div className="relative p-5 w-full flex hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200 border-b">
-                    {post.commentModal ? <CommentModal post={post} createPost={createPost} input={input} handleInputChange={handleInputChange} /> : null}
+                    {post.commentModal ? (
+                      <CommentModal
+                        post={post}
+                        createPost={createPost}
+                        input={input}
+                        handleInputChange={handleInputChange}
+                        handleCloseCommentModal={handleCloseCommentModal}
+                      />
+                    ) : null}
                     {post.avatar === "" ? (
                       // <UserCircleIcon className="h-16 w-16" />
 
@@ -353,7 +384,7 @@ const Bookmarks = () => {
                       />
                     ) : (
                       <img
-                      onClick={() => routeUserDetails(post.username)}
+                        onClick={() => routeUserDetails(post.username)}
                         src={post.avatar}
                         alt="Profile Image"
                       />
@@ -382,7 +413,10 @@ const Bookmarks = () => {
                         >
                           <div>
                             {user.id === post.uid ? (
-                              <div className="flex items-center text-red-400 p-2 hover:bg-gray-100">
+                              <div
+                                onClick={() => handleDeletePost(post.id)}
+                                className="flex items-center text-red-400 p-2 hover:bg-gray-100"
+                              >
                                 {" "}
                                 <TrashIcon className="h-5 w-5 mr-3" /> Delete
                               </div>
@@ -435,27 +469,36 @@ const Bookmarks = () => {
                         ) : null}
                         <div className="flex items-center">
                           {" "}
-                          {post.replyToUsers?.map((user) => (
-                            <div className="tweet__userWhoReplied flex items-center text-blue-500">
-                              <div
-                                // onClick={() => handleUserDetails(user.username)}
-                                className="mr-1 hover:underline"
-                                key={user.username}
-                              >
-                                @{user?.username}
-                              </div>{" "}
-                              <div className="username mr-1">and</div>
-                            </div>
-                          ))}
+                          {removeDuplicateUsernames(post.replyToUsers).map(
+                            (user) => (
+                              <div className="tweet__userWhoReplied flex items-center text-blue-500">
+                                <div
+                                  // onClick={() => handleUserDetails(user.username)}
+                                  className="mr-1 hover:underline"
+                                  key={user.username}
+                                >
+                                  @{user?.username}
+                                </div>{" "}
+                                <div className="username mr-1">and</div>
+                              </div>
+                            )
+                          )}
                         </div>
                       </div>
 
                       <div
-                         onClick={() => routeTweetDetails(post.id)}
+                        onClick={() => routeTweetDetails(post.id)}
                         className="mb-4 "
                       >
                         {post.message}
                       </div>
+                      {post.media !== "" ? (
+                        <img
+                          src={post.media}
+                          alt=""
+                          className="m-5 w-full ml-0 mb-1 rounded-lg object-cover shadow-sm"
+                        />
+                      ) : null}
                       {/* 
      <img
        src="https://picsum.photos/200"
@@ -468,7 +511,11 @@ const Bookmarks = () => {
                           className="flex cursor-pointer items-center space-x-3 text-gray-400"
                         >
                           <ChatAlt2Icon className="h-5 w-5" />
-                          <p className="text-sm">{post.comments.length === 0 ? null : post.comments.length}</p>
+                          <p className="text-sm">
+                            {post.comments.length === 0
+                              ? null
+                              : post.comments.length}
+                          </p>
                         </div>
                         <div className="flex cursor-pointer items-center space-x-3 text-gray-400">
                           <SwitchHorizontalIcon className={`h-5 w-5 `} />
@@ -502,7 +549,10 @@ const Bookmarks = () => {
                         </div>
                         {post.bookmarkModal ? (
                           <div className="absolute right-20 rounded-lg z-50 shadow-lg bg-white">
-                            <div className="p-2" onClick={() => removeBookmark(post.id)}>
+                            <div
+                              className="p-2"
+                              onClick={() => removeBookmark(post.id)}
+                            >
                               Remove bookmark
                             </div>
                             <div

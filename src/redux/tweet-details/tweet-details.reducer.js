@@ -15,6 +15,9 @@ import {
   LIKE_COMMENT_DETAILS,
   LIKE_TWEET_DETAILS,
   LIKE_REPLIED_TO_POST,
+  DELETE_COMMENT,
+  DELETE_REPLIED_TO_POST,
+  GET_THREAD_POSTS,
 } from "./tweet-details.types";
 
 const initialState = {
@@ -41,11 +44,10 @@ const tweetDetailsReducer = (state = initialState, { type, payload }) => {
       };
 
     case TWEET_DETAILS_SUCCESS:
-
       return {
         ...state,
-        post: payload,
-        repliedToPosts: payload.replyToUsers,
+        post: payload.postDetails,
+        repliedToPosts: payload.posts,
         loading: false,
       };
     case LIKE_TWEET_DETAILS:
@@ -82,7 +84,7 @@ const tweetDetailsReducer = (state = initialState, { type, payload }) => {
         ...state,
         comments: updatedComments,
       };
-      case LIKE_REPLIED_TO_POST: 
+    case LIKE_REPLIED_TO_POST:
       const updatedPosts = state.repliedToPosts.map((post) => {
         if (post.id === payload.postId) {
           post.likes = payload.likes;
@@ -91,8 +93,30 @@ const tweetDetailsReducer = (state = initialState, { type, payload }) => {
       });
       return {
         ...state,
-        repliedToPosts: updatedPosts
-      }
+        repliedToPosts: updatedPosts,
+      };
+
+    case DELETE_COMMENT:
+      const updatedTweets = state.comments.filter(
+        (comment) => comment.id !== payload
+      );
+      return {
+        ...state,
+        comments: updatedTweets,
+      };
+    case DELETE_REPLIED_TO_POST:
+      return {
+        ...state,
+        repliedToPosts: state.repliedToPosts.filter(
+          (post) => post.id !== payload
+        ),
+      };
+
+    case GET_THREAD_POSTS:
+      return {
+        ...state,
+        repliedToPosts: payload.posts,
+      };
 
     default:
       return state;

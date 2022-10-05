@@ -1,6 +1,6 @@
 import {Route} from 'react-router-dom'
 
-import Landing from './pages/Landing';
+import Landing from './pages/Landing/Landing';
 import Home from "./pages/Home";
 import TweetDetails from "./pages/TweetDetails";
 import Profile from "./pages/Profile/Profile";

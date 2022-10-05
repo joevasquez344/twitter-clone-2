@@ -24,29 +24,31 @@ const Sidebar = () => {
   const handleLogout = () => dispatch(logout());
 
   return (
-    <div className="flex flex-col items-center md:items-start">
+    <div className="flex flex-col items-center fixed md:items-start lg:items-start">
       <img
         className="m-3 h-10 w-10"
         src="https://links.papareact.com/drq"
         alt=""
       />
-      <div onClick={handleHomeNavigation} className="w-full">
+      <div onClick={handleHomeNavigation} className="w-full flex justify-center md:justify-start">
         <SidebarRow Icon={HomeIcon} title="Home" />
       </div>
       {/* <SidebarRow Icon={HashtagIcon} title="Explore" />
       <SidebarRow Icon={BellIcon} title="Notifications" />
       <SidebarRow Icon={MailIcon} title="Messages" /> */}
-      <div className="w-full" onClick={handleBookmarksNavigation}>
+      <div className="w-full flex justify-center md:justify-start" onClick={handleBookmarksNavigation}>
         <SidebarRow Icon={BookmarkIcon} title="Bookmarks" />
       </div>
 
       {/* <SidebarRow Icon={CollectionIcon} title="Lists" /> */}
-      <div className="w-full" onClick={handleProfileNavigation}>
+      <div className="w-full flex justify-center md:justify-start" onClick={handleProfileNavigation}>
         <SidebarRow Icon={UserIcon} title="Profile" />
       </div>
-      <SidebarRow Icon={ColorSwatchIcon} title="Display" />
+      <div className="w-full flex justify-center md:justify-start">
+        <SidebarRow Icon={ColorSwatchIcon} title="Display" />
+      </div>
 
-      <div className="w-full" onClick={handleLogout}>
+      <div className="w-full flex justify-center md:justify-start" onClick={handleLogout}>
         <SidebarRow Icon={UserIcon} title="Sign Out" />
       </div>
     </div>

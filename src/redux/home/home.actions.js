@@ -9,62 +9,60 @@ import {
   getDoc,
 } from "firebase/firestore/lite";
 import { db } from "../../firebase/config";
-import { fetchPosts, getComments, getPostById, toggleLikePost } from "../../utils/api/posts";
-import { getProfileFollowing } from "../../utils/api/users";
-import { GET_POSTS, REFRESH_POST, TOGGLE_LIKE_POST } from "./home.types";
+import {
+  fetchPosts,
+  getComments,
+  getPostById,
+  toggleLikePost,
+  deletePostById,
+  addBookmark,
+  getBookmarks,
+} from "../../utils/api/posts";
+import {
+  followUser,
+  getProfileFollowing,
+  getUserDetails,
+  unfollowUser,
+} from "../../utils/api/users";
+import { DELETE_POST } from "../profile/profile.types";
+import {
+  CREATE_BOOKMARK,
+  DELETE_BOOKMARK,
+  FOLLOW_USER,
+  GET_POSTS,
+  REFRESH_POST,
+  TOGGLE_LIKE_POST,
+  UNFOLLOW_USER,
+} from "./home.types";
 
 const getPosts = (user) => async (dispatch) => {
-
-     const query = {
-      where: null,
-      orderBy: ["timestamp", "desc"],
-    };
+  const query = {
+    where: null,
+    orderBy: ["timestamp", "desc"],
+  };
   const posts = await fetchPosts(query);
- 
-  // const following = await getProfileFollowing(user.id);
+  const authUser = await getUserDetails(user.username);
+  console.log("user: ", user);
+  console.log("authUser: ", authUser);
 
-  // let uids = following.map((profile) => profile.id);
+  posts.map((post) => {
+    if (post.uid === user.id) {
+      if (authUser.pinnedPost.id && post.id === authUser.pinnedPost?.id) {
+        post.pinnedPost = true;
+      } else {
+        post.pinnedPost = false;
+      }
+    }
 
-  // const postIds = await Promise.all(
-  //   uids.map(
-  //     async (id) =>
-  //       await getDocs(
-  //         query(
-  //           collection(db, `posts`),
-  //           where("uid", "==", id),
-  //           // where("userRef", "==", userRef),
-  //           orderBy("timestamp", "desc")
-  //         )
-  //       )
-  //   )
-  // );
-
-  // let ids = [];
-  // postIds.forEach((doc) => doc.docs.map((post) => ids.push(post.id)));
-
-  // let posts = await Promise.all(
-  //   ids.map(async (id) => await getDoc(doc(db, `posts/${id}`)))
-  // );
-
-  // const newPosts = await Promise.all(
-  //   posts.map(async (doc) => ({
-  //     id: doc.id,
-  //     followers: await (
-  //       await getDocs(collection(db, `users/${doc.data().uid}/followers`))
-  //     ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-  //     likes: await (
-  //       await getDocs(collection(db, `posts/${doc.id}/likes`))
-  //     ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-  //     comments: await getComments(doc.id),
-
-  //     ...doc.data(),
-  //   }))
-  // );
+    return post;
+  });
 
   dispatch({
     type: GET_POSTS,
     payload: posts,
   });
+
+  return posts;
 };
 
 const refreshPost = (postId) => async (dispatch) => {
@@ -88,4 +86,54 @@ const likePost = (postId) => async (dispatch) => {
   });
 };
 
-export { getPosts, likePost, refreshPost };
+const deletePost = (postId, authId) => async (dispatch) => {
+  const id = await deletePostById(postId, authId);
+
+  dispatch({
+    type: DELETE_POST,
+    payload: id,
+  });
+};
+
+const toggleFollowPostUser = (post, authId) => async (dispatch, getState) => {
+  const followers = post.followers;
+
+  const authUsersPost = post.uid === authId;
+
+  if (!authUsersPost) {
+    const authIsFollowing = followers.find((user) => user.id === authId);
+
+    if (authIsFollowing) {
+      const { followers } = await unfollowUser(post.uid, authId);
+
+      dispatch({
+        type: UNFOLLOW_USER,
+        payload: {
+          followers,
+          postId: post.id,
+        },
+      });
+    } else {
+      const { followers } = await followUser(post.uid, authId);
+
+      dispatch({
+        type: FOLLOW_USER,
+        payload: {
+          followers,
+          postId: post.id,
+        },
+      });
+    }
+  }
+};
+
+
+
+
+export {
+  getPosts,
+  likePost,
+  refreshPost,
+  deletePost,
+  toggleFollowPostUser,
+};

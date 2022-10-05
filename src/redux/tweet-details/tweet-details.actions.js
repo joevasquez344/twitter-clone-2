@@ -20,40 +20,113 @@ import {
   TWEET_DETAILS_SUCCESS,
   TWEET_DETAILS_REQUEST,
   LIKE_REPLIED_TO_POST,
+  DELETE_COMMENT,
+  UNFOLLOW_USER,
+  FOLLOW_USER,
+  REFRESH_POST,
+  DELETE_REPLIED_TO_POST,
+  GET_THREAD_POSTS,
 } from "./tweet-details.types";
 
-import { getPostById, getPostLikes, toggleLikePost } from "../../utils/api/posts";
+import {
+  deletePostById,
+  getComments,
+  getPostById,
+  getPostLikes,
+  getPostsByThreadId,
+  getReplyToPosts,
+  toggleLikePost,
+} from "../../utils/api/posts";
+import {
+  followUser,
+  getUserDetails,
+  unfollowUser,
+} from "../../utils/api/users";
 
 const getPostDetails = (postId) => async (dispatch) => {
   dispatch({
     type: TWEET_DETAILS_REQUEST,
   });
-  const post = await getPostById(postId);
+  const postDetails = await getPostById(postId);
+
+  let { posts, deletedPostIds } = await getPostsByThreadId(
+    postDetails.threadId,
+    postDetails
+  );
+
+  postDetails.replyToPostDeleted = false;
+  posts = posts.map((post) => {
+    post.replyToPostDeleted = false;
+
+    deletedPostIds.forEach((id) => {
+      if (post.replyTo.id === id) post.replyToPostDeleted = true;
+      if (postDetails.replyTo.id === id) postDetails.replyToPostDeleted = true;
+    });
+
+    return post;
+  });
+
+  // let arr = [];
+
+  // posts.forEach((tweet) => {
+  //   if (tweet.timestamp.seconds < post.timestamp.seconds) {
+  //     arr.push(tweet);
+  //   }
+  // });
+
+  // posts = arr;
+  console.log("POSTIESSSS: ", posts);
 
   dispatch({
     type: TWEET_DETAILS_SUCCESS,
-    payload: post,
+    payload: { postDetails, posts, deletedPostIds },
   });
 
-  return post;
+  return postDetails;
 };
 
-const fetchComments = (postId, postType) => async (dispatch) => {
+const fetchComments = (postId) => async (dispatch, getState) => {
   const postsRef = collection(db, "posts");
-  const postRef = doc(db, `posts/${postId}`)
+  const postRef = doc(db, `posts/${postId}`);
 
-  const commentsQuery = query(postsRef, where("replyTo", "==", postRef), orderBy("timestamp", "desc"));
+  const user = getState().users.user;
+
+  const authUser = await getUserDetails(user.username);
+
+  const commentsQuery = query(
+    postsRef,
+    where("replyTo", "==", postRef),
+    orderBy("timestamp", "desc")
+  );
   const snapshot = await getDocs(commentsQuery);
 
   const comments = await Promise.all(
     snapshot.docs.map(async (doc) => ({
       id: doc.id,
+
       likes: await (
         await getDocs(collection(db, `posts/${doc.id}/likes`))
       ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+      comments: await getComments(doc.id),
+      followers: await (
+        await getDocs(collection(db, `users/${doc.data().uid}/followers`))
+      ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+
       ...doc.data(),
     }))
   );
+
+  comments.map((post) => {
+    if (post.uid === authUser.id) {
+      if (authUser.pinnedPost.id && post.id === authUser.pinnedPost?.id) {
+        post.pinnedPost = true;
+      } else {
+        post.pinnedPost = false;
+      }
+    }
+
+    return post;
+  });
 
   dispatch({
     type: GET_COMMENTS,
@@ -61,23 +134,24 @@ const fetchComments = (postId, postType) => async (dispatch) => {
   });
 };
 
-const likeRepliedToPost = (postId) => async dispatch => {
-  const likes = await toggleLikePost(postId)
+const likeRepliedToPost = (postId) => async (dispatch) => {
+  const likes = await toggleLikePost(postId);
+
+  console.log("Likes: ", likes);
 
   dispatch({
     type: LIKE_REPLIED_TO_POST,
     payload: {
       likes,
-      postId
-    }
-  })
-}
-
+      postId,
+    },
+  });
+};
 
 const likePostDetails = (tweetId) => async (dispatch) => {
- await toggleLikePost(tweetId);
+  const likes = await toggleLikePost(tweetId);
 
- const likes = await getPostLikes(tweetId)
+  // const likes = await getPostLikes(tweetId);
   dispatch({
     type: LIKE_TWEET_DETAILS,
     payload: {
@@ -101,11 +175,100 @@ const likeComment = (id) => async (dispatch) => {
   });
 };
 
+const deletePost = (postId, authId) => async (dispatch, getState) => {
+  const id = await deletePostById(postId, authId);
+
+  const commentsFeed = getState().tweetDetails.comments;
+  const tweetDetails = getState().tweetDetails.post;
+  const repliedToPosts = getState().tweetDetails.repliedToPosts;
+
+  const commentsMatch = commentsFeed.find((comment) => comment.id === id);
+  const tweetDetailsMatch = tweetDetails.id === id;
+  const repliedToPostsMatch = repliedToPosts.find((post) => post.id === id);
+
+  if (commentsMatch) {
+    dispatch({
+      type: DELETE_COMMENT,
+      payload: id,
+    });
+  }
+
+  if (tweetDetailsMatch) {
+  }
+
+  if (repliedToPostsMatch) {
+    dispatch({
+      type: DELETE_REPLIED_TO_POST,
+      payload: id,
+    });
+  }
+};
+
+const toggleFollowPostUser = (post, authId) => async (dispatch, getState) => {
+  const followers = post.followers;
+
+  const authUsersPost = post.uid === authId;
+
+  if (!authUsersPost) {
+    const authIsFollowing = followers.find((user) => user.id === authId);
+
+    if (authIsFollowing) {
+      const { followers } = await unfollowUser(post.uid, authId);
+
+      dispatch({
+        type: UNFOLLOW_USER,
+        payload: {
+          followers,
+          postId: post.id,
+        },
+      });
+    } else {
+      const { followers } = await followUser(post.uid, authId);
+
+      dispatch({
+        type: FOLLOW_USER,
+        payload: {
+          followers,
+          postId: post.id,
+        },
+      });
+    }
+  }
+};
+
+const refreshPost = (postId) => async (dispatch) => {
+  const post = await getPostById(postId);
+
+  dispatch({
+    type: REFRESH_POST,
+    payload: post,
+  });
+};
+
+const getThreadPosts = (threadId) => async (dispatch, getState) => {
+  const { posts, deletedPostIds } = await getPostsByThreadId(threadId);
+
+  const post = getState().tweetDetails.post;
+
+  console.log("Postiees: ", posts);
+
+  dispatch({
+    type: GET_THREAD_POSTS,
+    payload: {
+      posts: posts.filter((tweet) => tweet.id !== post.id),
+      deletedPostIds,
+    },
+  });
+};
 
 export {
   likePostDetails,
   fetchComments,
   likeComment,
   getPostDetails,
-  likeRepliedToPost
+  likeRepliedToPost,
+  refreshPost,
+  toggleFollowPostUser,
+  deletePost,
+  getThreadPosts,
 };

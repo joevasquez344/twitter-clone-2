@@ -7,6 +7,18 @@
   pointer-events: none;
 }
 
+.bookmark__tooltip {
+  display:none
+}
+
+.bookmark__button:hover .bookmark__tooltip {
+  display: block;
+  position: absolute;
+  z-index: 100;
+}
+
+
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
@@ -27,6 +39,12 @@
 .App-link {
   color: #61dafb;
 }
+
+/* #target {
+  overflow-y: scroll;
+  height: 100vh;
+
+} */
 
 @keyframes App-logo-spin {
   from {

@@ -37,6 +37,8 @@ const profileReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         profileLoading: true,
+        feed: [],
+        pinnedPost: {},
       };
 
     case FEED_REQUEST_SENT:
@@ -50,13 +52,15 @@ const profileReducer = (state = initialState, { type, payload }) => {
         ...state,
         profileLoading: false,
         profile: payload,
+        pinnedPost: payload.pinnedPost
       };
 
     case GET_FEED_SUCCESS:
       return {
         ...state,
-        feed: payload,
         feedLoading: false,
+        feed: payload,
+
       };
 
     case TOGGLE_LIKE_POST:
@@ -106,12 +110,21 @@ const profileReducer = (state = initialState, { type, payload }) => {
     case ADD_PINNED_POST:
       return {
         ...state,
+        profile: {
+          ...state.profile,
+          pinnedPost: payload,
+        },
         pinnedPost: payload,
       };
     case REMOVE_PINNED_POST:
       return {
         ...state,
+        profile: {
+          ...state.profile,
+          pinnedPost: payload,
+        },
         pinnedPost: payload,
+      
       };
     case TOGGLE_LIKE_PIN_POST:
       return {

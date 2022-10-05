@@ -31,16 +31,12 @@ export const getUserDetails = async (username) => {
   const followers = await getDocs(followersRef);
   const following = await getDocs(followingRef);
 
-  const user = snapshot.docs.map(async (doc) => {
-    return {
-      id: doc.id,
-      followers: followers.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-      following: following.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-      ...doc.data(),
-    };
-  });
-
-  // const user = onSnapshot(doc(db, 'users', userSnap[0].id));
+  const user = snapshot.docs.map((doc) => ({
+    id: doc.id,
+    followers: followers.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+    following: following.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+    ...doc.data(),
+  }));
 
   return user[0];
 };
@@ -80,7 +76,6 @@ export const followUser = async (profileId, authId) => {
 
   const following = await getProfileFollowing(profile.id);
   const followers = await getProfileFollowers(profile.id);
-
 
   return { following, followers };
 };

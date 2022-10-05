@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   CalendarIcon,
   EmojiHappyIcon,
@@ -8,6 +8,8 @@ import {
 } from "@heroicons/react/outline";
 import { useDispatch, useSelector } from "react-redux";
 import { db } from "../firebase/config";
+import { storage } from "../firebase/config";
+import { ref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
 import {
   collection,
   writeBatch,
@@ -21,10 +23,17 @@ import {
 import { addDoc } from "firebase/firestore";
 import { getPosts } from "../redux/home/home.actions";
 import { getProfileFollowing } from "../utils/api/users";
+import Loader from "./Loader";
+import { useEffect } from "react";
+import { addPostToThread } from "../utils/api/posts";
 
-const TweetBox = ({ setLoading, stateType }) => {
+const TweetBox = ({ setLoading, setGiphyModal }) => {
   const user = useSelector((state) => state.users.user);
   const [input, setInput] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [uploadedImage, setUploadedImage] = useState(null);
+  const [selectedImageUrl, setSelectedImageUrl] = useState(null);
+  const [selectedImageLoading, setSelectedImageLoading] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -32,10 +41,8 @@ const TweetBox = ({ setLoading, stateType }) => {
     setInput(e.target.value);
   };
 
-  const handleCreatePost = async (e) => {
-    e.preventDefault();
-    setInput("");
-    setLoading(true);
+  const createPost = async () => {
+    const batch = writeBatch(db);
 
     const postData = {
       uid: user.id,
@@ -44,24 +51,114 @@ const TweetBox = ({ setLoading, stateType }) => {
       email: user.email,
       username: user.username,
       message: input,
-      media: "",
+      media: selectedImageUrl ? selectedImageUrl : "",
       avatar: "",
       timestamp: serverTimestamp(),
       postType: "tweet",
       replyTo: doc(db, `posts/${null}`),
+      pinnedPost: false,
+      replyToUsers: [],
     };
 
-    const ref = collection(db, `posts`);
-    await addDoc(ref, postData);
+    const postsRef = collection(db, `posts`);
+    const createdPostRef = await addDoc(postsRef, postData);
+    const postRef = doc(db, `posts/${createdPostRef.id}`);
+
+    const threadId = await addPostToThread(createdPostRef.id, null);
+
+    batch.update(postRef, { threadId });
+
+    await batch.commit();
 
     await dispatch(getPosts(user));
 
+    setInput("");
     setLoading(false);
   };
 
+  const handleCreatePost = async (e) => {
+    e.preventDefault();
+    setInput("");
+    if (selectedImageLoading === false) {
+      setLoading(true);
+
+      if (input === "") return;
+
+      if (selectedImageUrl !== null) {
+        uploadImage();
+        createPost();
+      } else {
+        createPost();
+      }
+
+      await dispatch(getPosts(user));
+
+      setLoading(false);
+      setSelectedImage(null);
+    }
+  };
+
+  const clearSelectedFile = () => {
+    // Delete image from Firebase storage in :userId/selected folder on click of 'X'
+    setSelectedImage(null);
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files[0]) {
+      setSelectedImageLoading(true);
+    }
+    const imageRef = ref(
+      storage,
+      `${user.id}/selected/${e.target.files[0].name}`
+    );
+    uploadBytes(imageRef, e.target.files[0])
+      .then((res) => {
+        listAll(ref(storage, `${user.id}/selected/`)).then((response) => {
+          console.log("Response", response);
+          const match = response.items.find(
+            (item) => item.fullPath === res.ref.fullPath
+          );
+
+          if (match) {
+            setSelectedImage(match);
+            getDownloadURL(match).then((url) => {
+              setSelectedImageUrl(url);
+              setSelectedImageLoading(false);
+            });
+          }
+        });
+      })
+      .catch((err) => {
+        alert(`Error ${err.message}`);
+      });
+  };
+
+  const uploadImage = () => {
+    if (selectedImage === null) return;
+    const imageRef = ref(storage, `${user.id}/uploaded/${selectedImage.name}`);
+
+    uploadBytes(imageRef, selectedImage)
+      .then((res) => {
+        listAll(ref(storage, `${user.id}`)).then((items) => {
+          const match = items.items.find(
+            (item) => item.fullPath === res.ref.fullPath
+          );
+
+          if (match) setUploadedImage(null);
+        });
+      })
+      .catch((err) => {
+        alert(`Error ${err}`);
+      });
+
+    setSelectedImageUrl(null);
+    setSelectedImage(null);
+  };
+
+  useEffect(() => {}, []);
+
   return (
-    <div className="p-5 border-b">
-      <div className="text-xl font-bold">Home</div>
+    <div className="px-5 pb-5 border-b">
       <div className="flex w-full">
         <img
           className="h-12 w-12 rounded-full object-cover mt-4"
@@ -77,18 +174,86 @@ const TweetBox = ({ setLoading, stateType }) => {
               type="text"
               placeholder="What's happening?"
             />
+            {/* {imageUrlBoxIsOpen && (
+              <form className="mt-5 flex rounded-lf bg-blue-400 py-2 px-4 rounded">
+                <input
+                  ref={imageInputRef}
+                  className="flex-1 bg-transparent p-2 text-white outline-none placeholder:text-white"
+                  type="text"
+                  placeholder="Enter Image URL..."
+                />
+                <button
+                  type="submit"
+                  onClick={addImageToTweet}
+                  className="font-bold text-white"
+                >
+                  Add Image
+                </button>
+              </form>
+            )} */}
+            {selectedImageLoading ? (
+              <Loader />
+            ) : (
+              <>
+                {selectedImage ? (
+                  <div className="mt-10 h-40 w-40 rounded-xl object-contain shadow-lg relative">
+                    <div
+                      onClick={clearSelectedFile}
+                      className="absolute right-0 cursor-pointer"
+                    >
+                      X
+                    </div>
+                    <img
+                      className="h-40 w-40 rounded"
+                      src={selectedImageUrl ? selectedImageUrl : ""}
+                      alt=""
+                    />
+                  </div>
+                ) : null}
+              </>
+            )}
+            {/* {selectedImage && (
+              <div className="mt-10 h-40 w-40 rounded-xl object-contain shadow-lg relative">
+                <div
+                  onClick={() => setSelectedImage("")}
+                  className="absolute right-0 cursor-pointer"
+                >
+                  X
+                </div>
+                <img
+                  className="h-40 w-40 rounded"
+                  src={selectedImage ? selectedImage : ""}
+                  alt=""
+                />
+              </div>
+            )} */}
           </form>
+
           <div className="flex items-center justify-between w-full">
             <div className="flex space-x-2 text-blue-400 flex-1">
-              <PhotographIcon className="h-5 w-5 hover:cursor-pointer transition-transform duration-150 ease-out hover:scale-150" />
-              <SearchCircleIcon className="h-5 w-5" />
+              <div className="relative cursor-pointer transition-transform duration-150 ease-out hover:scale-125">
+                <PhotographIcon className="h-5 w-5 z-50 hover:cursor-pointer transition-transform duration-150 ease-out hover:scale-150" />
+                <input
+                  onClick={(e) => {
+                    return (e.target.value = null);
+                  }}
+                  onChange={handleFileChange}
+                  className="w-5 h-5 z-10 opacity-0 absolute top-0 "
+                  name="file"
+                  type="file"
+                />
+              </div>
+              {/* <SearchCircleIcon
+                onClick={() => setGiphyModal(true)}
+                className="h-5 w-5"
+              />
               <EmojiHappyIcon className="h-5 w-5" />
               <CalendarIcon className="h-5 w-5" />
-              <LocationMarkerIcon className="h-5 w-5" />
+              <LocationMarkerIcon className="h-5 w-5" /> */}
             </div>
             <div
               onClick={handleCreatePost}
-              disabled={input === "" ? true : false}
+              disabled={input || selectedImageLoading === "" ? true : false}
               className={`text-white bg-blue-${
                 input === "" ? "300" : "400"
               } py-2 px-4 rounded-full cursor-${

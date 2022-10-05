@@ -1,3 +1,7 @@
-.tweet__userWhoReplied:last-of-type > .username{
+.tweet__userWhoReplied > .username{
     display:none
+}
+
+.tweet__userWhoReplied:nth-last-child(2) > .username {
+    display: inline
 }
