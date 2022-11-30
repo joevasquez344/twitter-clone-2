@@ -17,11 +17,13 @@ import {
   EDIT_PROFILE,
   PIN_TWEET,
   UNPIN_TWEET,
+  GET_AUTHS_PINNED_TWEET,
 } from "./users.types";
 
 const initialState = {
   user: null,
   userDetails: {},
+  authsPinnedPost: {},
   loading: true,
   error: null,
 };
@@ -32,6 +34,7 @@ const usersReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         user: payload,
+        authsPinnedPost: payload.pinnedPost,
       };
     case REGISTER_SUCCESS:
       return {
@@ -145,6 +148,23 @@ const usersReducer = (state = initialState, { type, payload }) => {
           ...state.userDetails,
           tweets: updatedTweets,
         },
+      };
+
+    case GET_AUTHS_PINNED_TWEET:
+      return {
+        ...state,
+        authsPinnedPost: payload,
+      };
+
+    case PIN_TWEET:
+      return {
+        ...state,
+        authsPinnedPost: payload,
+      };
+    case UNPIN_TWEET:
+      return {
+        ...state,
+        authsPinnedPost: {},
       };
 
     default:

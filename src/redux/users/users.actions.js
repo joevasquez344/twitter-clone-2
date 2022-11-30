@@ -17,6 +17,7 @@ import {
   EDIT_PROFILE,
   PIN_TWEET,
   UNPIN_TWEET,
+  GET_AUTHS_PINNED_TWEET,
 } from "./users.types";
 import {
   createUserWithEmailAndPassword,
@@ -31,15 +32,20 @@ import { writeBatch } from "firebase/firestore/lite";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import {
   followUser,
-  getProfileFollowers,
+  getFollowers,
   getProfileFollowing,
   getUserDetails,
   unfollowUser,
 } from "../../utils/api/users";
-import { toggleLikePost, pinPost, unpinPost } from "../../utils/api/posts";
+import {
+  toggleLikePost,
+  pinPost,
+  unpinPost,
+  getPostById,
+} from "../../utils/api/posts";
 import { handleProfileCreatedAt } from "../../utils/handlers";
 
-const loadUserFromFirestore = (authUser) => async (dispatch) => {
+const loadUser = (authUser) => async (dispatch) => {
   const userRef = doc(db, "users", authUser);
 
   const user = await getDoc(userRef);
@@ -51,8 +57,6 @@ const loadUserFromFirestore = (authUser) => async (dispatch) => {
       ...user.data(),
     },
   });
-
-  console.log("LOADED USER: ", user.data());
 };
 
 const login = (email, password) => (dispatch) => {
@@ -92,8 +96,6 @@ const register = (data) => (dispatch) => {
   const auth = getAuth();
   createUserWithEmailAndPassword(auth, email, password)
     .then((userCredentials) => {
-      console.log("User Credentials: ", userCredentials);
-
       setDoc(doc(db, "users", userCredentials.user.uid), {
         id: userCredentials.user.uid,
         email: userCredentials.user.email,
@@ -103,13 +105,13 @@ const register = (data) => (dispatch) => {
         birthday,
         bio,
         location,
+        avatar: null,
+        banner: null,
         pinnedPost: {},
         createdAt: userCredentials.user.metadata.creationTime,
         theme: "light",
       })
-        .then(() => {
-          console.log("hello");
-        })
+        .then(() => {})
         .catch((err) => {
           console.log(err);
         });
@@ -120,9 +122,7 @@ const register = (data) => (dispatch) => {
         birthday,
         bio,
       })
-        .then((user) => {
-          console.log("Profile Updated", user);
-        })
+        .then((user) => {})
         .catch((error) => {
           console.log(error);
         });
@@ -151,7 +151,7 @@ const getProfile = (username) => async (dispatch) => {
     type: USER_DETAILS_REQUEST,
   });
   const user = await getUserDetails(username);
-  const followers = await getProfileFollowers(user);
+  const followers = await getFollowers(user);
   const following = await getProfileFollowing(user);
 
   const createdAt = handleProfileCreatedAt(user);
@@ -180,6 +180,30 @@ const likeTweet = (tweetId, postType) => async (dispatch) => {
   });
 };
 
+const loadAuthsPinnedTweet = (postId) => async (dispatch) => {
+  let post = await getPostById(postId);
+
+  dispatch({
+    type: GET_AUTHS_PINNED_TWEET,
+    payload: post,
+  });
+};
+
+const pinTweet = (post, authId) => async (dispatch) => {
+  await pinPost(post.id, authId)
+  dispatch({
+    type: PIN_TWEET,
+    payload: post,
+  });
+};
+
+const unpinTweet = (post, authId) => async (dispatch) => {
+  await unpinPost(post.id, authId)
+  dispatch({
+    type: UNPIN_TWEET,
+  });
+};
+
 const followProfile = (profileId, authId) => async (dispatch, getState) => {
   const { following, followers } = await followUser(profileId, authId);
 
@@ -193,13 +217,9 @@ const followProfile = (profileId, authId) => async (dispatch, getState) => {
 
   const profile = getState().users.userDetails;
 
-  console.log("PROFILE: ", profile);
-
   return profile;
 };
 const unfollowProfile = (profileId, authId) => async (dispatch, getState) => {
-  console.log("AYOOO");
-
   const { followers, following } = await unfollowUser(profileId, authId);
 
   dispatch({
@@ -210,8 +230,6 @@ const unfollowProfile = (profileId, authId) => async (dispatch, getState) => {
     },
   });
   const profile = getState().users.userDetails;
-
-  console.log("PROFILE: ", profile);
 
   return profile;
 };
@@ -245,10 +263,13 @@ export {
   login,
   register,
   logout,
-  loadUserFromFirestore,
+  loadUser,
   getProfile,
   followProfile,
   unfollowProfile,
   likeTweet,
   editProfile,
+  pinTweet,
+  unpinTweet,
+  loadAuthsPinnedTweet
 };

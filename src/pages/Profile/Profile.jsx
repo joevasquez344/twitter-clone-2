@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import Tweet2 from "../../components/Tweet/Tweet2";
 import Modal from "../../components/Modal";
 import { handleActiveTab, handleAuthLayout } from "../../utils/handlers";
+import { storage } from "../../firebase/config";
+import { ref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
+import { XIcon } from "@heroicons/react/outline";
+import cageImage from "../../images/cage.png";
+
 import {
   getPosts,
   getUsersLikedPosts,
@@ -15,9 +20,13 @@ import {
   addPinnedPost,
   removePinnedPost,
   toggleLikePinPost,
-  getPinnedPost,
   deleteTweet,
   getMediaPosts,
+  subtractUsersPostCount,
+  unfollowPostUser,
+  followPostUser,
+  createPost,
+  clearFeedMessage,
 } from "../../redux/profile/profile.actions";
 import {
   followUser,
@@ -29,20 +38,57 @@ import ProfileTabs from "./ProfileTabs";
 import Loader from "../../components/Loader";
 import ProfileInfo from "./ProfileInfo";
 import CommentModal from "../../components/CommentModal";
-import { createComment } from "../../utils/api/comments";
-import { getUsersPostsCount } from "../../utils/api/posts";
+import {
+  addBookmarkById,
+  deleteBookmarkById,
+  fetchPinnedPost,
+  getBookmarkIds,
+  getBookmarks,
+  getUsersPostsCount,
+  toggleLikePost,
+} from "../../utils/api/posts";
+import DefaultAvatar from "../../components/DefaultAvatar";
+import ArrowButton from "../../components/Buttons/ArrowButton";
+import EditProfileBanner from "./EditProfileBanner";
+import EditProfileAvatar from "./EditProfileAvatar";
+import EditProfileForm from "./EditProfileForm";
+import ProfileHeader from "./ProfileHeader";
+import ProfileBanner from "./ProfileBanner";
+import ProfileAvatar from "./ProfileAvatar";
+import CameraIcon from "../../components/Icons/CameraIcon";
+import { pinTweet, unpinTweet } from "../../redux/users/users.actions";
+import RefreshBar from "./RefreshBar";
 
 const Profile = () => {
   const params = useParams();
   const dispatch = useDispatch();
-
-  const user = useSelector((state) => state.users.user);
-  const { profile, feed, profileLoading, feedLoading, pinnedPost } =
-    useSelector((state) => state.profile);
+  const loc = useLocation();
+  const navigate = useNavigate();
+  // console.log("Location: ", !loc.pathname.split("/")[2]);
+  const { user, authsPinnedPost } = useSelector((state) => state.users);
+  const {
+    profile,
+    feed,
+    loading,
+    profilePostCount,
+    feedLoading,
+    feedMessage,
+    pinnedPost,
+    tweets,
+    tweetsAndReplies,
+    media,
+    likes,
+  } = useSelector((state) => state.profile);
   const { name, bio, location, birthday } = useSelector(
     (state) => state.profile.profile
   );
 
+  const profileUsername = window.location.pathname.split("/")[1];
+  const endpoint = window.location.pathname.split("/")[2];
+
+  console.log("Location: ", loc);
+
+  const [bookmarks, setBookmarks] = useState([]);
   const [profilePostsCount, setProfilePostsCount] = useState(null);
   const [commentDisplay, setCommentDisplay] = useState({});
   const [commentModal, setCommentModal] = useState(false);
@@ -51,6 +97,15 @@ const Profile = () => {
   const [locationInput, setLocationInput] = useState("");
   const [nameInput, setNameInput] = useState("");
   const [input, setInput] = useState("");
+  const [pinnedTweet, setPinnedTweet] = useState({});
+
+  const [avatar, setAvatar] = useState(null);
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(null);
+
+  const [banner, setBanner] = useState(null);
+  const [bannerLoading, setBannerLoading] = useState(false);
+  const [bannerUrl, setBannerUrl] = useState(null);
 
   const [isFollowing, setIsFollowing] = useState(false);
   const [modal, setModal] = useState(false);
@@ -58,37 +113,45 @@ const Profile = () => {
     {
       id: 1,
       text: "Tweets",
-      isActive: false,
+      pathname: undefined,
+      isActive: true,
       fetchData: (profile) => handleGetPosts(profile),
+      clickCount: 0,
     },
     {
       id: 2,
       text: "Tweets & Replies",
+      pathname: "with_replies",
       isActive: false,
       fetchData: (profile) => handleGetTweetsAndReplies(profile),
+      clickCount: 0,
     },
     {
       id: 3,
       text: "Media",
+      pathname: "media",
       isActive: false,
       fetchData: (profile) => handleGetMediaPosts(profile),
+      clickCount: 0,
     },
     {
       id: 4,
       text: "Likes",
+      pathname: "likes",
       isActive: false,
       fetchData: (profile) => handleGetLikedPosts(profile),
+      clickCount: 0,
     },
   ]);
+
+  console.log('Tabs: ', tabs);
 
   const handleOpenCommentModal = (post) => {
     setCommentModal(true);
     setCommentDisplay(post);
   };
 
-  const handleCloseCommentModal = (post) => {
-    setCommentModal(false);
-  };
+  const handleCloseCommentModal = () => setCommentModal(false);
 
   const handleInputChange = (e) => setInput(e.target.value);
   const handleBirthdayChange = (e) => setBirthdayInput(e.target.value);
@@ -96,9 +159,18 @@ const Profile = () => {
   const handleNameChange = (e) => setNameInput(e.target.value);
   const handleLocationChange = (e) => setLocationInput(e.target.value);
 
-  const handleTabs = (tabId) => handleActiveTab(tabId, tabs, profile, setTabs);
+  const handleTabs = (tabId) => {
+    dispatch(clearFeedMessage());
 
-  const closeModal = () => setModal(false);
+    const feeds = [tweets, tweetsAndReplies, media, likes];
+
+    handleActiveTab(tabId, feeds, tabs, profile, setTabs);
+  };
+
+  const closeModal = () => {
+    setModal(false);
+    setAvatar(null);
+  };
   const openModal = () => {
     setModal(true);
 
@@ -106,69 +178,66 @@ const Profile = () => {
     setBioInput(bio);
     setNameInput(name);
     setLocationInput(location);
+    setBannerUrl(profile.banner);
+    setAvatarUrl(profile.avatar);
   };
 
   const fetchProfile = async () => {
-    const profile = await dispatch(getProfile(params.username));
-
-    const postsCount = await getUsersPostsCount(profile.id);
-
-    setProfilePostsCount(postsCount);
+    const profile = await dispatch(getProfile(profileUsername));
 
     setBioInput(profile.bio);
     setLocationInput(profile.location);
     setBirthdayInput(profile.birthday);
     setNameInput(profile.name);
 
-    const updatedTabs = tabs.map((tab) => {
-      tab.isActive = false;
-      if (tab.id === 1) {
-        tab.isActive = true;
-      }
-      return tab;
-    });
-
     handleAuthLayout(profile, setIsFollowing, user);
 
-    setTabs(updatedTabs);
+    setBannerUrl(profile.banner);
+    setAvatarUrl(profile.avatar);
 
-    if (profile.pinnedPost.id) {
-      dispatch(getPinnedPost(profile.pinnedPost?.id));
-    }
-
-    dispatch(getPosts(profile.id));
+    return profile;
   };
 
   const handleRefreshPost = (postId) => dispatch(refreshPost(postId));
 
-  const handleGetPosts = async (profile) => {
-    const user = await getUserDetails(profile.username);
-    dispatch(getPinnedPost(user.pinnedPost?.id));
-    dispatch(getPosts(profile.id));
+  const handleGetPosts = (profile) => {
+    dispatch(getPosts(profile.username));
   };
 
   const handleGetTweetsAndReplies = (profile) =>
-    dispatch(getTweetsAndReplies(profile.id));
+    dispatch(getTweetsAndReplies(profile.username));
 
-  const handleGetMediaPosts = (profile) => dispatch(getMediaPosts(profile.id));
+  const handleGetMediaPosts = (profile) =>
+    dispatch(getMediaPosts(profile.username));
 
   const handleGetLikedPosts = (profile) =>
-    dispatch(getUsersLikedPosts(profile.id));
+    dispatch(getUsersLikedPosts(profile.username));
 
   const handleLikePost = (id) => dispatch(toggleLikeTweet(id));
 
-  const handlePinPost = (postId) => dispatch(addPinnedPost(postId, user.id));
+  const handlePinPost = (post) => {
+    dispatch(pinTweet(post, user.id));
+    setPinnedTweet(post);
+  };
 
-  const handleUnpinPost = (postId) =>
-    dispatch(removePinnedPost(postId, user.id));
+  const handleUnpinPost = (post) => {
+    dispatch(unpinTweet(post, user.id));
+    setPinnedTweet({});
+  };
 
-  const handleToggleLikePinPost = (postId) =>
-    dispatch(toggleLikePinPost(postId));
+  const handleAddBookmark = async (postId) => {
+    setBookmarks([...bookmarks, postId]);
+    await addBookmarkById(postId, user.id);
+  };
+
+  const handleRemoveBookmark = async (postId) => {
+    setBookmarks(bookmarks.filter((bookmarkId) => bookmarkId !== postId));
+    await deleteBookmarkById(postId, user.id);
+  };
 
   const handleDeletePost = async (postId) => {
     dispatch(deleteTweet(postId, user.id));
-
-    setProfilePostsCount(profilePostsCount - 1);
+    dispatch(subtractUsersPostCount());
   };
 
   const handleToggleFollow = async (post) => {
@@ -178,27 +247,29 @@ const Profile = () => {
       const authIsFollowing = post.followers.find((u) => u.id === user.id);
 
       if (authIsFollowing) {
-        await unfollowUser(post.uid, user.id);
-
-        fetchProfile();
+        dispatch(unfollowPostUser(post, user));
       } else {
-        await followUser(post.uid, user.id);
-
-        fetchProfile();
+        dispatch(followPostUser(post, user));
       }
     }
 
-    fetchProfile();
     closeModal();
   };
 
-  const createPost = async (e, post) => {
+  const handleCreatePost = async (e, input, post, selectedImageUrl) => {
     e.preventDefault();
 
+    const createdComment = dispatch(
+      createPost(input, post, user, selectedImageUrl)
+    );
+    if (post.id === pinnedTweet.id) {
+      setPinnedTweet({
+        ...pinnedTweet,
+        comments: [...pinnedTweet.comments, createdComment],
+      });
+    }
+
     handleCloseCommentModal();
-    await createComment(input, post, user, post.postType);
-    setInput("");
-    fetchProfile();
   };
 
   const handleEditProfile = (e) => {
@@ -209,23 +280,197 @@ const Profile = () => {
       location: locationInput,
       birthday: birthdayInput,
       bio: bioInput,
+      avatar: avatarUrl,
+      banner: bannerUrl,
     };
+
+    if (avatarUrl !== null) {
+      uploadAvatarToStorage();
+    }
+    if (bannerUrl !== null) {
+      uploadBannerToStorage();
+    }
+
     dispatch(editProfile(updatedProfile, profile.id));
-    dispatch(getPosts(profile.id));
+    handleGetPosts(profile);
 
     closeModal();
   };
 
-  useEffect(() => {
-    fetchProfile();
+  const getAvatarUrl = (e) => {
+    const fileImage = e.target.files[0];
 
-    console.log("RERENDER");
+    if (fileImage) {
+      setAvatarLoading(true);
+    }
+
+    const imageRef = ref(storage, `${user.id}/selected/${fileImage.name}`);
+    uploadBytes(imageRef, e.target.files[0])
+      .then((res) => {
+        listAll(ref(storage, `${user.id}/selected/`)).then((response) => {
+          const match = response.items.find(
+            (item) => item.fullPath === res.ref.fullPath
+          );
+
+          if (match) {
+            setAvatar(match);
+            getDownloadURL(match).then((url) => {
+              setAvatarUrl(url);
+              setAvatarLoading(false);
+            });
+          }
+        });
+      })
+      .catch((err) => {
+        alert(`Error ${err.message}`);
+      });
+  };
+  const getBannerUrl = (e) => {
+    const fileImage = e.target.files[0];
+
+    if (fileImage) {
+      setBannerLoading(true);
+    }
+
+    const imageRef = ref(storage, `${user.id}/selected/${fileImage.name}`);
+    uploadBytes(imageRef, e.target.files[0])
+      .then((res) => {
+        listAll(ref(storage, `${user.id}/selected/`)).then((response) => {
+          const match = response.items.find(
+            (item) => item.fullPath === res.ref.fullPath
+          );
+
+          if (match) {
+            setBanner(match);
+            getDownloadURL(match).then((url) => {
+              setBannerUrl(url);
+              setBannerLoading(false);
+            });
+          }
+        });
+      })
+      .catch((err) => {
+        alert(`Error ${err.message}`);
+      });
+  };
+
+  const uploadAvatarToStorage = () => {
+    if (avatar === null) return;
+    const imageRef = ref(storage, `${user.id}/uploaded/${avatar.name}`);
+
+    uploadBytes(imageRef, avatar)
+      .then((res) => {
+        listAll(ref(storage, `${user.id}`)).then((items) => {
+          const match = items.items.find(
+            (item) => item.fullPath === res.ref.fullPath
+          );
+        });
+      })
+      .catch((err) => {
+        alert(`Error ${err}`);
+      });
+  };
+
+  const uploadBannerToStorage = () => {
+    if (banner === null) return;
+    const imageRef = ref(storage, `${user.id}/uploaded/${banner.name}`);
+
+    uploadBytes(imageRef, banner)
+      .then((res) => {
+        listAll(ref(storage, `${user.id}`)).then((items) => {
+          const match = items.items.find(
+            (item) => item.fullPath === res.ref.fullPath
+          );
+        });
+      })
+      .catch((err) => {
+        alert(`Error ${err}`);
+      });
+  };
+
+  const removeBanner = () => {
+    setBannerUrl(null);
+  };
+
+  const getAuthBookmarks = async () => {
+    const bookmarkIds = await getBookmarkIds(user.id);
+    console.log("Bookmark Ids: ", bookmarkIds);
+    setBookmarks(bookmarkIds);
+  };
+
+  const getPinnedPost = async () => {
+    const pinnedPost = await fetchPinnedPost(profileUsername);
+    setPinnedTweet(pinnedPost);
+
+    return pinnedPost;
+  };
+
+  const likePinnedPost = async (postId) => {
+    const alreadyLiked = pinnedTweet?.likes.find(
+      (userId) => userId === user.id
+    );
+
+    if (!alreadyLiked) {
+      setPinnedTweet({
+        ...pinnedTweet,
+        likes: [...pinnedTweet.likes, user.id],
+      });
+      await toggleLikePost(postId);
+    } else {
+      setPinnedTweet({
+        ...pinnedTweet,
+        likes: pinnedTweet.likes.filter((userId) => userId !== user.id),
+      });
+      await toggleLikePost(postId);
+    }
+  };
+  console.log("Pinned Tweet: ", pinnedTweet);
+
+  const getData = async () => {
+    getAuthBookmarks();
+    const profile = await fetchProfile();
+    console.log("Profile: ", profile);
+    getPinnedPost();
+    handleGetPosts(profile);
+
+    const updatedTabs = tabs.map((tab) => {
+      tab.isActive = false;
+      if (tab.text === "Tweets") {
+        tab.isActive = true;
+      }
+      return tab;
+    });
+
+    setTabs(updatedTabs);
+  };
+
+  useEffect(() => {
+    getData();
   }, [params.username]);
+
+  useEffect(() => {
+    handleAuthLayout(profile, setIsFollowing, user);
+  }, [profile.followers]);
+
+  // useEffect(() => {
+  //   if (endpoint === "with_replies") {
+  //     dispatch(getTweetsAndReplies(profileUsername));
+  //   } else if (endpoint === "likes") {
+  //     dispatch(getUsersLikedPosts(profileUsername));
+  //   } else if (endpoint === "media") {
+  //     dispatch(getMediaPosts(profileUsername));
+  //   } else {
+  //     dispatch(getPosts(profileUsername));
+  //     // dispatch(getPinnedPost(params.username));
+  //   }
+  // }, [endpoint]);
+
+  const activeTab = tabs.find((tab) => tab.isActive === true);
 
   return (
     <>
       {" "}
-      {profileLoading ? (
+      {loading ? (
         <div className="relative h-full w-full">
           <div className="text-center mt-5 absolute top-1/2 left-1/2">
             <div role="status">
@@ -250,62 +495,91 @@ const Profile = () => {
         </div>
       ) : (
         <>
-          <div className="relative">
-            <Modal modal={modal} closeModal={closeModal} header="Edit Profile">
-              <form onSubmit={handleEditProfile} className="flex flex-col p-4">
-                <input
-                  onChange={handleNameChange}
-                  value={nameInput}
-                  type="text"
-                  placeholder={name || "Name"}
-                  className="border mb-6 p-3 rounded-md"
-                />
-                <input
-                  onChange={handleBirthdayChange}
-                  value={birthdayInput}
-                  type="date"
-                  className="border mb-6 p-3 rounded-md"
-                />
-                <input
-                  onChange={handleBioChange}
-                  value={bioInput}
-                  type="text"
-                  placeholder={bio || "Bio"}
-                  className="border mb-6 p-3 rounded-md"
-                />
-                <input
-                  onChange={handleLocationChange}
-                  value={locationInput}
-                  type="text"
-                  placeholder={location ? location : "Location"}
-                  className="border mb-6 p-3 rounded-md"
-                />
+          <div className="">
+            {modal ? (
+              <div className="bg-black z-50 fixed top-0 bottom-0 left-0 right-0 opacity-40 w-screen h-screen"></div>
+            ) : null}
+            <Modal
+              modal={modal}
+              closeModal={closeModal}
+              target="Edit Profile"
+              headerTitle="Edit Profile"
+              headerButton="Save"
+              onHeaderButtonClick={handleEditProfile}
+            >
+              <div className="relative mb-20">
+                <div className="w-full h-60">
+                  <div className="absolute w-full h-60 flex space-x-4 items-center justify-center">
+                    <div className=" opacity-40 z-50 bg-black p-3 rounded-full transition ease-in-out cursor-pointer duration-200">
+                      <div>
+                        <input
+                          onChange={getBannerUrl}
+                          className="absolute opacity-0 w-6 h-6 cursor-pointer"
+                          type="file"
+                        />
+                      </div>
+                      <CameraIcon styles="w-6 h-6 opacity-100 z-50 peer ease-in-out cursor-pointer duration-200" />
+                    </div>
+                    <XIcon
+                      onClick={removeBanner}
+                      className="w-6 h-6 text-white z-50 cursor-pointer"
+                    />
+                  </div>
 
-                <button onClick={handleEditProfile}>Submit</button>
-              </form>
-            </Modal>
-            <div className="z-50 sticky top-0 bg-white px-5 py-2 flex justify-between items-center">
-              <div>
-                <div className="text-xl font-bold">{profile.name}</div>
-                <div className="text-sm text-gray-500">
-                  {profilePostsCount} Tweets
+                  {bannerLoading ? (
+                    <Loader />
+                  ) : (
+                    <>
+                      <EditProfileBanner
+                        banner={banner}
+                        bannerUrl={bannerUrl}
+                        profile={profile}
+                      />
+                    </>
+                  )}
+                </div>
+                <div className="absolute flex items-center justify-center bg-white z-40 -bottom-16 left-5 rounded-full p-1">
+                  <div className="absolute opacity-40 bg-black p-6 rounded-full peer-hover:opacity-30 transition ease-in-out cursor-pointer duration-200">
+                    <input
+                      onChange={getAvatarUrl}
+                      className="absolute opacity-0"
+                      type="file"
+                    />
+                  </div>
+                  <CameraIcon styles="w-6 h-6 absolute peer ease-in-out cursor-pointer duration-200" />
+                  {avatarLoading ? (
+                    <Loader />
+                  ) : (
+                    <EditProfileAvatar
+                      avatar={avatar}
+                      avatarUrl={avatarUrl}
+                      profile={profile}
+                    />
+                  )}
                 </div>
               </div>
-            </div>
-            <div className="relative mb-20">
-              <img
-                className="w-full h-60"
-                src="https://picsum.photos/200"
-                alt=""
+              <EditProfileForm
+                handleEditProfile={handleEditProfile}
+                handleNameChange={handleNameChange}
+                nameInput={nameInput}
+                name={name}
+                bio={bio}
+                handleBioChange={handleBioChange}
+                bioInput={bioInput}
+                handleLocationChange={handleLocationChange}
+                locationInput={locationInput}
+                location={location}
+                handleBirthdayChange={handleBirthdayChange}
+                birthdayInput={birthdayInput}
               />
-              <div className="absolute bg-white z-40 -bottom-16 left-5 rounded-full p-1">
-                <img
-                  className="rounded-full h-32 w-32"
-                  src="https://picsum.photos/200"
-                  alt=""
-                />
-              </div>
-
+            </Modal>
+            <ProfileHeader
+              profile={profile}
+              profilePostCount={profilePostCount}
+            />
+            <div className="relative mb-20">
+              <ProfileBanner profile={profile} />
+              <ProfileAvatar profile={profile} />
               <ProfileFollowButton
                 openModal={openModal}
                 fetchProfile={fetchProfile}
@@ -323,38 +597,60 @@ const Profile = () => {
             <Loader />
           ) : (
             <div className="relative">
-              {commentModal ? (
+              {commentModal && (
                 <CommentModal
                   post={commentDisplay}
-                  createPost={createPost}
+                  handleCreateComment={handleCreatePost}
                   input={input}
                   handleInputChange={handleInputChange}
                   handleCloseCommentModal={handleCloseCommentModal}
+                  refresh={handleGetPosts}
+                  redux={true}
                 />
-              ) : null}
+              )}
+
+              <RefreshBar activeTab={activeTab} />
+
+              {feedMessage == null ? null : (
+                <div className="absolute top-15 w-1/2 left-1/4 overflow-visible">
+                  <img src={cageImage} alt="" />
+                  <div className="text-2xl font-bold">{feedMessage.header}</div>
+                  <div className="text-gray-500">
+                    Don’t let the good ones fly away! Bookmark Tweets to easily
+                    find them again in the future.
+                  </div>
+                </div>
+              )}
+
               <div>
-                {pinnedPost?.id &&
-                pinnedPost?.uid === profile?.id &&
-                tabs?.find((tab) => tab.isActive && tab.text === "Tweets") ? (
-                  <Tweet2
-                    key={pinnedPost.id}
-                    id={pinnedPost.id}
-                    post={pinnedPost}
-                    isPinned={true}
-                    fetchProfile={fetchProfile}
-                    handleLikePost={handleToggleLikePinPost}
-                    handleRefreshPost={handleRefreshPost}
-                    handlePinPost={handlePinPost}
-                    handleUnpinPost={handleUnpinPost}
-                    handleFollowUser={handleToggleFollow}
-                    handleDeletePost={handleDeletePost}
-                    tabs={tabs}
-                  />
-                ) : null}
+                {pinnedTweet?.id &&
+                  pinnedTweet?.uid === profile?.id &&
+                  tabs?.find(
+                    (tab) => tab.isActive && tab.text === "Tweets"
+                  ) && (
+                    <Tweet2
+                      key={pinnedTweet.id}
+                      id={pinnedTweet.id}
+                      post={pinnedTweet}
+                      isPinned={true}
+                      fetchProfile={fetchProfile}
+                      handleLikePost={likePinnedPost}
+                      handleRefreshPost={handleRefreshPost}
+                      handlePinPost={handlePinPost}
+                      handleUnpinPost={handleUnpinPost}
+                      handleFollowUser={handleToggleFollow}
+                      handleDeletePost={handleDeletePost}
+                      handleAddBookmark={handleAddBookmark}
+                      handleRemoveBookmark={handleRemoveBookmark}
+                      handleOpenCommentModal={handleOpenCommentModal}
+                      tabs={tabs}
+                      bookmarks={bookmarks}
+                    />
+                  )}
               </div>
               {tabs?.find((tab) => tab.isActive && tab.text === "Tweets")
-                ? feed
-                    .filter((post) => post.id !== pinnedPost?.id)
+                ? tweets
+                    .filter((post) => post.id !== pinnedTweet?.id)
                     .map((post) => (
                       <Tweet2
                         key={post.id}
@@ -367,28 +663,80 @@ const Profile = () => {
                         handlePinPost={handlePinPost}
                         handleUnpinPost={handleUnpinPost}
                         handleDeletePost={handleDeletePost}
+                        handleAddBookmark={handleAddBookmark}
+                        handleRemoveBookmark={handleRemoveBookmark}
                         handleFollowUser={handleToggleFollow}
                         handleOpenCommentModal={handleOpenCommentModal}
                         tabs={tabs}
+                        bookmarks={bookmarks}
                       />
                     ))
-                : feed?.map((post) => (
+                : tabs?.find(
+                    (tab) => tab.isActive && tab.text === "Tweets & Replies"
+                  )
+                ? tweetsAndReplies.map((post) => (
                     <Tweet2
                       key={post.id}
                       id={post.id}
                       post={post}
-                      isPinned={post.id === pinnedPost?.id}
+                      isPinned={false}
                       handleLikePost={handleLikePost}
                       handleRefreshPost={handleRefreshPost}
                       fetchProfile={fetchProfile}
                       handlePinPost={handlePinPost}
                       handleUnpinPost={handleUnpinPost}
                       handleDeletePost={handleDeletePost}
+                      handleAddBookmark={handleAddBookmark}
+                      handleRemoveBookmark={handleRemoveBookmark}
                       handleFollowUser={handleToggleFollow}
                       handleOpenCommentModal={handleOpenCommentModal}
                       tabs={tabs}
+                      bookmarks={bookmarks}
                     />
-                  ))}
+                  ))
+                : tabs?.find((tab) => tab.isActive && tab.text === "Media")
+                ? media.map((post) => (
+                    <Tweet2
+                      key={post.id}
+                      id={post.id}
+                      post={post}
+                      isPinned={false}
+                      handleLikePost={handleLikePost}
+                      handleRefreshPost={handleRefreshPost}
+                      fetchProfile={fetchProfile}
+                      handlePinPost={handlePinPost}
+                      handleUnpinPost={handleUnpinPost}
+                      handleDeletePost={handleDeletePost}
+                      handleAddBookmark={handleAddBookmark}
+                      handleRemoveBookmark={handleRemoveBookmark}
+                      handleFollowUser={handleToggleFollow}
+                      handleOpenCommentModal={handleOpenCommentModal}
+                      tabs={tabs}
+                      bookmarks={bookmarks}
+                    />
+                  ))
+                : tabs?.find((tab) => tab.isActive && tab.text === "Likes")
+                ? likes.map((post) => (
+                    <Tweet2
+                      key={post.id}
+                      id={post.id}
+                      post={post}
+                      isPinned={false}
+                      handleLikePost={handleLikePost}
+                      handleRefreshPost={handleRefreshPost}
+                      fetchProfile={fetchProfile}
+                      handlePinPost={handlePinPost}
+                      handleUnpinPost={handleUnpinPost}
+                      handleDeletePost={handleDeletePost}
+                      handleAddBookmark={handleAddBookmark}
+                      handleRemoveBookmark={handleRemoveBookmark}
+                      handleFollowUser={handleToggleFollow}
+                      handleOpenCommentModal={handleOpenCommentModal}
+                      tabs={tabs}
+                      bookmarks={bookmarks}
+                    />
+                  ))
+                : null}
             </div>
           )}
         </>

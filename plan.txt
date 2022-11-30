@@ -3,10 +3,7 @@ Look into <FlipMove> npm package for animating a post that is just getting place
 
 TODO:
 
-- 4 pages tasks listed in page folders
-
-- Dark Mode (exclude)
-- @ Feature (exclude)
+- 4 pages' tasks listed in page folders
 
 x Significant Problem (Might need a Model Restructure) **
   if auth user deletes his post that other users have liked,
@@ -15,31 +12,54 @@ x Significant Problem (Might need a Model Restructure) **
 
 
 x Finish Landing page
-- Fix Home page route on app mount after log in/register (seems to hit the / route instead of redirecting to /home)
-- Finish hover glow effects on tweets (almost done, need gray glow effects on XIcons within modals, etc.)
+x Finish hover glow effects on tweets (almost done, need gray glow effects on XIcons within modals, etc.)
 x Fix app overflow for clean scrolling with no scroll bars
 x Implement sticky headers across the app
 
 x Implement widgets api (Look back at youtube twitter clone course project)
 x Implement ability to tweet an image
 
-- Display comments lengths on all Tweet Components across the app
-- implement routing to previous route on page header arrows
-- Convert DB tweet posted time to Time Ago 
-- Implement Bookmark Modal across all pages with Tweet Components
+x Display comments lengths on all Tweet Components across the app
 
-- Media Feed on Profile Page
-- Apply ability to post an image on comment modals and comment section of Tweet Details, and don't forget to add the storage
+
+x Media Feed on Profile Page
+x Apply ability to post an image on comment modals and comment section of Tweet Details, and don't forget to add the storage
   bucket folder paths to createComment() function in utils/api/comments. Also, imitate the "image selected" design from the TweetBox to 
   comment modals and comment sections
-- Redesign to edit profile modal according to twitter
-- Implement feature to allow users to add their own avatar and banner to their profile
+x Redesign to edit profile modal according to twitter
+x Implement feature to allow users to add their own avatar and banner to their profile
 x Fix pinned tweet display on Profile Page (Clickin unpin the first time doesn't unpin, only when you click a second time does it unpin)
-- Implement Search Profile Feature
-- Following and Following Page (Issue where "Follows You" badge is displaying when the follower is 
- is following the Profile (non auth user) of Following and Followers but is still displaying even when
-  the follower is not following the Auth User) (Follows You badge is only pertaining to the Profile and not 
-  the Auth User / )
+
+  x Issue where when you remove a Pinned Post on the Tweets tab, it will appear as a duplicate in the posts state
+  x Fix Home page route on app mount after log in/register (seems to hit the / route instead of redirecting to /home)
+  x implement routing to previous route on page header arrows
+  - implement Delete Banner in Edit Profile Modal
+  x Convert DB tweet posted time to Time Ago 
+  x Implement Search Profile Feature
+  x Place App Search Bar only on the Home Screen
+  - Search Bar - add ability to search/filter for profile's name and not just username
+  x Fix issue on Profile Page
+  x Fix issue on Tweet Details page in replyToThread. Tweet component useEffect fires when a Tweet's Likes changes, then maps through an incorrect state of Bookmarks,
+    within useEffect, leading to the state - isBookmarked - to be incorrect, as well
+  x Update UI of More Modals, etc.
+  - Implement ability to comment an Image on Tweet Details post
+  - Update X Icon on Selected Image to Tweet
+  - Update Loader on Edit Avatar
+  x Fix Pinned Tweet padding on Profile Screen
+  x Fix unnecessary spacing on Tweet Component below the Name, Username, and Date
+  x Fix issues on Comment Modal in Bookmarks Screen where bookmarks won't refresh with updated comment length and issue where the Bookmark Header is still present
+    and not shadowed out when Comment Modal is active
+  - Implement the new component Buttons on each tweet's footer in Bookmarks Screen
+  - Handle Edit Profile Banner and Avatar Selected Images that are not valid and display the "alt" attribute value
+  - Add Toolkit component to Tweet Details Post Footer Items
+  - Add BookmarkButton in Tweet Details' post footer instead of Submit Icon
+  - Dark Mode (exclude)
+  - Fix issue with Likes Modal on Post Details Screen
+  x Add Avatar to Tweets
+  x Fix issue where after you Edit Your Profile, the pinned post disappears after refetch
+  - Fix issue where some Profile Avatars (Victors Profile) on the Tweet Component displays the alt fallback and not DefaultAvatar Component fallback
+  - Profile Page Issue - In reducer, split the reused feed state into 4 separate states (Tweets, Tweets and Replies, Media, Likes) so that longer fetches
+    don't display in the wrong active feed
 
 - Implement Mobile scaling
 

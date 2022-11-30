@@ -15,47 +15,42 @@ import {
   getPostById,
   toggleLikePost,
   deletePostById,
-  addBookmark,
   getBookmarks,
+  pinPost,
+  unpinPost,
+  addBookmarkById,
+  deleteBookmarkById,
 } from "../../utils/api/posts";
 import {
   followUser,
   getProfileFollowing,
   getUserDetails,
+  toggleFollow,
   unfollowUser,
 } from "../../utils/api/users";
+import { ADD_BOOKMARK } from "../bookmarks/bookmarks.actions";
 import { DELETE_POST } from "../profile/profile.types";
 import {
   CREATE_BOOKMARK,
   DELETE_BOOKMARK,
   FOLLOW_USER,
   GET_POSTS,
+  PIN_POST,
   REFRESH_POST,
+  TOGGLE_FOLLOW_USER,
   TOGGLE_LIKE_POST,
   UNFOLLOW_USER,
+  UNPIN_POST,
 } from "./home.types";
 
-const getPosts = (user) => async (dispatch) => {
+const getPosts = () => async (dispatch, getState) => {
+  const authId = getState().users.user.id;
   const query = {
-    where: null,
+    where: ["postType", "==", "tweet"],
     orderBy: ["timestamp", "desc"],
   };
-  const posts = await fetchPosts(query);
-  const authUser = await getUserDetails(user.username);
-  console.log("user: ", user);
-  console.log("authUser: ", authUser);
-
-  posts.map((post) => {
-    if (post.uid === user.id) {
-      if (authUser.pinnedPost.id && post.id === authUser.pinnedPost?.id) {
-        post.pinnedPost = true;
-      } else {
-        post.pinnedPost = false;
-      }
-    }
-
-    return post;
-  });
+  
+  let posts = await fetchPosts(query, authId);
 
   dispatch({
     type: GET_POSTS,
@@ -95,7 +90,7 @@ const deletePost = (postId, authId) => async (dispatch) => {
   });
 };
 
-const toggleFollowPostUser = (post, authId) => async (dispatch, getState) => {
+const toggleFollowPostUser = (post, authId) => async (dispatch) => {
   const followers = post.followers;
 
   const authUsersPost = post.uid === authId;
@@ -127,13 +122,59 @@ const toggleFollowPostUser = (post, authId) => async (dispatch, getState) => {
   }
 };
 
+const toggleFollowUser = (profileId, authId, postId) => async (dispatch) => {
+  const { following, followers } = await toggleFollow(profileId, authId);
 
+  dispatch({
+    type: TOGGLE_FOLLOW_USER,
+    payload: {
+      followers,
+      postId,
+    },
+  });
+};
 
+const pinTweet = (postId, authId) => async (dispatch) => {
+  const { id } = await pinPost(postId, authId);
+  dispatch({
+    type: PIN_POST,
+    payload: id,
+  });
+};
 
+const unpinTweet = (postId, authId) => async (dispatch) => {
+  const { id } = await unpinPost(postId, authId);
+  dispatch({
+    type: UNPIN_POST,
+    payload: id,
+  });
+};
+
+const addBookmark = (postId, authId) => async (dispatch) => {
+  const id = await addBookmarkById(postId, authId);
+
+  dispatch({
+    type: ADD_BOOKMARK,
+    payload: id,
+  });
+};
+
+const removeBookmark = (postId, authId) => async (dispatch) => {
+  const id = await deleteBookmarkById(postId, authId);
+
+  dispatch({
+    type: DELETE_BOOKMARK,
+    payload: id,
+  });
+};
 export {
   getPosts,
   likePost,
   refreshPost,
   deletePost,
   toggleFollowPostUser,
+  addBookmark,
+  removeBookmark,
+  pinTweet,
+  unpinTweet,
 };

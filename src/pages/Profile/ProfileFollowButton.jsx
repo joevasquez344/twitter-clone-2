@@ -16,15 +16,18 @@ const ProfileFollowButton = ({
 }) => {
   const authUser = useSelector((state) => state.users.user);
   const profile = useSelector((state) => state.profile.profile);
+  const dispatch = useDispatch()
 
   const handleFollowProfile = async () => {
-    await followUser(profile.id, authUser.id)
-    fetchProfile();
+    dispatch(followProfile(profile.id, authUser))
+    // await followUser(profile.id, authUser.id) 
+    // fetchProfile();
   };
 
   const handleUnfollowProfile = async () => {
-    await unfollowUser(profile.id, authUser.id)
-    fetchProfile();
+    dispatch(unfollowProfile(profile.id, authUser))
+    // await unfollowUser(profile.id, authUser.id)
+    // fetchProfile();
   };
 
   useEffect(() => {

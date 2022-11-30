@@ -16,7 +16,8 @@ import {
 import {
   LIKE_TWEET_DETAILS,
   LIKE_COMMENT,
-  GET_COMMENTS,
+  COMMENTS_REQUEST_SENT,
+  GET_COMMENTS_SUCCESS,
   TWEET_DETAILS_SUCCESS,
   TWEET_DETAILS_REQUEST,
   LIKE_REPLIED_TO_POST,
@@ -26,15 +27,17 @@ import {
   REFRESH_POST,
   DELETE_REPLIED_TO_POST,
   GET_THREAD_POSTS,
+  DELETE_POST,
+  TWEET_DETAILS_FAILED,
 } from "./tweet-details.types";
 
 import {
   deletePostById,
+  getBookmarks,
   getComments,
   getPostById,
   getPostLikes,
   getPostsByThreadId,
-  getReplyToPosts,
   toggleLikePost,
 } from "../../utils/api/posts";
 import {
@@ -48,34 +51,38 @@ const getPostDetails = (postId) => async (dispatch) => {
     type: TWEET_DETAILS_REQUEST,
   });
   const postDetails = await getPostById(postId);
+  console.log('Details: ', postDetails)
 
-  let { posts, deletedPostIds } = await getPostsByThreadId(
-    postDetails.threadId,
-    postDetails
-  );
+  let { posts, deletedPostIds } = await getPostsByThreadId(postDetails.id);
+
+  if (!postDetails.uid) {
+    postDetails.deleted = true;
+  } else {
+    postDetails.deleted = false;
+  }
 
   postDetails.replyToPostDeleted = false;
-  posts = posts.map((post) => {
-    post.replyToPostDeleted = false;
+  posts = await Promise.all(
+    posts.map(async (post) => {
+      post.replyToPostDeleted = false;
 
-    deletedPostIds.forEach((id) => {
-      if (post.replyTo.id === id) post.replyToPostDeleted = true;
-      if (postDetails.replyTo.id === id) postDetails.replyToPostDeleted = true;
-    });
+      deletedPostIds.forEach((id) => {
+        if (post.replyTo.id === id) post.replyToPostDeleted = true;
+        if (postDetails.replyTo?.id === id)
+          postDetails.replyToPostDeleted = true;
+      });
 
-    return post;
-  });
+      return {
+        ...post,
+        replyToUsers: await getPostsByThreadId(post.id),
+      };
+    })
+  );
 
-  // let arr = [];
-
-  // posts.forEach((tweet) => {
-  //   if (tweet.timestamp.seconds < post.timestamp.seconds) {
-  //     arr.push(tweet);
-  //   }
-  // });
-
-  // posts = arr;
-  console.log("POSTIESSSS: ", posts);
+  posts = posts.map((post) => ({
+    ...post,
+    replyToUsers: post.replyToUsers.posts,
+  }));
 
   dispatch({
     type: TWEET_DETAILS_SUCCESS,
@@ -86,6 +93,9 @@ const getPostDetails = (postId) => async (dispatch) => {
 };
 
 const fetchComments = (postId) => async (dispatch, getState) => {
+  dispatch({
+    type: COMMENTS_REQUEST_SENT,
+  });
   const postsRef = collection(db, "posts");
   const postRef = doc(db, `posts/${postId}`);
 
@@ -100,7 +110,7 @@ const fetchComments = (postId) => async (dispatch, getState) => {
   );
   const snapshot = await getDocs(commentsQuery);
 
-  const comments = await Promise.all(
+  let comments = await Promise.all(
     snapshot.docs.map(async (doc) => ({
       id: doc.id,
 
@@ -111,12 +121,19 @@ const fetchComments = (postId) => async (dispatch, getState) => {
       followers: await (
         await getDocs(collection(db, `users/${doc.data().uid}/followers`))
       ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+      replyToUsers: await getPostsByThreadId({ id: doc.id, ...doc.data() }),
+      bookmarks: await getBookmarks(doc.data().uid),
 
       ...doc.data(),
     }))
   );
 
-  comments.map((post) => {
+  comments = comments.map((post) => {
+    if(post.uid) {
+      post.deleted = false
+    } else {
+      post.deleted = true
+    }
     if (post.uid === authUser.id) {
       if (authUser.pinnedPost.id && post.id === authUser.pinnedPost?.id) {
         post.pinnedPost = true;
@@ -125,19 +142,20 @@ const fetchComments = (postId) => async (dispatch, getState) => {
       }
     }
 
-    return post;
+    return {
+      ...post,
+      replyToUsers: post.replyToUsers.posts,
+    };
   });
 
   dispatch({
-    type: GET_COMMENTS,
+    type: GET_COMMENTS_SUCCESS,
     payload: comments,
   });
 };
 
 const likeRepliedToPost = (postId) => async (dispatch) => {
   const likes = await toggleLikePost(postId);
-
-  console.log("Likes: ", likes);
 
   dispatch({
     type: LIKE_REPLIED_TO_POST,
@@ -194,6 +212,10 @@ const deletePost = (postId, authId) => async (dispatch, getState) => {
   }
 
   if (tweetDetailsMatch) {
+    dispatch({
+      type: DELETE_POST,
+      payload: null,
+    });
   }
 
   if (repliedToPostsMatch) {
@@ -245,12 +267,10 @@ const refreshPost = (postId) => async (dispatch) => {
   });
 };
 
-const getThreadPosts = (threadId) => async (dispatch, getState) => {
-  const { posts, deletedPostIds } = await getPostsByThreadId(threadId);
+const getThreadPosts = (postId) => async (dispatch, getState) => {
+  const { posts, deletedPostIds } = await getPostsByThreadId(postId);
 
   const post = getState().tweetDetails.post;
-
-  console.log("Postiees: ", posts);
 
   dispatch({
     type: GET_THREAD_POSTS,

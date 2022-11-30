@@ -1,12 +1,16 @@
+import { ADD_BOOKMARK } from "../bookmarks/bookmarks.actions";
 import {
   CREATE_BOOKMARK,
   DELETE_BOOKMARK,
   DELETE_POST,
   FOLLOW_USER,
   GET_POSTS,
+  PIN_POST,
   REFRESH_POST,
+  TOGGLE_FOLLOW_USER,
   TOGGLE_LIKE_POST,
   UNFOLLOW_USER,
+  UNPIN_POST,
 } from "./home.types";
 
 const initialState = {
@@ -75,18 +79,24 @@ const homeReducer = (state = initialState, { type, payload }) => {
         ...state,
         posts,
       };
-    case CREATE_BOOKMARK:
+    case TOGGLE_FOLLOW_USER:
+      const updatedPostsFollowers = state.posts.map((post) => {
+        if (post.id === payload.postId) {
+          post.followers = payload.followers;
+        }
+        return post;
+      });
+      return {
+        ...state,
+        posts: updatedPostsFollowers,
+      };
+    case ADD_BOOKMARK:
       return {
         ...state,
         posts: state.posts.map((post) => {
-          payload.bookmarks.map((bookmark) => {
-            if (bookmark.id === post.id) {
-              post.bookmark = true;
-            } else {
-              post.bookmark = false
-            }
-            return bookmark;
-          });
+          if (post.id === payload) {
+            post.bookmarkedByAuthUser = true;
+          }
 
           return post;
         }),
@@ -95,10 +105,30 @@ const homeReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         posts: state.posts.map((post) => {
-          if (post.id === payload.postId) {
-            post.bookmark = false;
-          } else {
-            post.bookmark = false;
+          if (post.id === payload) {
+            post.bookmarkedByAuthUser = false;
+          }
+
+          return post;
+        }),
+      };
+    case PIN_POST:
+      return {
+        ...state,
+        posts: state.posts.map((post) => {
+          if (post.id === payload) {
+            post.pinnedPost = true;
+          }
+
+          return post;
+        }),
+      };
+    case UNPIN_POST:
+      return {
+        ...state,
+        posts: state.posts.map((post) => {
+          if (post.id === payload) {
+            post.pinnedPost = false;
           }
 
           return post;

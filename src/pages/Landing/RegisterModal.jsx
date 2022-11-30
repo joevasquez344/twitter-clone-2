@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { register } from "../../redux/users/users.actions";
 import { XIcon } from "@heroicons/react/outline";
-const RegisterModal = ({closeModal}) => {
+const RegisterModal = ({ closeModal }) => {
   const registerError = useSelector((state) => state.users.error);
   const dispatch = useDispatch();
 
@@ -39,64 +39,70 @@ const RegisterModal = ({closeModal}) => {
     <div>
       <form
         onSubmit={handleRegister}
-        className="flex flex-col absolute top-1/4 right-1/3 bg-white p-5 w-1/3 border rounded-xl justify-center"
+        className="flex flex-col fixed right-0 top-0 left-0 bottom-0 lg:absolute lg:top-10 lg:bottom-10 lg:right-1/3 lg:left-1/3 bg-white p-5 lg:w-1/3 border rounded-xl justify-center"
       >
-        <XIcon onClick={closeModal} className="h-5 w-5 mb-9 cursor-pointer" />
+        <div className="md:absolute md:top-10 md:left-10 md:right-10">
+          <XIcon onClick={closeModal} className="h-5 w-5 mb-9 cursor-pointer" />
 
-        <div className="text-3xl font-bold mb-8">Create your account</div>
-        <div className="flex flex-col space-y-5 mb-10">
-          <input
-            value={email}
-            onChange={handleEmailChange}
-            type="text"
-            placeholder="Email"
-            className="border rounded-md p-2"
-          />
-          <input
-            value={password}
-            onChange={handlePasswordChange}
-            type="text"
-            placeholder="Password"
-            className="border rounded-md p-2"
-          />
-          <input
-            onChange={handleNameChange}
-            value={name}
-            type="text"
-            placeholder="Name"
-            className="border rounded-md p-2"
-          />
+          <div className="text-3xl font-bold mb-8">Create your account</div>
+          <div className="flex flex-col space-y-5 mb-10">
+            <input
+              value={email}
+              onChange={handleEmailChange}
+              type="text"
+              placeholder="Email"
+              className="border rounded-md p-2"
+            />
+            <input
+              value={password}
+              onChange={handlePasswordChange}
+              type="text"
+              placeholder="Password"
+              className="border rounded-md p-2"
+            />
+            <input
+              onChange={handleNameChange}
+              value={name}
+              type="text"
+              placeholder="Name"
+              className="border rounded-md p-2"
+            />
 
-          <input onChange={handleBirthdayChange} value={birthday} type="date" />
-          <input
-            onChange={handleBioChange}
-            value={bio}
-            type="text"
-            placeholder="Bio"
-            className="border rounded-md p-2"
-          />
-          <input
-            onChange={handleUsernameChange}
-            value={username}
-            type="text"
-            placeholder="Username"
-            className="border rounded-md p-2"
-          />
-          <input
-            onChange={handleLocationChange}
-            value={location}
-            type="text"
-            placeholder="Location"
-            className="border rounded-md p-2"
-          />
+            <input
+              onChange={handleBirthdayChange}
+              value={birthday}
+              type="date"
+            />
+            <input
+              onChange={handleBioChange}
+              value={bio}
+              type="text"
+              placeholder="Bio"
+              className="border rounded-md p-2"
+            />
+            <input
+              onChange={handleUsernameChange}
+              value={username}
+              type="text"
+              placeholder="Username"
+              className="border rounded-md p-2"
+            />
+            <input
+              onChange={handleLocationChange}
+              value={location}
+              type="text"
+              placeholder="Location"
+              className="border rounded-md p-2"
+            />
+          </div>
+
+          <button
+            className="bg-gray-400 m-auto w-2/3 p-3 rounded-full text-white"
+            onClick={handleRegister}
+          >
+            Sign Up
+          </button>
         </div>
-
-        <button
-          className="bg-gray-400 m-auto w-2/3 p-3 rounded-full text-white"
-          onClick={handleRegister}
-        >
-          Sign Up
-        </button>
         {registerError && <div>{registerError}</div>}
       </form>
 

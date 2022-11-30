@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -10,6 +10,7 @@ const ProfileInfo = () => {
   const handleFollowersRoute = () => navigate(`/${username}/followers`);
 
   const handleFollowingRoute = () => navigate(`/${username}/following`);
+
 
   return (
     <div className="p-4">

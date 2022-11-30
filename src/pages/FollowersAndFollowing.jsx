@@ -4,14 +4,15 @@ import { DotsHorizontalIcon, ArrowLeftIcon } from "@heroicons/react/outline";
 import { useSelector } from "react-redux";
 import {
   followUser,
-  getProfileFollowers,
+  getFollowers,
   getProfileFollowing,
   getUserDetails,
   unfollowUser,
 } from "../utils/api/users";
 import Loader from "../components/Loader";
+import ArrowButton from "../components/Buttons/ArrowButton";
 
-// TODOs: 
+// TODOs:
 // Route back
 const FollowersAndFollowing = () => {
   const location = useLocation();
@@ -86,7 +87,7 @@ const FollowersAndFollowing = () => {
     const authId = user.id;
     const profileId = profile.id;
 
-    let authsFollowers = await getProfileFollowers(authId);
+    let authsFollowers = await getFollowers(authId);
     let authsFollowing = await getProfileFollowing(authId);
 
     // If this page is related to the Auth User
@@ -144,18 +145,18 @@ const FollowersAndFollowing = () => {
     }
 
     if (profileId !== authId) {
-      let profileFollowers = await getProfileFollowers(profile.id);
+      let profileFollowers = await getFollowers(profile.id);
       let profileFollowing = await getProfileFollowing(profile.id);
 
       if (endpoint === "followers") {
         profileFollowers = profileFollowers.map((follower) => {
           if (follower.id === authId) {
             follower.followedByAuthUser = null;
-            follower.followsYou = false;
+            follower.followsYou = true;
 
             return follower;
           } else {
-            follower.followsYou = true;
+            follower.followsYou = false;
 
             const match = authsFollowing.find(
               (following) => following.id === follower.id
@@ -215,7 +216,6 @@ const FollowersAndFollowing = () => {
     setLoading(false);
   }, [endpoint]);
 
-  console.log("Users: ", users);
   return (
     <>
       {loading ? (
@@ -223,7 +223,9 @@ const FollowersAndFollowing = () => {
       ) : (
         <div>
           <div className="p-3 flex items-center">
-            <ArrowLeftIcon className="h-5 w-5 mr-8" />
+            <div className="mr-8">
+              <ArrowButton />
+            </div>
 
             <div>
               <div className="font-bold text-xl">{profile?.name}</div>
@@ -263,7 +265,7 @@ const FollowersAndFollowing = () => {
                       <div className="font-bold">{u.name}</div>
                       <div className="flex items-center">
                         <div className="text-gray-500 mr-1">@{u.username}</div>
-                        {u.followsYou === true ? (
+                        {u.followsYou === true && u.id !== user.id ? (
                           <div className="text-xs px-1 bg-gray-100 text-gray-500 font-semibold rounded-lg">
                             Follows you
                           </div>

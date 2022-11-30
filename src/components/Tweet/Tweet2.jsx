@@ -16,11 +16,18 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { followUser, unfollowUser } from "../../utils/api/users";
-import { addBookmark } from "../../utils/api/posts";
+import {
+  addBookmark,
+  deleteBookmark,
+  getBookmarks,
+} from "../../utils/api/posts";
 import TweetFooter from "./TweetFooter";
 import DefaultAvatar from "../DefaultAvatar";
 import CommentModal from "../CommentModal";
-import { handlePostIsLiked } from "../../utils/handlers";
+import {
+  handlePostIsLiked,
+  handleReplyToUsernames,
+} from "../../utils/handlers";
 import { removeDuplicateUsernames } from "../../utils/helpers";
 import MoreButton from "../Buttons/MoreButton";
 import {
@@ -29,11 +36,14 @@ import {
   PopoverContent,
   Button,
 } from "@material-tailwind/react";
+import LastSeen from "../LastSeen";
 
 const Tweet = ({
   id,
   handleLikePost,
   handleDeletePost,
+  handleAddBookmark,
+  handleRemoveBookmark,
   handlePinPost,
   handleUnpinPost,
   handleFollowUser,
@@ -41,9 +51,8 @@ const Tweet = ({
   isPinned,
   tabs,
   post,
-  userDeletedPost,
   threadPost,
-
+  bookmarks,
   post: {
     name,
     avatar,
@@ -56,12 +65,14 @@ const Tweet = ({
     uid,
     followers,
     replyToUsers,
+    pinnedPost,
   },
 }) => {
-  const user = useSelector((state) => state.users.user);
+  const { user, authsPinnedPost } = useSelector((state) => state.users);
 
   const [modal, setModal] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [authIsFollowing, setAuthIsFollowing] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -69,75 +80,95 @@ const Tweet = ({
   const openModal = () => setModal(true);
   const closeModal = () => setModal(false);
 
-  const pinPost = async () => {
-    await handlePinPost(id);
-    closeModal();
+  const pinPost = () => {
+    handlePinPost(post);
   };
 
-  const unpinPost = async () => {
-    await handleUnpinPost(id);
-    closeModal();
+  const unpinPost = () => {
+    handleUnpinPost(post);
   };
 
-  const handleAddBookmark = async () => await addBookmark(id, user.id);
+  const deletePost = () => {
+    handleDeletePost(post.id, user.id);
+  };
+
+  const addBookmark = async () => {
+    handleAddBookmark(post.id, user.id);
+  };
+
+  const removeBookmark = async () => {
+    handleRemoveBookmark(post.id, user.id);
+  };
 
   const handleTweetDetails = () => navigate(`/${username}/status/${id}`);
-  const handleUserDetails = (username) => navigate(`/${username}`);
+  const handleUserDetails = () => navigate(`/${username}`);
 
   useEffect(() => {
     handlePostIsLiked(likes, setIsLiked, user);
   }, [likes?.length]);
+
+  useEffect(() => {
+    const match = followers.find((u) => u.id === user.id);
+
+    if (match) {
+      setAuthIsFollowing(true);
+    } else {
+      setAuthIsFollowing(false);
+    }
+  }, [followers]);
 
   const tweetsFeedActive =
     tabs?.find((tab) => tab.isActive && tab.text === "Tweets") &&
     location.pathname !== "/home";
 
   const authUsersPost = user.id === uid;
-  const authUserIsFollowingPostUser = followers?.find(
-    (follower) => follower.id === user.id
-  );
+  // const authUserIsFollowingPostUser = followers?.find(
+  //   (follower) => follower.id === user.id
+  // );
 
   return (
-    <div className="relative z-0">
+    <div className="relative hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200">
       <div
         className={`${
           isPinned && tweetsFeedActive ? "pt-2 relative" : "relative"
         }`}
       >
         <div
-          className={` px-4 relative ${
+          className={`pl-2 pr-4 relative ${
             !threadPost ? "pb-2 pt-4" : "pt-0"
-          } w-full flex hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200 ${
-            threadPost === true ? "" : "border-b"
-          } `}
+          } w-full flex  ${threadPost === true ? "" : "border-b"} `}
         >
           <div className=" relative">
-            {avatar === "" ? (
+            {avatar === null || avatar === "" ? (
               // <UserCircleIcon className="h-16 w-16" />
-              <div className=" h-full flex flex-col ">
-                <div className="rounded-full my-2 object-cover">
-                  <DefaultAvatar name={name} username={username} />
+              <div className="relative h-full">
+                <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center z-40">
+                  <div className="h-12 w-12 rounded-full flex justify-center items-center">
+                    <DefaultAvatar name={name} username={username} />
+                  </div>
                 </div>
-
-                <div className="flex justify-center items-center h-full w-full">
-                  {threadPost && <hr className=" border h-full " />}
-                </div>
+                {threadPost && (
+                  <hr className="absolute left-1/2 h-full border border-gray" />
+                )}
               </div>
             ) : (
-              // <img
-              //   onClick={() => handleUserDetails(username)}
-              //   className="h-12 w-12 rounded-full object-cover"
-              //   src="https://picsum.photos/200"
-              //   alt="Profile Image"
-              // />
-              <div className="relative">
-                <img
-                  onClick={handleUserDetails}
-                  src={avatar}
-                  alt="Profile Image"
-                  className="z-50"
-                />
-                <hr className="absolute left-1/2 h-full border-x-2 border-gray" />
+              <div className="relative h-full">
+                <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center z-40">
+                  <div className="h-12 w-12 rounded-full flex justify-center items-center">
+                    <img
+                      onClick={handleUserDetails}
+                      src={avatar}
+                      alt="Profile Image"
+                      className={` ${isPinned && "my-1"} ${
+                        threadPost && " my-2"
+                      } object-cover h-12 w-12 rounded-full`}
+                    />
+                  </div>
+                </div>
+
+                {threadPost && (
+                  <hr className="absolute left-1/2 h-full border border-gray" />
+                )}
               </div>
             )}
           </div>
@@ -161,49 +192,53 @@ const Tweet = ({
               </div>
             ) : null}
 
-            <div className="flex justify-between items-center relative">
-              <div className="flex">
-                <div className="font-semibold mr-2">{name}</div>
-                <div className="text-gray-500">@{username}</div>
-
-                <div>Date</div>
+            <div className="relative flex justify-between items-center">
+              <div className={`flex items-center ${isPinned && "mt-1"}`}>
+                <div className="font-semibold mr-1">{name}</div>
+                <div className="text-gray-500 mr-1.5">@{username}</div>
+                <div className="h-0.5 w-0.5 rounded-full bg-gray-500 mr-1.5"></div>
+                <div className="text-gray-500">
+                  <LastSeen date={new Date(timestamp.seconds * 1000)} />
+                </div>
               </div>
 
               <MoreButton openModal={openModal} />
+              {modal ? (
+                <div
+                  onClick={closeModal}
+                  className="bg-transparent cursor-default fixed top-0 bottom-0 left-0 right-0 opacity-40 w-screen h-screen z-50"
+                ></div>
+              ) : null}
               <div
                 className={`${
                   modal
-                    ? "flex flex-col absolute right-0 top-0 bg-white shadow-lg rounded-lg z-50"
+                    ? "flex flex-col w-3/5 absolute right-0 top-0 bg-white shadow-lg z-50"
                     : "hidden"
                 }`}
               >
                 <div>
                   {user.id === uid ? (
                     <div
-                      onClick={() => handleDeletePost(id)}
-                      className="flex items-center text-red-400 p-2 hover:bg-gray-100"
+                      onClick={deletePost}
+                      className="flex items-center text-red-400 p-4 hover:bg-gray-100"
                     >
                       {" "}
                       <TrashIcon className="h-5 w-5 mr-3" /> Delete
                     </div>
                   ) : (
                     <>
-                      {authUserIsFollowingPostUser ? (
+                      {authIsFollowing ? (
                         <div
-                          onClick={() =>
-                            handleFollowUser({ followers, uid, id })
-                          }
-                          className=" flex items-center rounded-md p-2 hover:bg-gray-100"
+                          onClick={() => handleFollowUser(post)}
+                          className=" flex items-center p-4 hover:bg-gray-100"
                         >
                           <UserRemoveIcon className="h-5 w-5 mr-3" /> Unfollow @
                           {username}
                         </div>
                       ) : (
                         <div
-                          onClick={() =>
-                            handleFollowUser({ followers, uid, id })
-                          }
-                          className=" flex items-center rounded-md p-2 hover:bg-gray-100"
+                          onClick={() => handleFollowUser(post)}
+                          className=" flex items-center p-4 hover:bg-gray-100"
                         >
                           <UserAddIcon className="h-5 w-5 mr-3" /> Follow @
                           {username}
@@ -215,10 +250,10 @@ const Tweet = ({
                 <div>
                   {authUsersPost && (
                     <div>
-                      {isPinned ? (
+                      {authsPinnedPost?.id === post.id ? (
                         <div
                           onClick={unpinPost}
-                          className="flex items-center p-2 hover:bg-gray-100"
+                          className="flex items-center p-4 hover:bg-gray-100"
                         >
                           <LocationMarkerIcon className="h-5 w-5 mr-3" /> Unpin
                           to your profile
@@ -226,7 +261,7 @@ const Tweet = ({
                       ) : (
                         <div
                           onClick={pinPost}
-                          className="flex items-center p-2 hover:bg-gray-100"
+                          className="flex items-center p-4 hover:bg-gray-100"
                         >
                           <LocationMarkerIcon className="h-5 w-5 mr-3" /> Pin to
                           your profile
@@ -237,16 +272,10 @@ const Tweet = ({
                 </div>
                 <div>
                   {user.id !== uid && (
-                    <div className="flex items-center p-2 hover:bg-gray-100">
+                    <div className="flex items-center p-4 hover:bg-gray-100">
                       <BanIcon className="h-5 w-5 mr-3" /> Block @{username}
                     </div>
                   )}
-                </div>
-                <div
-                  onClick={closeModal}
-                  className="flex items-center px-2 py-3 hover:bg-gray-100 border-t"
-                >
-                  <XIcon className="h-5 w-5 mr-3" /> Close
                 </div>
               </div>
             </div>
@@ -257,10 +286,10 @@ const Tweet = ({
               ) : null}
               <div className="flex items-center">
                 {" "}
-                {removeDuplicateUsernames(replyToUsers).map((username) => (
+                {handleReplyToUsernames(replyToUsers, post).map((username) => (
                   <div className="tweet__userWhoReplied flex items-center text-blue-500">
                     <div
-                      onClick={() => handleUserDetails(username)}
+                      onClick={() => navigate(`/${username}`)}
                       className="mr-1 hover:underline"
                       key={username}
                     >
@@ -279,15 +308,17 @@ const Tweet = ({
               <img
                 src={media}
                 alt=""
-                className=" w-full ml-0 mb-2 rounded-lg object-cover"
+                className=" max-w-full ml-0 mb-2 rounded-lg object-cover"
               />
             ) : null}
 
             <TweetFooter
-              likes={likes}
               isLiked={isLiked}
               handleLikePost={handleLikePost}
-              handleAddBookmark={handleAddBookmark}
+              handleAddBookmark={addBookmark}
+              handleRemoveBookmark={removeBookmark}
+              // isBookmarked={isBookmarked}
+              bookmarks={bookmarks}
               handleOpenCommentModal={handleOpenCommentModal}
               post={post}
             />

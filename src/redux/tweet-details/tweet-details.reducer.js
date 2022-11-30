@@ -8,7 +8,6 @@ import {
   CREATE_COMMENT,
   UNLIKE_COMMENT,
   SET_LOADING,
-  GET_COMMENTS,
   CLEAR_TWEET_DETAILS,
   TWEET_DETAILS_REQUEST,
   TWEET_DETAILS_SUCCESS,
@@ -18,14 +17,19 @@ import {
   DELETE_COMMENT,
   DELETE_REPLIED_TO_POST,
   GET_THREAD_POSTS,
+  DELETE_POST,
+  TWEET_DETAILS_FAILED,
+  COMMENTS_REQUEST_SENT,
+  GET_COMMENTS_SUCCESS,
 } from "./tweet-details.types";
 
 const initialState = {
   repliedToPosts: [],
   post: {},
   comments: [],
+  commentsLoading: true,
   loading: true,
-  postType: "",
+  error: null,
 };
 
 const tweetDetailsReducer = (state = initialState, { type, payload }) => {
@@ -50,6 +54,7 @@ const tweetDetailsReducer = (state = initialState, { type, payload }) => {
         repliedToPosts: payload.posts,
         loading: false,
       };
+
     case LIKE_TWEET_DETAILS:
       return {
         ...state,
@@ -59,10 +64,17 @@ const tweetDetailsReducer = (state = initialState, { type, payload }) => {
         },
       };
 
-    case GET_COMMENTS:
+    case COMMENTS_REQUEST_SENT:
+      return {
+        ...state,
+        commentsLoading: true,
+      };
+
+    case GET_COMMENTS_SUCCESS:
       return {
         ...state,
         comments: payload,
+        commentsLoading: false,
       };
 
     case LIKE_COMMENT_DETAILS:
@@ -94,6 +106,12 @@ const tweetDetailsReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         repliedToPosts: updatedPosts,
+      };
+
+    case DELETE_POST:
+      return {
+        ...state,
+        post: payload,
       };
 
     case DELETE_COMMENT:

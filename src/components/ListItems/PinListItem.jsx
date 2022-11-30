@@ -27,11 +27,11 @@ const PinListItem = ({ post }) => {
     return (
       <>
         {pinnedPost ? ( 
-          <div className="flex items-center cursor-pointer p-3  hover:bg-gray-100" onClick={handleUnpinPost}>
+          <div className="flex items-center cursor-pointer p-4  hover:bg-gray-100" onClick={handleUnpinPost}>
             <LocationMarkerIcon className='w-5 h-5 mr-3' /> <div>Unpin Post</div>
           </div>
         ) : (
-          <div className="flex items-center cursor-pointer p-3  hover:bg-gray-100" onClick={handlePinPost}>
+          <div className="flex items-center cursor-pointer p-4  hover:bg-gray-100" onClick={handlePinPost}>
             <LocationMarkerIcon className='w-5 h-5 mr-3' /> <div>Pin Post</div>
           </div>
         )}

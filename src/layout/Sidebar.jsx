@@ -24,32 +24,37 @@ const Sidebar = () => {
   const handleLogout = () => dispatch(logout());
 
   return (
-    <div className="flex flex-col items-center fixed md:items-start lg:items-start">
+    <div className="flex  flex-col items-center fixed md:items-start lg:items-start">
       <img
         className="m-3 h-10 w-10"
         src="https://links.papareact.com/drq"
         alt=""
       />
-      <div onClick={handleHomeNavigation} className="w-full flex justify-center md:justify-start">
+      <div onClick={handleHomeNavigation} className="w-full flex justify-center md:justify-start mt-2">
         <SidebarRow Icon={HomeIcon} title="Home" />
       </div>
       {/* <SidebarRow Icon={HashtagIcon} title="Explore" />
       <SidebarRow Icon={BellIcon} title="Notifications" />
       <SidebarRow Icon={MailIcon} title="Messages" /> */}
-      <div className="w-full flex justify-center md:justify-start" onClick={handleBookmarksNavigation}>
+      <div className="w-full flex justify-center md:justify-start mt-2" onClick={handleBookmarksNavigation}>
         <SidebarRow Icon={BookmarkIcon} title="Bookmarks" />
       </div>
 
       {/* <SidebarRow Icon={CollectionIcon} title="Lists" /> */}
-      <div className="w-full flex justify-center md:justify-start" onClick={handleProfileNavigation}>
+      <div className="w-full flex justify-center md:justify-start mt-2" onClick={handleProfileNavigation}>
         <SidebarRow Icon={UserIcon} title="Profile" />
       </div>
-      <div className="w-full flex justify-center md:justify-start">
+      <div className="w-full flex justify-center md:justify-start mt-2">
         <SidebarRow Icon={ColorSwatchIcon} title="Display" />
       </div>
 
-      <div className="w-full flex justify-center md:justify-start" onClick={handleLogout}>
+      <div className="w-full flex justify-center md:justify-start mt-2" onClick={handleLogout}>
         <SidebarRow Icon={UserIcon} title="Sign Out" />
+      </div>
+      <div className="w-full flex justify-center md:justify-start mt-4" onClick={handleLogout}>
+        <div className="bg-blue-400 text-white font-bold w-full text-center text-lg rounded-full py-3 cursor-pointer ">
+          Tweet
+        </div>
       </div>
     </div>
   );

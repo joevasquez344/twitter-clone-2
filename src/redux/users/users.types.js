@@ -10,11 +10,15 @@ export const GET_USER_DETAILS = "GET_USER_DETAILS";
 export const GET_USER_TWEETS = "GET_USER_TWEETS";
 export const GET_USER_TWEETS_AND_REPLIES = "GET_USER_TWEETS_AND_REPLIES";
 export const GET_USER_LIKES = "GET_USER_LIKES";
+export const GET_AUTHS_PINNED_TWEET = 'GET_AUTHS_PINNED_TWEET';
 
 export const EDIT_PROFILE = 'EDIT_PROFILE';
 
 export const LIKE_TWEET = 'LIKE_TWEET;'
 
+export const PIN_TWEET = 'PIN_TWEET';
+export const UNPIN_TWEET = 'UNPIN_TWEET';
+
 export const FOLLOW_USER = "FOLLOW_USER";
-export const UNFOLLOW_USER = "UNFOLLOW_USER";
+export const UNFOLLOW_USER = "UNFOLLOW_USER"; 
 

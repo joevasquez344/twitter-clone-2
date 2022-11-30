@@ -15,7 +15,7 @@ const MoreButton = ({ openModal }) => {
     >
       <div
         onClick={openModal}
-        className="w-9 h-9 flex group items-center justify-center rounded-full hover:bg-blue-100 transition ease-in-out cursor-pointer duration-200"
+        className="w-9 h-9 absolute right-0 flex group items-center justify-center rounded-full hover:bg-blue-100 transition ease-in-out cursor-pointer duration-200"
       >
         <DotsHorizontalIcon className="h-5 w-5 text-gray-500 group-hover:text-blue-400 transition ease-in-out duration-200" />
       </div>

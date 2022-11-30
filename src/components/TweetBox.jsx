@@ -25,7 +25,7 @@ import { getPosts } from "../redux/home/home.actions";
 import { getProfileFollowing } from "../utils/api/users";
 import Loader from "./Loader";
 import { useEffect } from "react";
-import { addPostToThread } from "../utils/api/posts";
+import DefaultAvatar from "./DefaultAvatar";
 
 const TweetBox = ({ setLoading, setGiphyModal }) => {
   const user = useSelector((state) => state.users.user);
@@ -42,7 +42,7 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
   };
 
   const createPost = async () => {
-    const batch = writeBatch(db);
+    const postsRef = collection(db, `posts`);
 
     const postData = {
       uid: user.id,
@@ -52,23 +52,15 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
       username: user.username,
       message: input,
       media: selectedImageUrl ? selectedImageUrl : "",
-      avatar: "",
+      avatar: user.avatar,
       timestamp: serverTimestamp(),
       postType: "tweet",
       replyTo: doc(db, `posts/${null}`),
       pinnedPost: false,
-      replyToUsers: [],
+      // replyToUsers: [],
     };
 
-    const postsRef = collection(db, `posts`);
-    const createdPostRef = await addDoc(postsRef, postData);
-    const postRef = doc(db, `posts/${createdPostRef.id}`);
-
-    const threadId = await addPostToThread(createdPostRef.id, null);
-
-    batch.update(postRef, { threadId });
-
-    await batch.commit();
+    await addDoc(postsRef, postData);
 
     await dispatch(getPosts(user));
 
@@ -78,6 +70,7 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
+
     setInput("");
     if (selectedImageLoading === false) {
       setLoading(true);
@@ -91,9 +84,6 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
         createPost();
       }
 
-      await dispatch(getPosts(user));
-
-      setLoading(false);
       setSelectedImage(null);
     }
   };
@@ -114,7 +104,6 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
     uploadBytes(imageRef, e.target.files[0])
       .then((res) => {
         listAll(ref(storage, `${user.id}/selected/`)).then((response) => {
-          console.log("Response", response);
           const match = response.items.find(
             (item) => item.fullPath === res.ref.fullPath
           );
@@ -155,18 +144,44 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
     setSelectedImage(null);
   };
 
-  useEffect(() => {}, []);
-
   return (
-    <div className="px-5 pb-5 border-b">
-      <div className="flex w-full">
-        <img
-          className="h-12 w-12 rounded-full object-cover mt-4"
-          src="https://picsum.photos/200"
-          alt="Profile Image"
-        />
+    <div className="px-2 pb-5 border-b">
+      <div className="flex">
+        {user.avatar === "" ? (
+          <div className="relative h-full mt-4">
+            <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center z-40">
+              <div className="h-12 w-12 rounded-full flex justify-center items-center">
+                <DefaultAvatar name={user.name} username={user.username} />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="relative h-full mt-4">
+            <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center z-40">
+              <div className="h-12 w-12 rounded-full flex justify-center items-center">
+                <img
+                  // onClick={handleUserDetails}
+                  src={user.avatar}
+                  alt="Profile Image"
+                  className={` object-cover h-12 w-12 rounded-full`}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="ml-3 w-full">
-          <form onSubmit={handleCreatePost} className="mt-8 mb-7" action="">
+          <form
+            onSubmit={
+              input && selectedImageLoading
+                ? (e) => {
+                    e.preventDefault();
+                  }
+                : handleCreatePost
+            }
+            className="mt-8 mb-7"
+            action=""
+          >
             <input
               value={input}
               onChange={handleInputChange}
@@ -251,17 +266,19 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
               <CalendarIcon className="h-5 w-5" />
               <LocationMarkerIcon className="h-5 w-5" /> */}
             </div>
-            <div
-              onClick={handleCreatePost}
-              disabled={input || selectedImageLoading === "" ? true : false}
-              className={`text-white bg-blue-${
-                input === "" ? "300" : "400"
-              } py-2 px-4 rounded-full cursor-${
-                input === "" ? "default" : "pointer"
-              } ${input === "" ? "hidden" : "flex"}`}
-            >
-              Tweet
-            </div>
+            {input && selectedImageLoading ? null : (
+              <button
+                onClick={handleCreatePost}
+                // disabled={input || selectedImageLoading ? true : false}
+                className={`text-white bg-blue-${
+                  input === "" ? "300" : "400"
+                } py-2 px-4 rounded-full cursor-${
+                  input === "" ? "default" : "pointer"
+                } ${input === "" ? "hidden" : "flex"}`}
+              >
+                Tweet
+              </button>
+            )}
           </div>
         </div>
       </div>

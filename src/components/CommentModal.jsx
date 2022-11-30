@@ -1,30 +1,131 @@
 import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-import {
-  CalendarIcon,
-  EmojiHappyIcon,
-  PhotographIcon,
-  SearchCircleIcon,
-  LocationMarkerIcon,
-  XIcon,
-} from "@heroicons/react/outline";
+import { PhotographIcon, XIcon } from "@heroicons/react/outline";
+import { createComment } from "../utils/api/comments";
+import { storage } from "../firebase/config";
+import { ref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
+import Loader from "./Loader";
 
 const CommentModal = ({
   post,
-  createPost,
-  input,
-  handleInputChange,
+  // createPost,
+  // input,
+  // handleInputChange,
   handleCloseCommentModal,
+  refresh,
+  redux,
+  handleCreateComment,
 }) => {
+  const user = useSelector((state) => state.users.user);
+
+  const [input, setInput] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [uploadedImage, setUploadedImage] = useState(null);
+  const [selectedImageUrl, setSelectedImageUrl] = useState(null);
+  const [selectedImageLoading, setSelectedImageLoading] = useState(false);
+
+  const createPost = async (e) => {
+    handleCloseCommentModal();
+    if (redux === true) {
+      handleCreateComment(e, input, post, selectedImageUrl);
+      setInput("");
+    } else {
+      await createComment(input, post, selectedImageUrl, user, post.postType);
+      refresh();
+      setInput("");
+    }
+  };
+
+  const handleCreatePost = async (e) => {
+    e.preventDefault();
+    setInput("");
+    if (selectedImageLoading === false) {
+      if (input === "") return;
+
+      if (selectedImageUrl !== null) {
+        uploadImage();
+        createPost(e);
+      } else {
+        createPost(e);
+      }
+
+      // await dispatch(getPosts(user));
+
+      // setLoading(false);
+      setSelectedImage(null);
+    }
+  };
+
+  const clearSelectedFile = () => {
+    // Delete image from Firebase storage in :userId/selected folder on click of 'X'
+    setSelectedImage(null);
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files[0]) {
+      setSelectedImageLoading(true);
+    }
+    const imageRef = ref(
+      storage,
+      `${user.id}/selected/${e.target.files[0].name}`
+    );
+    uploadBytes(imageRef, e.target.files[0])
+      .then((res) => {
+        listAll(ref(storage, `${user.id}/selected/`)).then((response) => {
+          const match = response.items.find(
+            (item) => item.fullPath === res.ref.fullPath
+          );
+
+          if (match) {
+            setSelectedImage(match);
+            getDownloadURL(match).then((url) => {
+              setSelectedImageUrl(url);
+              setSelectedImageLoading(false);
+            });
+          }
+        });
+      })
+      .catch((err) => {
+        alert(`Error ${err.message}`);
+      });
+  };
+
+  const uploadImage = () => {
+    if (selectedImage === null) return;
+    const imageRef = ref(storage, `${user.id}/uploaded/${selectedImage.name}`);
+
+    uploadBytes(imageRef, selectedImage)
+      .then((res) => {
+        listAll(ref(storage, `${user.id}`)).then((items) => {
+          const match = items.items.find(
+            (item) => item.fullPath === res.ref.fullPath
+          );
+
+          if (match) setUploadedImage(null);
+        });
+      })
+      .catch((err) => {
+        alert(`Error ${err}`);
+      });
+
+    setSelectedImageUrl(null);
+    setSelectedImage(null);
+  };
   return (
     <div>
-      <div className="bg-black fixed top-0 bottom-0 left-0 right-0 opacity-40 w-screen h-screen">g</div>
+      <div
+        onClick={handleCloseCommentModal}
+        className="bg-black fixed top-0 bottom-0 left-0 right-0 opacity-40 z-50 w-screen h-screen"
+      ></div>
       <div className="fixed w-1/4 left-1/2.5 top-16 z-50 shadow-lg bg-white">
-        <div className="pl-4 pt-4 pb-6">
-          <XIcon
-            onClick={() => handleCloseCommentModal(post.id)}
-            className="w-5 h-5 cursor-pointer"
-          />
+        <div className="pl-4 pt-3 mb-3">
+          <div className="w-9 h-9 flex justify-center items-center rounded-full hover:bg-gray-200  transition ease-in-out cursor-pointer duration-200">
+            <XIcon
+              onClick={handleCloseCommentModal}
+              className="w-5 h-5 cursor-pointer"
+            />
+          </div>
         </div>
         <div className="px-5 pt-5 pb-4 flex">
           <img
@@ -51,37 +152,74 @@ const CommentModal = ({
             />
             <div className="ml-3 w-full">
               <form
-                onSubmit={(e) => createPost(e, post)}
+                onSubmit={
+                  input && selectedImageLoading
+                    ? (e) => {
+                        e.preventDefault();
+                      }
+                    : handleCreatePost
+                }
                 className="mt-8 mb-7"
                 action=""
               >
                 <input
                   value={input}
-                  onChange={handleInputChange}
+                  onChange={(e) => setInput(e.target.value)}
                   className="text-xl text-gray-900 outline-none"
                   type="text"
                   placeholder="Tweet your reply"
                 />
+                {selectedImageLoading ? (
+                  <Loader />
+                ) : (
+                  <>
+                    {selectedImage ? (
+                      <div className="mt-10 h-40 w-40 rounded-xl object-contain shadow-lg relative">
+                        <div
+                          onClick={clearSelectedFile}
+                          className="absolute right-0 cursor-pointer"
+                        >
+                          X
+                        </div>
+                        <img
+                          className="h-40 w-40 rounded"
+                          src={selectedImageUrl ? selectedImageUrl : ""}
+                          alt=""
+                        />
+                      </div>
+                    ) : null}
+                  </>
+                )}
               </form>
               <div className="flex items-center justify-between w-full">
-                <div className="flex space-x-2 text-blue-400 flex-1">
+                <div className="relative flex space-x-2 text-blue-400 flex-1">
                   <PhotographIcon className="h-5 w-5 hover:cursor-pointer transition-transform duration-150 ease-out hover:scale-150" />
-                  <SearchCircleIcon className="h-5 w-5" />
+                  <input
+                    onClick={(e) => {
+                      return (e.target.value = null);
+                    }}
+                    onChange={handleFileChange}
+                    className="w-5 h-5 z-10 opacity-0 absolute top-0 "
+                    name="file"
+                    type="file"
+                  />
+                  {/* <SearchCircleIcon className="h-5 w-5" />
                   <EmojiHappyIcon className="h-5 w-5" />
                   <CalendarIcon className="h-5 w-5" />
-                  <LocationMarkerIcon className="h-5 w-5" />
+                  <LocationMarkerIcon className="h-5 w-5" /> */}
                 </div>
-                <div
-                  onClick={(e) => createPost(e, post)}
-                  disabled={input === "" ? true : false}
-                  className={`text-white bg-blue-${
-                    input === "" ? "300" : "400"
-                  } py-2 px-4 rounded-full cursor-${
-                    input === "" ? "default" : "pointer"
-                  }`}
-                >
-                  Tweet
-                </div>
+                {input && selectedImageLoading ? null : (
+                  <div
+                    onClick={handleCreatePost}
+                    className={`text-white bg-blue-${
+                      input === "" ? "300" : "400"
+                    } py-2 px-4 rounded-full cursor-${
+                      input === "" ? "default" : "pointer"
+                    } ${input === "" ? "hidden" : "flex"}`}
+                  >
+                    Tweet
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -7,7 +7,7 @@ import {
   getBookmarks,
   toggleLikePost,
   clearBookmarks,
-  deleteBookmark,
+  deleteBookmarkById,
   deletePostById,
 } from "../utils/api/posts";
 
@@ -36,16 +36,15 @@ import {
   PhotographIcon,
   SearchCircleIcon,
 } from "@heroicons/react/outline";
-import {
-  followUser,
-  getProfileFollowers,
-  unfollowUser,
-} from "../utils/api/users";
+import { followUser, getFollowers, unfollowUser } from "../utils/api/users";
 import Loader from "../components/Loader";
 import CommentModal from "../components/CommentModal";
 import Comments from "../components/Comments";
 import { createComment } from "../utils/api/comments";
 import { removeDuplicateUsernames } from "../utils/helpers";
+import BookmarkButton from "../components/Buttons/BookmarkButton";
+import LastSeen from "../components/LastSeen";
+import PinListItem from "../components/ListItems/PinListItem";
 
 const Bookmarks = () => {
   const [bookmarks, setBookmarks] = useState([]);
@@ -67,15 +66,11 @@ const Bookmarks = () => {
         post.isLiked = false;
       }
 
-      if (post.uid === user.id) {
-        return null;
+      const isFollowing = post.followers.find((u) => u.id === user.id);
+      if (isFollowing) {
+        post.authIsFollowing = true;
       } else {
-        const isFollowing = post.followers.find((u) => u.id === user.id);
-        if (isFollowing) {
-          post.authIsFollowing = true;
-        } else {
-          post.authIsFollowing = false;
-        }
+        post.authIsFollowing = false;
       }
 
       post.modal = false;
@@ -112,7 +107,7 @@ const Bookmarks = () => {
 
   const followOrUnfollowUser = async (post) => {
     if (post.uid !== user.id) {
-      const followers = await getProfileFollowers(post.uid);
+      const followers = await getFollowers(post.uid);
 
       const authUserFollowing = followers.find((u) => u.id === user.id);
 
@@ -167,43 +162,13 @@ const Bookmarks = () => {
   };
 
   const removeBookmark = async (postId) => {
-    await deleteBookmark(postId, user.id);
+    await deleteBookmarkById(postId, user.id);
 
     const updatedBookmarks = bookmarks.filter((post) => post.id !== postId);
 
     setBookmarks(updatedBookmarks);
   };
 
-  const handleBookmarkModal = (postId) => {
-    const updatedBookmarks = bookmarks.map((post) => {
-      post.modal = false;
-      post.bookmarkModal = false;
-      post.commentModal = false;
-      if (post.id === postId) {
-        post.bookmarkModal = true;
-      }
-
-      return post;
-    });
-
-    setBookmarks(updatedBookmarks);
-  };
-
-  const handleCloseBookmarkModal = (postId) => {
-    const updatedBookmarks = bookmarks.map((post) => {
-      post.modal = false;
-      post.bookmarkModal = false;
-      post.commentModal = false;
-
-      if (post.id === postId) {
-        post.bookmarkModal = false;
-      }
-
-      return post;
-    });
-
-    setBookmarks(updatedBookmarks);
-  };
   const handleCloseCommentModal = (postId) => {
     const updatedBookmarks = bookmarks.map((post) => {
       post.modal = false;
@@ -252,30 +217,11 @@ const Bookmarks = () => {
   const createPost = async (e, post) => {
     e.preventDefault();
 
-    // const postData = {
-    //   uid: user.id,
-    //   userRef: doc(db, `users/${user.id}`),
-    //   name: user.name,
-    //   email: user.email,
-    //   username: user.username,
-    //   message: input,
-    //   media: "",
-    //   avatar: "",
-    //   timestamp: serverTimestamp(),
-    //   postType: "comment",
-    //   replyTo: doc(db, `posts/${post.id}`),
-    // };
-
-    // const ref = collection(db, `posts`);
-    // await addDoc(ref, postData);
-
-    await createComment(input, post, user, post.postType);
+    await createComment(input, post, null, user, post.postType);
 
     setInput("");
 
-    const rerender = true;
-
-    fetchBookmarks(rerender);
+    fetchBookmarks();
   };
 
   const handleInputChange = (e) => setInput(e.target.value);
@@ -322,6 +268,7 @@ const Bookmarks = () => {
   }, []);
 
   console.log("Bookmarks: ", bookmarks);
+
   return (
     <>
       {loading ? (
@@ -371,6 +318,7 @@ const Bookmarks = () => {
                         input={input}
                         handleInputChange={handleInputChange}
                         handleCloseCommentModal={handleCloseCommentModal}
+                        refresh={fetchBookmarks}
                       />
                     ) : null}
                     {post.avatar === "" ? (
@@ -387,15 +335,25 @@ const Bookmarks = () => {
                         onClick={() => routeUserDetails(post.username)}
                         src={post.avatar}
                         alt="Profile Image"
+                        className="mt-1 my-2
+                     object-cover h-12 w-12 rounded-full"
                       />
                     )}
 
                     <div className="ml-3 w-full ">
                       <div className="flex justify-between items-center relative">
-                        <div className="flex">
-                          <div className="font-semibold mr-2">{post.name}</div>
-                          <div className="text-gray-500">@{post.username}</div>
-                          <div>Date</div>
+                        <div className="flex items-center">
+                          <div className="font-semibold mr-1">{post.name}</div>
+                          <div className="text-gray-500 mr-1.5">
+                            @{post.username}
+                          </div>
+                          <div className="h-0.5 w-0.5 rounded-full bg-gray-500 mr-1.5"></div>
+
+                          <div className="text-gray-500">
+                            <LastSeen
+                              date={new Date(post.timestamp.seconds * 1000)}
+                            />
+                          </div>
                         </div>
 
                         <div
@@ -404,10 +362,16 @@ const Bookmarks = () => {
                         >
                           <DotsHorizontalIcon className="h-5 w-5 text-gray-500 group-hover:text-blue-400 transition ease-in-out duration-200" />
                         </div>
+                        {post.modal ? (
+                          <div
+                            onClick={closeModal}
+                            className="bg-transparent cursor-default fixed top-0 bottom-0 left-0 right-0 opacity-40 w-screen h-screen z-50"
+                          ></div>
+                        ) : null}
                         <div
                           className={`${
                             post.modal
-                              ? "flex flex-col absolute right-0 top-0 bg-white shadow-lg rounded-lg z-50"
+                              ? "flex flex-col w-3/5 absolute right-0 top-0 bg-white shadow-lg rounded-lg z-50"
                               : "hidden"
                           }`}
                         >
@@ -422,6 +386,7 @@ const Bookmarks = () => {
                               </div>
                             ) : null}
                           </div>
+                          <PinListItem post={post} />
                           <div>
                             {post.authIsFollowing === true ? (
                               <div
@@ -443,9 +408,7 @@ const Bookmarks = () => {
                               user.id === post.uid && null
                             )}
                           </div>
-                          <div>
-                            {/* {user.id === uid && handlePinnedPostDisplay(id, user.id)} */}
-                          </div>
+                          <div></div>
                           <div>
                             {user.id !== post.uid && (
                               <div className="flex items-center p-2 hover:bg-gray-100">
@@ -453,12 +416,6 @@ const Bookmarks = () => {
                                 {post.username}
                               </div>
                             )}
-                          </div>
-                          <div
-                            onClick={() => closeModal(post.id)}
-                            className="flex items-center px-2 py-3 hover:bg-gray-100 border-t"
-                          >
-                            <XIcon className="h-5 w-5 mr-3" /> Close
                           </div>
                         </div>
                       </div>
@@ -496,15 +453,9 @@ const Bookmarks = () => {
                         <img
                           src={post.media}
                           alt=""
-                          className="m-5 w-full ml-0 mb-1 rounded-lg object-cover shadow-sm"
+                          className="w-full ml-0 mb-1 rounded-lg object-cover shadow-sm"
                         />
                       ) : null}
-                      {/* 
-     <img
-       src="https://picsum.photos/200"
-       className="w-full h-100 rounded-xl mb-4"
-       alt="Media Content"
-     /> */}
                       <div className="relative flex items-center justify-between">
                         <div
                           onClick={() => handleOpenBookmarkModal(post.id)}
@@ -540,29 +491,15 @@ const Bookmarks = () => {
                             </p>
                           </div>
                         </div>
-                        <div
-                          // onClick={handleAddBookmark}
-                          onClick={() => handleBookmarkModal(post.id)}
-                          className="flex cursor-pointer items-center space-x-3 text-gray-400"
-                        >
-                          <UploadIcon className="h-5 w-5" />
+
+                        <div onClick={() => removeBookmark(post.id)}>
+                          <BookmarkButton
+                            handleAddBookmark={() => false}
+                            handleRemoveBookmark={() => removeBookmark(post.id)}
+                            bookmarks={bookmarks}
+                            post={post}
+                          />
                         </div>
-                        {post.bookmarkModal ? (
-                          <div className="absolute right-20 rounded-lg z-50 shadow-lg bg-white">
-                            <div
-                              className="p-2"
-                              onClick={() => removeBookmark(post.id)}
-                            >
-                              Remove bookmark
-                            </div>
-                            <div
-                              onClick={() => handleCloseBookmarkModal(post.id)}
-                              className="border-t p-2"
-                            >
-                              Close
-                            </div>
-                          </div>
-                        ) : null}
                       </div>
                     </div>
                   </div>

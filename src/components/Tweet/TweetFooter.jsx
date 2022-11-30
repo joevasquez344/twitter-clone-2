@@ -13,33 +13,41 @@ import {
   PopoverContent,
   Button,
 } from "@material-tailwind/react";
+import RetweetButton from "../Buttons/RetweetButton";
 
 const TweetFooter = ({
-  likes,
   isLiked,
   handleLikePost,
   handleAddBookmark,
+  handleRemoveBookmark,
+  // isBookmarked,
+  bookmarks,
   handleOpenCommentModal,
   post,
 }) => {
-  return (
-    <div className="flex items-center justify-between">
 
-          <CommentButton
-            post={post}
-            handleOpenCommentModal={handleOpenCommentModal}
-          />
-    
-      <div className="flex cursor-pointer items-center space-x-3 text-gray-400">
-        <SwitchHorizontalIcon className={`h-5 w-5 `} />
-      </div>
+  
+  return (
+    <div className="flex items-center justify-between ">
+      <CommentButton
+        post={post}
+        handleOpenCommentModal={handleOpenCommentModal}
+      />
+
+      <RetweetButton />
       <LikeButton
         post={post}
         isLiked={isLiked}
-        likes={likes}
+        likes={post.likes}
         handleLikePost={handleLikePost}
       />
-      <BookmarkButton handleAddBookmark={handleAddBookmark} />
+      <BookmarkButton
+        // isBookmarked={isBookmarked}
+        bookmarks={bookmarks}
+        handleAddBookmark={handleAddBookmark}
+        handleRemoveBookmark={handleRemoveBookmark}
+        post={post}
+      />
     </div>
   );
 };
