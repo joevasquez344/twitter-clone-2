@@ -11,7 +11,6 @@ import {
 import Loader from "./Loader";
 
 const Comments = ({
-  post,
   handleLikePost,
   handleDeletePost,
   handlePinPost,
@@ -21,7 +20,6 @@ const Comments = ({
   isPinned,
   tabs,
   bookmarks,
-  setBookmarks,
   fetchComments,
   comments,
   commentsLoading,
@@ -65,8 +63,7 @@ const Comments = ({
                   post={comment}
                   threadPost={false}
                   hidePost={true}
-                  // bookmarks={bookmarks}
-                  setBookmarks={setBookmarks}
+                  bookmarks={bookmarks}
                 />
               ))
             )}

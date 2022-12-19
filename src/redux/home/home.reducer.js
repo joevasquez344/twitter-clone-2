@@ -3,14 +3,15 @@ import {
   CREATE_BOOKMARK,
   DELETE_BOOKMARK,
   DELETE_POST,
-  FOLLOW_USER,
+  FOLLOW_TWEET_USER,
   GET_POSTS,
   PIN_POST,
   REFRESH_POST,
   TOGGLE_FOLLOW_USER,
   TOGGLE_LIKE_POST,
-  UNFOLLOW_USER,
+  UNFOLLOW_TWEET_USER,
   UNPIN_POST,
+  UPDATE_POST_IN_FEED,
 } from "./home.types";
 
 const initialState = {
@@ -56,7 +57,22 @@ const homeReducer = (state = initialState, { type, payload }) => {
         posts: state.posts.filter((post) => post.id !== payload),
       };
 
-    case FOLLOW_USER:
+    case UPDATE_POST_IN_FEED:
+      return {
+        ...state,
+        posts: state.posts.map((post) => {
+          if (post.id === payload) {
+            post = {
+              ...post,
+              comments: [...post.comments, payload],
+            };
+          }
+
+          return post;
+        }),
+      };
+
+    case FOLLOW_TWEET_USER:
       const updatedTweets = state.posts.map((post) => {
         if (post.id === payload.postId) {
           post.followers = payload.followers;
@@ -68,7 +84,7 @@ const homeReducer = (state = initialState, { type, payload }) => {
         posts: updatedTweets,
       };
 
-    case UNFOLLOW_USER:
+    case UNFOLLOW_TWEET_USER:
       const posts = state.posts.map((post) => {
         if (post.id === payload.postId) {
           post.followers = payload.followers;

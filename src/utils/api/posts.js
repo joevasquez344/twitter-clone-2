@@ -158,6 +158,20 @@ export const getLikes = async (id) => {
   return likeIds;
 };
 
+export const getProfilesLikedPosts = async (profileId) => {
+  const likesRef = collection(db, `users/${profileId}/likes`);
+  const likeDocs = await getDocs(likesRef);
+  const likeIds = await Promise.all(
+    likeDocs.docs.map(async (doc) => doc(db, `posts/${doc.id}`))
+  );
+  // const likeIds = await Promise.all(
+  //   likeDocs.docs.map(async (doc) => await getDoc(doc(db, `posts/${doc.id}`)))
+  // );
+  const likes = likeIds.map((doc) => doc.id);
+
+  console.log("Likes: ", likes);
+};
+
 export const toggleLikePost = async (id) => {
   const batch = writeBatch(db);
 
@@ -172,7 +186,7 @@ export const toggleLikePost = async (id) => {
   const match = postLikes.docs.find((like) => like.id === userId);
 
   if (!match) {
-    batch.set(userLikesRef, {});
+    batch.set(userLikesRef, { timestamp: serverTimestamp() });
     batch.set(postLikesRef, {});
 
     await batch.commit();
@@ -200,8 +214,6 @@ export const deletePostById = async (postId, authId) => {
 
   const postSnapshot = await getDoc(postRef);
   const authUserSnapshot = await getDoc(authUserRef);
-
-  // deleteLikeById(postId);
 
   const pinnedPost = authUserSnapshot.data().pinnedPost;
   const post = { id: postSnapshot.id, ...postSnapshot.data() };
@@ -276,15 +288,21 @@ export const getBookmarks = async (userId) => {
     bookmarkIds.docs.map(async (d) => await getDoc(doc(db, `posts/${d.id}`)))
   );
 
-  const bookmarks = await Promise.all(
+  let bookmarks = await Promise.all(
     bookmarkDocs.map(async (doc) => ({
+      ...doc.data(),
       id: doc.id,
       followers: await getFollowers(userId),
       likes: await getLikes(doc.id),
       comments: await getComments(doc.id),
-      ...doc.data(),
+      replyToUsers: await getPostsByThreadId(doc.id),
     }))
   );
+
+  bookmarks = bookmarks.map((post) => ({
+    ...post,
+    replyToUsers: post.replyToUsers.posts,
+  }));
 
   return bookmarks;
 };
@@ -293,8 +311,8 @@ export const getBookmarkIds = async (userId) => {
   const userRef = doc(db, `users/${userId}`);
   const bookmarksRef = collection(db, "bookmarks");
   const bookmarksQuery = query(bookmarksRef, where("userRef", "==", userRef));
-const bookmarkDocs = await getDocs(bookmarksQuery);
-  console.log('Query: ', bookmarksQuery)
+  const bookmarkDocs = await getDocs(bookmarksQuery);
+  console.log("Query: ", bookmarksQuery);
 
   const bookmarkIds = bookmarkDocs.docs.map((doc) => doc.id);
 

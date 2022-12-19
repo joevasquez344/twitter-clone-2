@@ -9,6 +9,7 @@ import {
   clearBookmarks,
   deleteBookmarkById,
   deletePostById,
+  addBookmarkById,
 } from "../utils/api/posts";
 
 import { db } from "../firebase/config";
@@ -48,6 +49,7 @@ import PinListItem from "../components/ListItems/PinListItem";
 
 const Bookmarks = () => {
   const [bookmarks, setBookmarks] = useState([]);
+  const [bookmarkIds, setBookmarkIds] = useState([]);
   const [modal, setModal] = useState(false);
   const user = useSelector((state) => state.users.user);
   const [notification, setNotification] = useState(null);
@@ -59,7 +61,7 @@ const Bookmarks = () => {
     let bookmarks = await getBookmarks(user.id);
 
     bookmarks.map((post) => {
-      const userLiked = post.likes.find((u) => u.id === user.id);
+      const userLiked = post.likes.find((uid) => uid === user.id);
       if (userLiked) {
         post.isLiked = true;
       } else {
@@ -81,6 +83,7 @@ const Bookmarks = () => {
     });
 
     setBookmarks(bookmarks);
+    setBookmarkIds(bookmarks.map((post) => post.id));
 
     setLoading(false);
   };
@@ -91,7 +94,7 @@ const Bookmarks = () => {
     const updatedBookmarks = bookmarks.map((post) => {
       if (post.id === postId) {
         post.likes = likes;
-        const userLiked = post.likes.find((u) => u.id === user.id);
+        const userLiked = post.likes.find((uid) => uid === user.id);
         if (userLiked) {
           post.isLiked = true;
         } else {
@@ -161,12 +164,20 @@ const Bookmarks = () => {
     }
   };
 
+  const addBookmark = async (postId) => {
+    await addBookmarkById(postId, user.id);
+
+    setBookmarkIds([...bookmarkIds, postId]);
+  };
+
   const removeBookmark = async (postId) => {
     await deleteBookmarkById(postId, user.id);
 
-    const updatedBookmarks = bookmarks.filter((post) => post.id !== postId);
+    const updatedBookmarkIds = bookmarkIds.filter(
+      (bookmarkId) => bookmarkId !== postId
+    );
 
-    setBookmarks(updatedBookmarks);
+    setBookmarkIds(updatedBookmarkIds);
   };
 
   const handleCloseCommentModal = (postId) => {
@@ -268,6 +279,8 @@ const Bookmarks = () => {
   }, []);
 
   console.log("Bookmarks: ", bookmarks);
+
+  // const bookmarkIds = bookmarks.map((post) => post.id)
 
   return (
     <>
@@ -387,27 +400,29 @@ const Bookmarks = () => {
                             ) : null}
                           </div>
                           <PinListItem post={post} />
-                          <div>
-                            {post.authIsFollowing === true ? (
-                              <div
-                                onClick={() => followOrUnfollowUser(post)}
-                                className=" flex items-center rounded-md p-2 hover:bg-gray-100"
-                              >
-                                <UserRemoveIcon className="h-5 w-5 mr-3" />{" "}
-                                Unfollow @{post.username}
-                              </div>
-                            ) : post.authIsFollowing === false ? (
-                              <div
-                                onClick={() => followOrUnfollowUser(post)}
-                                className=" flex items-center rounded-md p-2 hover:bg-gray-100"
-                              >
-                                <UserAddIcon className="h-5 w-5 mr-3" /> Follow
-                                @{post.username}
-                              </div>
-                            ) : (
-                              user.id === post.uid && null
-                            )}
-                          </div>
+
+                          {user.id === post.uid ? null : (
+                            <div>
+                              {post.authIsFollowing === true ? (
+                                <div
+                                  onClick={() => followOrUnfollowUser(post)}
+                                  className=" flex items-center rounded-md p-2 hover:bg-gray-100"
+                                >
+                                  <UserRemoveIcon className="h-5 w-5 mr-3" />{" "}
+                                  Unfollow @{post.username}
+                                </div>
+                              ) : post.authIsFollowing === false ? (
+                                <div
+                                  onClick={() => followOrUnfollowUser(post)}
+                                  className=" flex items-center rounded-md p-2 hover:bg-gray-100"
+                                >
+                                  <UserAddIcon className="h-5 w-5 mr-3" />{" "}
+                                  Follow @{post.username}
+                                </div>
+                              ) : null}
+                            </div>
+                          )}
+
                           <div></div>
                           <div>
                             {user.id !== post.uid && (
@@ -422,19 +437,23 @@ const Bookmarks = () => {
 
                       <div className="flex">
                         {post.postType === "comment" ? (
-                          <div className="mr-1">Replying to </div>
+                          <div className="mr-1 text-gray-500">Replying to </div>
+                        ) : null}
+                        {post.replyToUsers?.length === 0 &&
+                        post.postType === "comment" ? (
+                          <div className="text-blue-500">@User</div>
                         ) : null}
                         <div className="flex items-center">
                           {" "}
                           {removeDuplicateUsernames(post.replyToUsers).map(
-                            (user) => (
+                            (username) => (
                               <div className="tweet__userWhoReplied flex items-center text-blue-500">
                                 <div
-                                  // onClick={() => handleUserDetails(user.username)}
+                                  onClick={() => navigate(`/${username}`)}
                                   className="mr-1 hover:underline"
-                                  key={user.username}
+                                  key={username}
                                 >
-                                  @{user?.username}
+                                  @{username}
                                 </div>{" "}
                                 <div className="username mr-1">and</div>
                               </div>
@@ -492,14 +511,12 @@ const Bookmarks = () => {
                           </div>
                         </div>
 
-                        <div onClick={() => removeBookmark(post.id)}>
-                          <BookmarkButton
-                            handleAddBookmark={() => false}
-                            handleRemoveBookmark={() => removeBookmark(post.id)}
-                            bookmarks={bookmarks}
-                            post={post}
-                          />
-                        </div>
+                        <BookmarkButton
+                          handleAddBookmark={() => addBookmark(post.id)}
+                          handleRemoveBookmark={() => removeBookmark(post.id)}
+                          bookmarks={bookmarkIds}
+                          post={post}
+                        />
                       </div>
                     </div>
                   </div>

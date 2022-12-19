@@ -27,6 +27,7 @@ import {
   followPostUser,
   createPost,
   clearFeedMessage,
+  setFeedMessage,
 } from "../../redux/profile/profile.actions";
 import {
   followUser,
@@ -44,6 +45,7 @@ import {
   fetchPinnedPost,
   getBookmarkIds,
   getBookmarks,
+  getProfilesLikedPosts,
   getUsersPostsCount,
   toggleLikePost,
 } from "../../utils/api/posts";
@@ -58,6 +60,11 @@ import ProfileAvatar from "./ProfileAvatar";
 import CameraIcon from "../../components/Icons/CameraIcon";
 import { pinTweet, unpinTweet } from "../../redux/users/users.actions";
 import RefreshBar from "./RefreshBar";
+import { resetTabsClickCount } from "../../utils/helpers";
+import {
+  SET_PINNED_POSTS_LIKES,
+  SET_UNPINNED_POSTS_LIKES,
+} from "../../redux/profile/profile.types";
 
 const Profile = () => {
   const params = useParams();
@@ -98,6 +105,7 @@ const Profile = () => {
   const [nameInput, setNameInput] = useState("");
   const [input, setInput] = useState("");
   const [pinnedTweet, setPinnedTweet] = useState({});
+  const [tweetsToRoute, setTweetsToRoute] = useState([]);
 
   const [avatar, setAvatar] = useState(null);
   const [avatarLoading, setAvatarLoading] = useState(false);
@@ -144,7 +152,7 @@ const Profile = () => {
     },
   ]);
 
-  console.log('Tabs: ', tabs);
+  console.log("Tabs: ", tabs);
 
   const handleOpenCommentModal = (post) => {
     setCommentModal(true);
@@ -159,17 +167,30 @@ const Profile = () => {
   const handleNameChange = (e) => setNameInput(e.target.value);
   const handleLocationChange = (e) => setLocationInput(e.target.value);
 
-  const handleTabs = (tabId) => {
-    dispatch(clearFeedMessage());
+  const clearMessage = () => dispatch(clearFeedMessage());
 
+  const setMessage = (feedType) => dispatch(setFeedMessage(feedType));
+
+  const handleTabs = (tabId) => {
     const feeds = [tweets, tweetsAndReplies, media, likes];
 
-    handleActiveTab(tabId, feeds, tabs, profile, setTabs);
+    handleActiveTab(
+      tabId,
+      feeds,
+      tabs,
+      profile,
+      setTabs,
+      clearMessage,
+      setMessage
+    );
   };
-
+  console.log("Tabs", tabs);
   const closeModal = () => {
     setModal(false);
     setAvatar(null);
+    setAvatarUrl(null);
+    setBanner(null);
+    setBannerUrl(null);
   };
   const openModal = () => {
     setModal(true);
@@ -213,15 +234,60 @@ const Profile = () => {
   const handleGetLikedPosts = (profile) =>
     dispatch(getUsersLikedPosts(profile.username));
 
-  const handleLikePost = (id) => dispatch(toggleLikeTweet(id));
+  const handleLikePost = async (id) => {
+    const likes = await dispatch(toggleLikeTweet(id));
+
+    if (id === pinnedTweet.id) {
+      setPinnedTweet({
+        ...pinnedTweet,
+        likes,
+      });
+    }
+  };
+
+  const likePinnedPost = async (postId) => {
+    const alreadyLiked = pinnedTweet?.likes.find(
+      (userId) => userId === user.id
+    );
+
+    if (!alreadyLiked) {
+      setPinnedTweet({
+        ...pinnedTweet,
+        likes: [...pinnedTweet.likes, user.id],
+      });
+      dispatch({
+        type: SET_PINNED_POSTS_LIKES,
+        payload: { ...pinnedTweet, likes: [...pinnedTweet.likes, user.id] },
+      });
+
+      await toggleLikePost(postId);
+    } else {
+      setPinnedTweet({
+        ...pinnedTweet,
+        likes: pinnedTweet.likes.filter((userId) => userId !== user.id),
+      });
+      dispatch({
+        type: SET_UNPINNED_POSTS_LIKES,
+        payload: {
+          ...pinnedTweet,
+          likes: pinnedTweet.likes.filter((userId) => userId !== user.id),
+        },
+      });
+
+      await toggleLikePost(postId);
+    }
+  };
+  console.log("Pinned Tweet: ", pinnedTweet);
 
   const handlePinPost = (post) => {
     dispatch(pinTweet(post, user.id));
+    dispatch({ type: SET_PINNED_POSTS_LIKES, payload: post });
     setPinnedTweet(post);
   };
 
   const handleUnpinPost = (post) => {
     dispatch(unpinTweet(post, user.id));
+    dispatch({ type: SET_UNPINNED_POSTS_LIKES, payload: post });
     setPinnedTweet({});
   };
 
@@ -237,6 +303,7 @@ const Profile = () => {
 
   const handleDeletePost = async (postId) => {
     dispatch(deleteTweet(postId, user.id));
+    setPinnedTweet({})
     dispatch(subtractUsersPostCount());
   };
 
@@ -255,6 +322,14 @@ const Profile = () => {
 
     closeModal();
   };
+
+  const addTweetsToRouteState = (tweet) => {
+    setTweetsToRoute([...tweetsToRoute, tweet])
+  }
+
+  const routeWithUpdatedTweets = (endpoint) => {
+    navigate(`/${endpoint}`, {state: tweetsToRoute})
+  }
 
   const handleCreatePost = async (e, input, post, selectedImageUrl) => {
     e.preventDefault();
@@ -292,7 +367,7 @@ const Profile = () => {
     }
 
     dispatch(editProfile(updatedProfile, profile.id));
-    handleGetPosts(profile);
+    // handleGetPosts(profile);
 
     closeModal();
   };
@@ -390,6 +465,12 @@ const Profile = () => {
 
   const removeBanner = () => {
     setBannerUrl(null);
+    setBanner(null);
+  };
+
+  const removeAvatar = () => {
+    setAvatarUrl(null);
+    setAvatar(null);
   };
 
   const getAuthBookmarks = async () => {
@@ -404,27 +485,6 @@ const Profile = () => {
 
     return pinnedPost;
   };
-
-  const likePinnedPost = async (postId) => {
-    const alreadyLiked = pinnedTweet?.likes.find(
-      (userId) => userId === user.id
-    );
-
-    if (!alreadyLiked) {
-      setPinnedTweet({
-        ...pinnedTweet,
-        likes: [...pinnedTweet.likes, user.id],
-      });
-      await toggleLikePost(postId);
-    } else {
-      setPinnedTweet({
-        ...pinnedTweet,
-        likes: pinnedTweet.likes.filter((userId) => userId !== user.id),
-      });
-      await toggleLikePost(postId);
-    }
-  };
-  console.log("Pinned Tweet: ", pinnedTweet);
 
   const getData = async () => {
     getAuthBookmarks();
@@ -446,6 +506,7 @@ const Profile = () => {
 
   useEffect(() => {
     getData();
+    resetTabsClickCount(tabs, setTabs);
   }, [params.username]);
 
   useEffect(() => {
@@ -532,6 +593,7 @@ const Profile = () => {
                     <>
                       <EditProfileBanner
                         banner={banner}
+                        setBannerUrl={setBannerUrl}
                         bannerUrl={bannerUrl}
                         profile={profile}
                       />

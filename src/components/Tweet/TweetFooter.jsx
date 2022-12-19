@@ -20,7 +20,6 @@ const TweetFooter = ({
   handleLikePost,
   handleAddBookmark,
   handleRemoveBookmark,
-  // isBookmarked,
   bookmarks,
   handleOpenCommentModal,
   post,
@@ -42,7 +41,6 @@ const TweetFooter = ({
         handleLikePost={handleLikePost}
       />
       <BookmarkButton
-        // isBookmarked={isBookmarked}
         bookmarks={bookmarks}
         handleAddBookmark={handleAddBookmark}
         handleRemoveBookmark={handleRemoveBookmark}

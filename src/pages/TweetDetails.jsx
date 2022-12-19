@@ -38,6 +38,7 @@ import Loader from "../components/Loader";
 import { getUserDetails } from "../utils/api/users";
 import {
   addBookmarkById,
+  getBookmarkIds,
   getBookmarks,
   pinPost,
   unpinPost,
@@ -130,6 +131,13 @@ const TweetDetails = () => {
     handleIsLiked(likes);
   };
 
+  const getAuthBookmarks = async () => {
+    const bookmarkIds = await getBookmarkIds(user.id);
+    console.log("Bookmark Ids: ", bookmarkIds);
+    setBookmarks(bookmarkIds);
+  };
+
+
   const handleLikeComment = async (postId) => {
     dispatch(likeComment(postId));
   };
@@ -217,10 +225,12 @@ const TweetDetails = () => {
     dispatch(toggleFollowPostUser(post, user.id));
   };
 
-  const getAuthBookmarks = async () => {
-    const bookmarks = await getBookmarks(user.id);
-    setBookmarks(bookmarks);
-  };
+  const handleFetchComments = () => dispatch(fetchComments(post.id))
+
+  // const getAuthBookmarks = async () => {
+  //   const bookmarks = await getBookmarks(user.id);
+  //   setBookmarks(bookmarks);
+  // };
 
   const authUserIsFollowingPostUser = post?.followers?.find(
     (follower) => follower.id === user.id
@@ -307,7 +317,7 @@ const TweetDetails = () => {
                       handleOpenCommentModal={handleOpenCommentModal}
                       userDeletedPost={true}
                       threadPost={true}
-                      // bookmarks={post.bookmarks}
+                      bookmarks={bookmarks}
                       setBookmarks={setBookmarks}
                     />
                   </div>
@@ -418,6 +428,11 @@ const TweetDetails = () => {
                         <div>Replying to</div>
                       )}{" "}
                     </div>
+                    {repliedToPosts.length === 0 && post.postType === "comment" ? (
+                  <div className="text-blue-500">
+                    @User
+                  </div>
+                ) : null}
                     <div className="flex items-center mb-4">
                       {" "}
                       {handleReplyToUsernames(repliedToPosts, post).map(
@@ -552,8 +567,7 @@ const TweetDetails = () => {
                   fetchComments={() => dispatch(fetchComments(params?.tweetId))}
                   comments={comments}
                   commentsLoading={commentsLoading}
-                  // bookmarks={post.bookmarks}
-                  setBookmarks={setBookmarks}
+                  bookmarks={bookmarks}
                 />
               </div>
             </div>
@@ -565,7 +579,7 @@ const TweetDetails = () => {
               input={commentModalInput}
               handleInputChange={(e) => setCommentModalInput(e.target.value)}
               handleCloseCommentModal={handleCloseCommentModal}
-              refresh={() => dispatch(fetchComments(post.id))}
+              refresh={handleFetchComments}
             />
           ) : null}
         </div>

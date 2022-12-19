@@ -1,7 +1,9 @@
 import { SET_DARK_THEME, SET_LIGHT_THEME } from "./theme.types";
 
 const initialState = {
-  theme: "light",
+  name: "dark",
+  background: "#243447",
+  text: "white",
 };
 
 const themeReducer = (state = initialState, { type, payload }) => {
@@ -9,12 +11,16 @@ const themeReducer = (state = initialState, { type, payload }) => {
     case SET_DARK_THEME:
       return {
         ...state,
-        theme: "dark",
+        name: "dark",
+        background: "#243447",
+        text: "white",
       };
     case SET_LIGHT_THEME:
       return {
         ...state,
-        theme: "light",
+        name: "light",
+        background: "white",
+        text: "black",
       };
 
     default:

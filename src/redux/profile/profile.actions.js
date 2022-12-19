@@ -201,7 +201,8 @@ const getUsersLikedPosts = (username) => async (dispatch) => {
     ...profilesSnapshot.docs[0].data(),
   };
   const likesRef = collection(db, `users/${profile.id}/likes`);
-  const postIds = await getDocs(likesRef);
+  const likesQuery = query(likesRef, orderBy("timestamp", "desc"));
+  const postIds = await getDocs(likesQuery);
 
   const postDocs = await Promise.all(
     postIds.docs.map(async (post) => await getDoc(doc(db, `posts/${post.id}`)))
@@ -238,6 +239,43 @@ const getUsersLikedPosts = (username) => async (dispatch) => {
       posts,
     },
   });
+};
+
+const setFeedMessage = (feedType) => (dispatch, getState) => {
+  const profile = getState().profile.profile;
+  if (feedType === "Tweets") {
+    dispatch({
+      type: SET_FEED_MESSAGE,
+      payload: {
+        header: `${profile.name} has not Tweeted yet`,
+        subText: "",
+      },
+    });
+  } else if (feedType === "Tweets & Replies") {
+    dispatch({
+      type: SET_FEED_MESSAGE,
+      payload: {
+        header: `${profile.name} has not Tweeted a Reply yet`,
+        subText: "",
+      },
+    });
+  } else if (feedType === "Media") {
+    dispatch({
+      type: SET_FEED_MESSAGE,
+      payload: {
+        header: `${profile.name} has not Tweeted an Image or a Video yet`,
+        subText: "",
+      },
+    });
+  } else if (feedType === "Likes") {
+    dispatch({
+      type: SET_FEED_MESSAGE,
+      payload: {
+        header: `${profile.name} has not Liked a Tweet yet`,
+        subText: "",
+      },
+    });
+  }
 };
 
 const clearFeedMessage = () => (dispatch) => {
@@ -285,6 +323,8 @@ const toggleLikeTweet = (postId) => async (dispatch) => {
       likes,
     },
   });
+
+  return likes;
 };
 
 const getPinnedPost = (username) => async (dispatch) => {
@@ -327,7 +367,7 @@ const removePinnedPost = (postId, authId) => async (dispatch) => {
   });
 };
 
-const deleteTweet = (postId, authId) => async (dispatch, getState) => {
+const deleteTweet = (postId, authId) => async (dispatch) => {
   const tweetId = await deletePostById(postId, authId);
 
   dispatch({
@@ -335,6 +375,7 @@ const deleteTweet = (postId, authId) => async (dispatch, getState) => {
     payload: tweetId,
   });
 };
+
 
 const createPost =
   (input, post, user, selectedImageUrl) => async (dispatch) => {
@@ -443,6 +484,8 @@ const unfollowPostUser = (post, auth) => async (dispatch, getState) => {
         auth,
       },
     });
+
+    return { ...post, followers, following };
   } else {
     const { following, followers } = await unfollowUser(post.uid, auth.id);
     console.log("Followers: ", followers);
@@ -456,13 +499,15 @@ const unfollowPostUser = (post, auth) => async (dispatch, getState) => {
         auth,
       },
     });
+
+    return { ...post, followers, following };
   }
 };
 
 const editProfile = (data, profileId) => async (dispatch) => {
-  dispatch({
-    type: PROFILE_REQUEST_SENT,
-  });
+  // dispatch({
+  //   type: PROFILE_REQUEST_SENT,
+  // });
 
   const { bio, location, name, birthday, avatar, banner } = data;
 
@@ -527,6 +572,8 @@ const getFollowing = (profileId) => async (dispatch) => {
   return following;
 };
 
+const setUnpinnedPostsLikes = (post) => async (dispatch) => {};
+
 export {
   getProfile,
   getPosts,
@@ -551,5 +598,6 @@ export {
   setUsersPostCount,
   addUsersPostCount,
   subtractUsersPostCount,
-  clearFeedMessage
+  clearFeedMessage,
+  setFeedMessage,
 };

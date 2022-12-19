@@ -13,6 +13,7 @@ import {
   BanIcon,
   XIcon,
 } from "@heroicons/react/outline";
+import { Tooltip } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { followUser, unfollowUser } from "../../utils/api/users";
@@ -89,7 +90,7 @@ const Tweet = ({
   };
 
   const deletePost = () => {
-    handleDeletePost(post.id, user.id);
+    handleDeletePost(post.id);
   };
 
   const addBookmark = async () => {
@@ -270,13 +271,6 @@ const Tweet = ({
                     </div>
                   )}
                 </div>
-                <div>
-                  {user.id !== uid && (
-                    <div className="flex items-center p-4 hover:bg-gray-100">
-                      <BanIcon className="h-5 w-5 mr-3" /> Block @{username}
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
 
@@ -286,6 +280,19 @@ const Tweet = ({
               ) : null}
               <div className="flex items-center">
                 {" "}
+                {replyToUsers?.length === 0 && postType === "comment" ? (
+                  <Tooltip
+                    className="p-1 rounded-sm text-xs bg-gray-500"
+                    placement="bottom"
+                    content="Unknown user"
+                    animate={{
+                      mount: { scale: 1, y: 0 },
+                      unmount: { scale: 0, y: 1 },
+                    }}
+                  >
+                    <div className="text-blue-500 cursor-text">user</div>
+                  </Tooltip>
+                ) : null}
                 {handleReplyToUsernames(replyToUsers, post).map((username) => (
                   <div className="tweet__userWhoReplied flex items-center text-blue-500">
                     <div
@@ -317,7 +324,6 @@ const Tweet = ({
               handleLikePost={handleLikePost}
               handleAddBookmark={addBookmark}
               handleRemoveBookmark={removeBookmark}
-              // isBookmarked={isBookmarked}
               bookmarks={bookmarks}
               handleOpenCommentModal={handleOpenCommentModal}
               post={post}

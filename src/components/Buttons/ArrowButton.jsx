@@ -1,13 +1,8 @@
 import React from "react";
 import { Tooltip } from "@material-tailwind/react";
-import {useNavigate} from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
-const ArrowButton = ({
-  handleAddBookmark,
-  handleRemoveBookmark,
-  bookmarks,
-  post,
-}) => {
+const ArrowButton = () => {
   const navigate = useNavigate();
   return (
     <>
@@ -20,7 +15,10 @@ const ArrowButton = ({
           unmount: { scale: 0, y: 1 },
         }}
       >
-        <div onClick={() => navigate(-1)} className="w-9 h-9 flex group items-center justify-center rounded-full hover:bg-gray-200 transition ease-in-out cursor-pointer duration-200">
+        <div
+          onClick={() => navigate(-1)}
+          className="w-9 h-9 flex group items-center justify-center rounded-full hover:bg-gray-200 transition ease-in-out cursor-pointer duration-200"
+        >
           {" "}
           <svg
             xmlns="http://www.w3.org/2000/svg"

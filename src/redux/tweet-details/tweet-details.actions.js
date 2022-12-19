@@ -121,7 +121,7 @@ const fetchComments = (postId) => async (dispatch, getState) => {
       followers: await (
         await getDocs(collection(db, `users/${doc.data().uid}/followers`))
       ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-      replyToUsers: await getPostsByThreadId({ id: doc.id, ...doc.data() }),
+      replyToUsers: await getPostsByThreadId(doc.id),
       bookmarks: await getBookmarks(doc.data().uid),
 
       ...doc.data(),

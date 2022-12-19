@@ -1,3 +1,4 @@
+import { updatePostInFeeds } from "../../utils/helpers";
 import {
   GET_POSTS,
   TOGGLE_LIKE_POST,
@@ -30,6 +31,8 @@ import {
   GET_LIKES_SUCCESS,
   SET_FEED_MESSAGE,
   CLEAR_FEED_MESSAGE,
+  SET_UNPINNED_POSTS_LIKES,
+  SET_PINNED_POSTS_LIKES,
 } from "./profile.types";
 
 const initialState = {
@@ -134,16 +137,41 @@ const profileReducer = (state = initialState, { type, payload }) => {
       };
 
     case TOGGLE_LIKE_POST:
-      const postsWithUpdatedLikes = state.feed.map((post) => {
+      const updatedTweets = state.tweets.map((post) => {
         if (post.id === payload.postId) {
           post.likes = payload.likes;
         }
 
         return post;
       });
+      const updatedTweetsAndReplies = state.tweetsAndReplies.map((post) => {
+        if (post.id === payload.postId) {
+          post.likes = payload.likes;
+        }
+
+        return post;
+      });
+      const updatedMedia = state.media.map((post) => {
+        if (post.id === payload.postId) {
+          post.likes = payload.likes;
+        }
+
+        return post;
+      });
+      const updatedLikes = state.likes.map((post) => {
+        if (post.id === payload.postId) {
+          post.likes = payload.likes;
+        }
+
+        return post;
+      });
+
       return {
         ...state,
-        feed: postsWithUpdatedLikes,
+        tweets: updatedTweets,
+        tweetsAndReplies: updatedTweetsAndReplies,
+        media: updatedMedia,
+        likes: updatedLikes,
       };
 
     case REFRESH_POST:
@@ -158,15 +186,6 @@ const profileReducer = (state = initialState, { type, payload }) => {
         feed: posts,
       };
 
-    case REFRESH_FEED:
-      return {
-        ...state,
-      };
-
-    case GET_USER_LIKES:
-      return {
-        ...state,
-      };
     case GET_PINNED_POST:
       return {
         ...state,
@@ -214,17 +233,107 @@ const profileReducer = (state = initialState, { type, payload }) => {
           likes: payload,
         },
       };
-    case DELETE_POST:
-      const updatedPosts = state.feed.filter((post) => post.id !== payload);
+    case SET_UNPINNED_POSTS_LIKES:
+      const tweets = state.tweets.map((post) => {
+        if (post.id === payload?.id) {
+          post.likes = payload.likes;
+        }
+
+        return post;
+      });
+      const updatedPostsAndReplies = state.tweetsAndReplies.map((post) => {
+        if (post.id === payload?.id) {
+          post.likes = payload.likes;
+        }
+
+        return post;
+      });
+      const updatedMediaPosts = state.media.map((post) => {
+        if (post.id === payload?.id) {
+          post.likes = payload.likes;
+        }
+
+        return post;
+      });
+      const updatedLikedPosts = state.likes.map((post) => {
+        if (post.id === payload?.id) {
+          post.likes = payload.likes;
+        }
+
+        return post;
+      });
       return {
         ...state,
-        feed: updatedPosts,
+        tweets: tweets,
+        tweetsAndReplies: updatedPostsAndReplies,
+        media: updatedMediaPosts,
+        likes: updatedLikedPosts,
+      };
+    case SET_PINNED_POSTS_LIKES:
+      return {
+        ...state,
+        tweets: state.tweets.map((post) => {
+          if (post.id === payload?.id) {
+            post.likes = payload.likes;
+          }
+
+          return post;
+        }),
+        tweetsAndReplies: state.tweetsAndReplies.map((post) => {
+          if (post.id === payload?.id) {
+            post.likes = payload.likes;
+          }
+
+          return post;
+        }),
+        media: state.media.map((post) => {
+          if (post.id === payload?.id) {
+            post.likes = payload.likes;
+          }
+
+          return post;
+        }),
+        likes: state.likes.map((post) => {
+          if (post.id === payload?.id) {
+            post.likes = payload.likes;
+          }
+
+          return post;
+        }),
+      };
+    case DELETE_POST:
+      return {
+        ...state,
+        tweets: state.tweets.filter((tweet) => tweet.id !== payload),
+        tweetsAndReplies: state.tweetsAndReplies.filter(
+          (tweet) => tweet.id !== payload
+        ),
+        media: state.media.filter((tweet) => tweet.id !== payload),
+        likes: state.likes.filter((tweet) => tweet.id !== payload),
         pinnedPost: state.pinnedPost.id === payload ? {} : state.pinnedPost,
       };
     case CREATE_COMMENT:
       return {
         ...state,
-        feed: state.feed.map((post) => {
+        tweets: state.tweets.map((post) => {
+          if (post.id === payload.replyToPost.id) {
+            post.comments = [...post.comments, payload.createdPost];
+          }
+          return post;
+        }),
+        tweetsAndReplies: state.tweetsAndReplies.map((post) => {
+          if (post.id === payload.replyToPost.id) {
+            post.comments = [...post.comments, payload.createdPost];
+          }
+          return post;
+        }),
+        media: state.media.map((post) => {
+          if (post.id === payload.replyToPost.id) {
+            post.comments = [...post.comments, payload.createdPost];
+          }
+          return post;
+        }),
+        likes: state.likes.map((post) => {
           if (post.id === payload.replyToPost.id) {
             post.comments = [...post.comments, payload.createdPost];
           }
@@ -237,7 +346,6 @@ const profileReducer = (state = initialState, { type, payload }) => {
         profile: {
           ...state.profile,
           followers: payload.followers,
-          // following: payload.following
         },
         tweets: state.tweets.map((post) => {
           let match = post.followers.find(

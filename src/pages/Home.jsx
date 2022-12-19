@@ -3,30 +3,27 @@ import { useSelector, useDispatch } from "react-redux";
 import Tweet from "../components/Tweet/Tweet2";
 import Loader from "../components/Loader";
 import TweetBox from "../components/TweetBox";
+import { Tooltip } from "@material-tailwind/react";
 
 import {
-  addBookmark,
   deletePost,
   getPosts,
   likePost,
   refreshPost,
-  removeBookmark,
   toggleFollowPostUser,
+  updatePostInFeedAfterCommentCreation,
 } from "../redux/home/home.actions";
-import { addBookmarkById, deleteBookmarkById, getBookmarks } from "../utils/api/posts";
 import {
-  getAllUsers,
-  getFollowers,
-  getProfileFollowing,
-  getUserDetails,
-} from "../utils/api/users";
+  addBookmarkById,
+  deleteBookmarkById,
+  getBookmarkIds,
+} from "../utils/api/posts";
+import { getAllUsers, getProfileFollowing } from "../utils/api/users";
 import CommentModal from "../components/CommentModal";
-import { createComment } from "../utils/api/comments";
 import GiphyModal from "../components/GiphyModal";
-import { fetchGifs, fetchTrending } from "../services/giphy";
+import { fetchTrending } from "../services/giphy";
 import SearchBar from "../components/SearchBar";
 import SearchModal from "../components/SearchModal";
-import { getProfileFollowers } from "../redux/profile/profile.actions";
 import { pinTweet, unpinTweet } from "../redux/users/users.actions";
 
 const Home = () => {
@@ -40,7 +37,6 @@ const Home = () => {
   const [input, setInput] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [commentDisplay, setCommentDisplay] = useState({});
-  // const [pinnedPost, setPinnedPost] = useState({});
   const [commentModal, setCommentModal] = useState(false);
   const [searchModal, setSearchModal] = useState(false);
   const [giphyModal, setGiphyModal] = useState(false);
@@ -76,14 +72,9 @@ const Home = () => {
     setSearchModal(true);
 
     let users = await fetchAllUsers();
-    // let authFollowers = await getFollowers(user.id);
     let authFollowing = await getProfileFollowing(user.id);
 
     users = users.map((user) => {
-      // const profileFollowsAuth = authFollowers.find(
-      //   (profile) => profile.id === user.id
-      // );
-
       const authFollowsListUser = authFollowing.find(
         (profile) => profile.id === user.id
       );
@@ -105,50 +96,35 @@ const Home = () => {
       return user;
     });
 
-    console.log("Users; ", users);
     setAllUsers(users);
   };
   const handleCloseSearchModal = () => setSearchModal(false);
 
   const getAuthBookmarks = async () => {
-    const bookmarks = await getBookmarks(user.id);
-    setBookmarks(bookmarks);
+    const bookmarkIds = await getBookmarkIds(user.id);
+
+    setBookmarks(bookmarkIds);
   };
 
   const fetchPosts = async () => {
-    const posts = await dispatch(getPosts());
-
-    // const pinnedPostMatch = posts.find((post) => post.pinnedPost === true);
-
-    // if (pinnedPostMatch) {
-    //   setPinnedPost(pinnedPostMatch);
-    // } else {
-    //   setPinnedPost({});
-    // }
-
-    setLoading(false);
-  };
-
-  const createPost = async (e, post) => {
-    e.preventDefault();
-
-    handleCloseCommentModal();
-    await createComment(input, post, user, post.postType);
-    setInput("");
-  };
-  const handleLikePost = (postId) => dispatch(likePost(postId));
-  const handleDeletePost = (postId) => dispatch(deletePost(postId, user.id));
-  const handleRefreshPost = (postId) => dispatch(refreshPost(postId));
-  const handleRefreshPosts = async () => {
     setLoading(true);
 
     await dispatch(getPosts());
+
     setLoading(false);
-  }; 
+  };
+
+  const handleLikePost = (postId) => dispatch(likePost(postId));
+  const handleDeletePost = (postId) => dispatch(deletePost(postId, user.id));
+  const handleRefreshPost = (postId) => dispatch(refreshPost(postId));
+  const handleRefreshPosts = () => {
+    // setLoading(true);
+    dispatch(getPosts());
+    setLoading(false);
+  };
   const handlePinPost = async (post) => dispatch(pinTweet(post, user.id));
 
-  const handleUnpinPost = async (post) =>
-    dispatch(unpinTweet(post, user.id));
+  const handleUnpinPost = async (post) => dispatch(unpinTweet(post, user.id));
 
   const handleFollowUser = async (post) =>
     dispatch(toggleFollowPostUser(post, user.id));
@@ -171,8 +147,13 @@ const Home = () => {
     await deleteBookmarkById(postId, user.id);
   };
 
+  const updateTweetInFeedAfterCommentCreation = (replyToId) => {
+    dispatch(updatePostInFeedAfterCommentCreation(replyToId));
+  };
+
   useEffect(() => {
     getAuthBookmarks();
+    // if (posts.length === 0) fetchPosts();
     fetchPosts();
   }, []);
 
@@ -209,38 +190,69 @@ const Home = () => {
       {loading ? (
         <Loader />
       ) : (
-        posts.map((post) => (
-          <Tweet
-            key={post.id}
-            id={post.id}
-            post={post}
-            isPinned={
-              // pinnedPost?.id && pinnedPost?.id === post.id ? true : false
-              null
-            }
-     
-            handleLikePost={handleLikePost}
-            handleDeletePost={handleDeletePost}
-            handleRefreshPost={handleRefreshPost}
-            handleRefreshPosts={handleRefreshPosts}
-            handlePinPost={handlePinPost}
-            handleUnpinPost={handleUnpinPost}
-            handleFollowUser={handleFollowUser}
-            handleAddBookmark={handleAddBookmark}
-            handleRemoveBookmark={handleRemoveBookmark}
-            handleOpenCommentModal={handleOpenCommentModal}
-            bookmarks={bookmarks}
-          />
-        ))
+        <>
+          <Tooltip
+            className="p-1 rounded-sm text-xs bg-gray-500"
+            placement="bottom"
+            content="Refresh Feed"
+            animate={{
+              mount: { scale: 1, y: 0 },
+              unmount: { scale: 0, y: 1 },
+            }}
+          >
+            <div
+              onClick={fetchPosts}
+              className="border-b w-full px-6 flex justify-center items-center h-10 hover:bg-blue-50 transition ease-in-out cursor-pointer duration-200"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6 text-blue-500"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+                />
+              </svg>
+            </div>
+          </Tooltip>
+          {posts.map((post) => (
+            <Tweet
+              key={post.id}
+              id={post.id}
+              post={post}
+              isPinned={
+                // pinnedPost?.id && pinnedPost?.id === post.id ? true : false
+                null
+              }
+              handleLikePost={handleLikePost}
+              handleDeletePost={handleDeletePost}
+              handleRefreshPost={handleRefreshPost}
+              handleRefreshPosts={handleRefreshPosts}
+              handlePinPost={handlePinPost}
+              handleUnpinPost={handleUnpinPost}
+              handleFollowUser={handleFollowUser}
+              handleAddBookmark={handleAddBookmark}
+              handleRemoveBookmark={handleRemoveBookmark}
+              handleOpenCommentModal={handleOpenCommentModal}
+              bookmarks={bookmarks}
+            />
+          ))}
+        </>
       )}
       {commentModal ? (
         <CommentModal
           post={commentDisplay}
-          createPost={createPost}
           input={input}
           handleInputChange={handleInputChange}
           handleCloseCommentModal={handleCloseCommentModal}
-          refresh={fetchPosts}
+          updateTweetInFeedAfterCommentCreation={
+            updateTweetInFeedAfterCommentCreation
+          }
         />
       ) : null}
     </div>

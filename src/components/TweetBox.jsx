@@ -172,13 +172,7 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
 
         <div className="ml-3 w-full">
           <form
-            onSubmit={
-              input && selectedImageLoading
-                ? (e) => {
-                    e.preventDefault();
-                  }
-                : handleCreatePost
-            }
+            onSubmit={(e) => e.preventDefault()}
             className="mt-8 mb-7"
             action=""
           >

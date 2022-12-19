@@ -1,6 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 
-const EditProfileBanner = ({ banner, bannerUrl, profile }) => {
+const EditProfileBanner = ({ banner, setBannerUrl, bannerUrl, profile }) => {
+  useEffect(() => {
+    if (profile.banner !== null) {
+      setBannerUrl(profile.banner);
+    }
+  }, []);
+
+  // useEffect(() => {
+
+  // },[bannerUrl])
   return (
     <div className="">
       <div>
@@ -12,11 +21,11 @@ const EditProfileBanner = ({ banner, bannerUrl, profile }) => {
         ) : (
           <div className="relative h-60 w-full">
             <div className="bg-black absolute top-0 bottom-0 left-0 right-0 opacity-30 z-40"></div>
-            {profile.banner && profile.banner !== null ? (
+            {bannerUrl !== null ? (
               <img
                 className="w-full object-cover h-60"
-                src={profile.banner}
-                alt=""
+                src={bannerUrl}
+                alt="Profile Banner"
               />
             ) : bannerUrl === null ? (
               <div className="bg-blue-500 h-60 w-full"></div>

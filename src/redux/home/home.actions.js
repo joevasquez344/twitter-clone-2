@@ -33,14 +33,15 @@ import { DELETE_POST } from "../profile/profile.types";
 import {
   CREATE_BOOKMARK,
   DELETE_BOOKMARK,
-  FOLLOW_USER,
+  FOLLOW_TWEET_USER,
   GET_POSTS,
   PIN_POST,
   REFRESH_POST,
   TOGGLE_FOLLOW_USER,
   TOGGLE_LIKE_POST,
-  UNFOLLOW_USER,
+  UNFOLLOW_TWEET_USER,
   UNPIN_POST,
+  UPDATE_POST_IN_FEED,
 } from "./home.types";
 
 const getPosts = () => async (dispatch, getState) => {
@@ -59,6 +60,13 @@ const getPosts = () => async (dispatch, getState) => {
 
   return posts;
 };
+
+const updatePostInFeedAfterCommentCreation = (replyToId) => dispatch => {
+  dispatch({
+    type: UPDATE_POST_IN_FEED,
+    payload: replyToId
+  })
+}
 
 const refreshPost = (postId) => async (dispatch) => {
   const post = await getPostById(postId);
@@ -102,7 +110,7 @@ const toggleFollowPostUser = (post, authId) => async (dispatch) => {
       const { followers } = await unfollowUser(post.uid, authId);
 
       dispatch({
-        type: UNFOLLOW_USER,
+        type: UNFOLLOW_TWEET_USER,
         payload: {
           followers,
           postId: post.id,
@@ -112,7 +120,7 @@ const toggleFollowPostUser = (post, authId) => async (dispatch) => {
       const { followers } = await followUser(post.uid, authId);
 
       dispatch({
-        type: FOLLOW_USER,
+        type: FOLLOW_TWEET_USER,
         payload: {
           followers,
           postId: post.id,
@@ -177,4 +185,5 @@ export {
   removeBookmark,
   pinTweet,
   unpinTweet,
+  updatePostInFeedAfterCommentCreation
 };

@@ -9,13 +9,10 @@ import Loader from "./Loader";
 
 const CommentModal = ({
   post,
-  // createPost,
-  // input,
-  // handleInputChange,
   handleCloseCommentModal,
-  refresh,
   redux,
   handleCreateComment,
+  updateTweetInFeedAfterCommentCreation,
 }) => {
   const user = useSelector((state) => state.users.user);
 
@@ -32,7 +29,7 @@ const CommentModal = ({
       setInput("");
     } else {
       await createComment(input, post, selectedImageUrl, user, post.postType);
-      refresh();
+      updateTweetInFeedAfterCommentCreation(post.id);
       setInput("");
     }
   };
@@ -50,9 +47,6 @@ const CommentModal = ({
         createPost(e);
       }
 
-      // await dispatch(getPosts(user));
-
-      // setLoading(false);
       setSelectedImage(null);
     }
   };

@@ -21,7 +21,6 @@ x Implement ability to tweet an image
 
 x Display comments lengths on all Tweet Components across the app
 
-
 x Media Feed on Profile Page
 x Apply ability to post an image on comment modals and comment section of Tweet Details, and don't forget to add the storage
   bucket folder paths to createComment() function in utils/api/comments. Also, imitate the "image selected" design from the TweetBox to 
@@ -53,13 +52,27 @@ x Fix pinned tweet display on Profile Page (Clickin unpin the first time doesn't
   - Handle Edit Profile Banner and Avatar Selected Images that are not valid and display the "alt" attribute value
   - Add Toolkit component to Tweet Details Post Footer Items
   - Add BookmarkButton in Tweet Details' post footer instead of Submit Icon
-  - Dark Mode (exclude)
   - Fix issue with Likes Modal on Post Details Screen
   x Add Avatar to Tweets
   x Fix issue where after you Edit Your Profile, the pinned post disappears after refetch
   - Fix issue where some Profile Avatars (Victors Profile) on the Tweet Component displays the alt fallback and not DefaultAvatar Component fallback
-  - Profile Page Issue - In reducer, split the reused feed state into 4 separate states (Tweets, Tweets and Replies, Media, Likes) so that longer fetches
+  x Profile Page Issue - In reducer, split the reused feed state into 4 separate states (Tweets, Tweets and Replies, Media, Likes) so that longer fetches
     don't display in the wrong active feed
+  x Home Page and any other page with this issue - When you follow a user by the more dropdown on a Tweet, make sure to update the follow status on   
+    all other tweets by that user and not just the tweet that was being interacted with
+  x After saving your edited profile, dont refetch the profile. Figure out another way. Currently, after every fetch of a profile, the tabs click count state is
+    is reverted back to 0; meaning when a feed tab is clicked, an unnecessary fetch for posts will be invoked
+  x Profile Page Issue - Like Post => Pin Post => Unlike Pin Post => Unpin Post - This Tweets liked state is not accurate when following these step-by-step 
+    user interactions
+  - After a user sign up, the Tweet Box avatar fallback image (DefaultAvatar Component) is not working; the <img /> alt fallback attribute is taking effect
+  x When you delete a Tweet, the Tweet component's replyTo display is not showing for the Tweets that are a reply to this deleted post
+
+  - Huge Dub for solving the univeral tweet state changes for the purpose of minimizing refetches for posts
+      - Find a way to universally capture tweet state changes and transfer those changes for that specific tweet to any other page of the application containing this tweet
+      - Capture new state, push it to an array (possibly a new state variable), and then when a page transition takes place, send that new state, containing an array of
+        tweets that have been updated, into the react router dom state
+      - From here, the new page will have access to these modified posts and now find/map over the page's feed and compare the react router state to it and update
+        the found posts
 
 - Implement Mobile scaling
 

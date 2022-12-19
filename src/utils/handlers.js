@@ -1,28 +1,60 @@
 import { removeDuplicateUsernames } from "./helpers";
 
-export const handleActiveTab = (tabId, feeds, tabs, profile, setTabs) => {
+export const handleActiveTab = (
+  tabId,
+  feeds,
+  tabs,
+  profile,
+  setTabs,
+  clearMessage,
+  setMessage
+) => {
   const updatedTabs = tabs.map((tab) => {
     tab.isActive = false;
     if (tab.id === tabId) {
       tab.isActive = true;
 
       if (tab.text === "Tweets") {
+        if (feeds[0].length > 0) {
+          clearMessage();
+        }
+        if (feeds[0].length === 0 && tab.clickCount > 0) {
+          setMessage("Tweets");
+        }
         if (feeds[0].length === 0 && tab.clickCount === 0) {
           tab.clickCount = tab.clickCount + 1;
           tab.fetchData(profile);
         }
-      } else if (tab.text === "Tweets & Replies" && tab.clickCount === 0) {
-        if (feeds[1].length === 0) {
+      } else if (tab.text === "Tweets & Replies") {
+        if (feeds[1].length > 0) {
+          clearMessage();
+        }
+        if (feeds[1].length === 0 && tab.clickCount > 0) {
+          setMessage("Tweets & Replies");
+        }
+        if (feeds[1].length === 0 && tab.clickCount === 0) {
           tab.clickCount = tab.clickCount + 1;
           tab.fetchData(profile);
         }
-      } else if (tab.text === "Media" && tab.clickCount === 0) {
-        if (feeds[2].length === 0) {
+      } else if (tab.text === "Media") {
+        if (feeds[2].length > 0) {
+          clearMessage();
+        }
+        if (feeds[2].length === 0 && tab.clickCount > 0) {
+          setMessage("Media");
+        }
+        if (feeds[2].length === 0 && tab.clickCount === 0) {
           tab.clickCount = tab.clickCount + 1;
           tab.fetchData(profile);
         }
-      } else if (tab.text === "Likes" && tab.clickCount === 0) {
-        if (feeds[3].length === 0) {
+      } else if (tab.text === "Likes") {
+        if (feeds[3].length > 0) {
+          clearMessage();
+        }
+        if (feeds[3].length === 0 && tab.clickCount > 0) {
+          setMessage("Likes");
+        }
+        if (feeds[3].length === 0 && tab.clickCount === 0) {
           tab.clickCount = tab.clickCount + 1;
           tab.fetchData(profile);
         }
