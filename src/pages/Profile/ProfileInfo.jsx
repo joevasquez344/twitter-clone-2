@@ -13,7 +13,7 @@ const ProfileInfo = () => {
 
 
   return (
-    <div className="p-4">
+    <div className="px-4 pb-2">
       <div className="font-bold text-lg">{name}</div>
       <div className="text-gray-500 mb-2">@{username}</div>
       <div className="mb-2">{bio}</div>

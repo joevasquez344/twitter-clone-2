@@ -6,7 +6,7 @@ const ProfileBanner = ({ profile }) => {
       {" "}
       {profile.banner && profile.banner !== null ? (
         <img
-          className="h-60 object-cover w-full"
+          className="h-52 object-cover w-full"
           src={profile.banner}
           alt="Avatar"
         />
