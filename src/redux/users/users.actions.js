@@ -18,6 +18,7 @@ import {
   PIN_TWEET,
   UNPIN_TWEET,
   GET_AUTHS_PINNED_TWEET,
+  SHOW_HOME_SUGGESTIONS,
 } from "./users.types";
 import {
   createUserWithEmailAndPassword,
@@ -110,6 +111,7 @@ const register = (data) => (dispatch) => {
         pinnedPost: {},
         createdAt: userCredentials.user.metadata.creationTime,
         theme: "light",
+        homeSuggestions: "open",
       })
         .then(() => {})
         .catch((err) => {
@@ -190,7 +192,7 @@ const loadAuthsPinnedTweet = (postId) => async (dispatch) => {
 };
 
 const pinTweet = (post, authId) => async (dispatch) => {
-  await pinPost(post.id, authId)
+  await pinPost(post.id, authId);
   dispatch({
     type: PIN_TWEET,
     payload: post,
@@ -198,7 +200,7 @@ const pinTweet = (post, authId) => async (dispatch) => {
 };
 
 const unpinTweet = (post, authId) => async (dispatch) => {
-  await unpinPost(post.id, authId)
+  await unpinPost(post.id, authId);
   dispatch({
     type: UNPIN_TWEET,
   });
@@ -259,6 +261,7 @@ const editProfile = (data, profileId) => async (dispatch) => {
   });
 };
 
+
 export {
   login,
   register,
@@ -271,5 +274,5 @@ export {
   editProfile,
   pinTweet,
   unpinTweet,
-  loadAuthsPinnedTweet
+  loadAuthsPinnedTweet,
 };

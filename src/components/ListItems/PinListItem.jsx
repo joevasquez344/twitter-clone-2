@@ -3,11 +3,11 @@ import { useSelector, useDispatch } from "react-redux";
 import { pinPost, unpinPost } from "../../utils/api/posts";
 import { LocationMarkerIcon } from "@heroicons/react/outline";
 import { unpinTweet, pinTweet } from "../../redux/users/users.actions";
-const PinListItem = ({ post }) => {
+const PinListItem = ({ post, closeModal }) => {
   const authUser = useSelector((state) => state.users.user);
   const authsPinnedPost = useSelector((state) => state.users.authsPinnedPost);
   const authId = authUser.id;
-  const postUserId = post.uid;
+ 
 
   const dispatch = useDispatch();
 
@@ -17,19 +17,21 @@ const PinListItem = ({ post }) => {
     await pinPost(post.id, authId);
     dispatch(pinTweet(post, authId));
     setPinnedPost(true);
+    closeModal();
   };
   const handleUnpinPost = async () => {
     await unpinPost(post.id, authId);
     dispatch(unpinTweet(post, authId));
     setPinnedPost(false);
+    closeModal();
   };
 
   useEffect(() => {
-    if (authsPinnedPost.id) setPinnedPost(true);
+    if (authsPinnedPost.id && authsPinnedPost.id === post.id) setPinnedPost(true);
     else setPinnedPost(false);
   }, []);
 
-  if (postUserId === authId) {
+  if (post.uid === authId) {
     return (
       <>
         {pinnedPost ? (

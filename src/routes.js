@@ -2,7 +2,7 @@ import { Route } from "react-router-dom";
 
 import Landing from "./pages/Landing/Landing";
 import Home from "./pages/Home";
-import TweetDetails from "./pages/TweetDetails";
+import TweetDetails from "./pages/TweetDetails/TweetDetails";
 import Profile from "./pages/Profile/Profile";
 import Profile2 from "./pages/Profile/Profile2";
 import FollowersAndFollowing from "./pages/FollowersAndFollowing";

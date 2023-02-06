@@ -8,16 +8,16 @@ import { storage } from "../../firebase/config";
 import { ref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
 import { XIcon } from "@heroicons/react/outline";
 import {
-    collection,
-    doc,
-    getDocs,
-    getDoc,
-    orderBy,
-    query,
-    where,
-    writeBatch,
-  } from "firebase/firestore/lite";
-  import { db } from "../../firebase/config";
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  orderBy,
+  query,
+  where,
+  writeBatch,
+} from "firebase/firestore/lite";
+import { db } from "../../firebase/config";
 
 import {
   getPosts,
@@ -46,7 +46,16 @@ import Loader from "../../components/Loader";
 import ProfileInfo from "./ProfileInfo";
 import CommentModal from "../../components/CommentModal";
 import { createComment } from "../../utils/api/comments";
-import { fetchPinnedPost, fetchProfileMediaPosts, fetchProfileTweets, fetchProfileTweetsAndReplies, getBookmarks, getComments, getLikes, getUsersPostsCount } from "../../utils/api/posts";
+import {
+  fetchPinnedPost,
+  fetchProfileMediaPosts,
+  fetchProfileTweets,
+  fetchProfileTweetsAndReplies,
+  getBookmarks,
+  getComments,
+  getLikes,
+  getUsersPostsCount,
+} from "../../utils/api/posts";
 import DefaultAvatar from "../../components/DefaultAvatar";
 import ArrowButton from "../../components/Buttons/ArrowButton";
 import EditProfileBanner from "./EditProfileBanner";
@@ -64,8 +73,8 @@ const Profile = () => {
 
   const user = useSelector((state) => state.users.user);
 
-  const [profile, setProfile] = useState(null)
-  const [feed, setFeed] = useState(null)
+  const [profile, setProfile] = useState(null);
+  const [feed, setFeed] = useState(null);
   const [bookmarks, setBookmarks] = useState([]);
   const [postCount, setPostCount] = useState(null);
   const [commentDisplay, setCommentDisplay] = useState({});
@@ -75,9 +84,9 @@ const Profile = () => {
   const [locationInput, setLocationInput] = useState("");
   const [nameInput, setNameInput] = useState("");
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(true)
-  const [feedLoading, setFeedLoading] = useState(true)
-  const [pinnedPost, setPinnedPost] = useState(null)
+  const [loading, setLoading] = useState(true);
+  const [feedLoading, setFeedLoading] = useState(true);
+  const [pinnedPost, setPinnedPost] = useState(null);
 
   const [avatar, setAvatar] = useState(null);
   const [avatarLoading, setAvatarLoading] = useState(false);
@@ -147,11 +156,11 @@ const Profile = () => {
   };
 
   const fetchProfile = async () => {
-    const profile = await getUserDetails(params.username)
+    const profile = await getUserDetails(params.username);
 
-    const tweets = await fetchProfileTweets(profile.id)
+    const tweets = await fetchProfileTweets(profile.id);
     const pinnedPost = await fetchPinnedPost(profile.id);
- 
+
     setBioInput(profile.bio);
     setLocationInput(profile.location);
     setBirthdayInput(profile.birthday);
@@ -176,7 +185,7 @@ const Profile = () => {
     setFeed(tweets);
     setPinnedPost(pinnedPost);
 
-    setLoading(false)
+    setLoading(false);
   };
 
   const handleGetPosts = async (profile) => {
@@ -186,25 +195,26 @@ const Profile = () => {
   };
 
   const handleGetTweetsAndReplies = async (profile) => {
-    const posts = await fetchProfileTweetsAndReplies(profile.id)
-    setFeed(posts)
+    const posts = await fetchProfileTweetsAndReplies(profile.id);
+    setFeed(posts);
+  };
 
-  }
+  const handleGetMediaPosts = async (profile) => {
+    const posts = await fetchProfileMediaPosts(profile.id);
 
-  const handleGetMediaPosts = async (profile) =>{
-    const posts = await fetchProfileMediaPosts(profile.id)
-
-    setFeed(posts)
-  }
+    setFeed(posts);
+  };
 
   const handleGetLikedPosts = async (profile) => {
     const likesRef = collection(db, `users/${profile.id}/likes`);
     const postIds = await getDocs(likesRef);
-  
+
     const postDocs = await Promise.all(
-      postIds.docs.map(async (post) => await getDoc(doc(db, `posts/${post.id}`)))
+      postIds.docs.map(
+        async (post) => await getDoc(doc(db, `posts/${post.id}`))
+      )
     );
-  
+
     const posts = await Promise.all(
       postDocs
         .filter((post) => post._document !== null)
@@ -222,9 +232,7 @@ const Profile = () => {
     );
 
     setFeed(posts);
-
-  }
-
+  };
 
   const createPost = async (e, post) => {
     e.preventDefault();
@@ -473,11 +481,8 @@ const Profile = () => {
                 birthdayInput={birthdayInput}
               />
             </Modal>
-            <ProfileHeader
-              profile={profile}
-              profilePostCount={postCount}
-            />
-            <div className="relative mb-20"> 
+            <ProfileHeader profile={profile} profilePostCount={postCount} />
+            <div className="relative mb-20">
               <ProfileBanner profile={profile} />
               <ProfileAvatar profile={profile} />
               <ProfileFollowButton
@@ -524,4 +529,3 @@ const Profile = () => {
 };
 
 export default Profile;
-

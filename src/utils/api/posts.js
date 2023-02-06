@@ -86,7 +86,13 @@ export const getPostById = async (id) => {
   const ref = doc(db, `posts/${id}`);
   const post = await getDoc(ref);
 
-  const postDetails = await populatePost(post);
+  let postDetails = await populatePost(post);
+
+postDetails = {
+  ...postDetails,
+  replyToUsers: postDetails.replyToUsers.posts,
+
+}
 
   return postDetails;
 };
@@ -271,6 +277,7 @@ export const unpinPost = async (postId, authId) => {
   }
 };
 
+
 export const addBookmarkById = async (postId, authId) => {
   const userRef = doc(db, `users/${authId}`);
   await setDoc(doc(db, "bookmarks", postId), { userRef });
@@ -414,21 +421,22 @@ export const getPostsByThreadId = async (postId) => {
 export const fetchProfileTweets = async (username) => {
   const postsRef = collection(db, "posts");
   // const profileRef = doc(db, `users/${profileId}`);
-  const profilesRef = collection(db, "users");
-  const profilesQuery = query(profilesRef, where("username", "==", username));
-  const profilesSnapshot = await getDocs(profilesQuery);
-  const profile = {
-    id: profilesSnapshot.docs[0].id,
-    ...profilesSnapshot.docs[0].data(),
-  };
+  // const profilesRef = collection(db, "users");
+  // const profilesQuery = query(profilesRef, where("username", "==", username));
+  // const profilesSnapshot = await getDocs(profilesQuery);
+  // const profile = {
+  //   id: profilesSnapshot.docs[0].id,
+  //   ...profilesSnapshot.docs[0].data(),
+  // };
 
-  console.log("profile: ", profile);
+  // console.log("profile: ", profile);
 
   const postsQuery = query(
     postsRef,
-    where("username", "==", profile.username),
+    where("username", "==", username),
     where("postType", "==", "tweet"),
-    orderBy("timestamp", "desc")
+    orderBy("timestamp", "desc"),
+    limit(10)
   );
 
   const postsSnapshot = await getDocs(postsQuery);
@@ -447,18 +455,19 @@ export const fetchProfileTweets = async (username) => {
 
 export const fetchProfileTweetsAndReplies = async (username) => {
   const postsRef = collection(db, "posts");
-  const profilesRef = collection(db, "users");
-  const profilesQuery = query(profilesRef, where("username", "==", username));
-  const profilesSnapshot = await getDocs(profilesQuery);
-  const profile = {
-    id: profilesSnapshot.docs[0].id,
-    ...profilesSnapshot.docs[0].data(),
-  };
+  // const profilesRef = collection(db, "users");
+  // const profilesQuery = query(profilesRef, where("username", "==", username));
+  // const profilesSnapshot = await getDocs(profilesQuery);
+  // const profile = {
+  //   id: profilesSnapshot.docs[0].id,
+  //   ...profilesSnapshot.docs[0].data(),
+  // };
 
   const postsQuery = query(
     postsRef,
-    where("username", "==", profile.username),
-    orderBy("timestamp", "desc")
+    where("username", "==", username),
+    orderBy("timestamp", "desc"),
+    limit(10)
   );
   const postsSnapshot = await getDocs(postsQuery);
 
@@ -476,18 +485,19 @@ export const fetchProfileTweetsAndReplies = async (username) => {
 
 export const fetchProfileMediaPosts = async (username) => {
   const postsRef = collection(db, "posts");
-  const profilesRef = collection(db, "users");
-  const profilesQuery = query(profilesRef, where("username", "==", username));
-  const profilesSnapshot = await getDocs(profilesQuery);
-  const profile = {
-    id: profilesSnapshot.docs[0].id,
-    ...profilesSnapshot.docs[0].data(),
-  };
+  // const profilesRef = collection(db, "users");
+  // const profilesQuery = query(profilesRef, where("username", "==", username));
+  // const profilesSnapshot = await getDocs(profilesQuery);
+  // const profile = {
+  //   id: profilesSnapshot.docs[0].id,
+  //   ...profilesSnapshot.docs[0].data(),
+  // };
 
   const postsQuery = query(
     postsRef,
-    where("username", "==", profile.username),
-    orderBy("timestamp", "desc")
+    where("username", "==", username),
+    orderBy("timestamp", "desc"),
+    limit(10)
   );
 
   const snapshot = await getDocs(postsQuery);
@@ -509,7 +519,7 @@ export const fetchProfileMediaPosts = async (username) => {
 export const populatePost = async (doc) => ({
   ...doc.data(),
   id: doc.id,
-  followers: await getFollowers(doc.data().uid),
+  followers: await getFollowers(doc.data()?.uid),
   likes: await getLikes(doc.id),
   comments: await getComments(doc.id),
   replyToUsers: await getPostsByThreadId(doc.id),

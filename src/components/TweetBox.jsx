@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { db } from "../firebase/config";
 import { storage } from "../firebase/config";
 import { ref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
+import { useNavigate } from "react-router-dom";
 import {
   collection,
   writeBatch,
@@ -26,6 +27,7 @@ import { getProfileFollowing } from "../utils/api/users";
 import Loader from "./Loader";
 import { useEffect } from "react";
 import DefaultAvatar from "./DefaultAvatar";
+import { XIcon } from "@heroicons/react/outline";
 
 const TweetBox = ({ setLoading, setGiphyModal }) => {
   const user = useSelector((state) => state.users.user);
@@ -36,6 +38,7 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
   const [selectedImageLoading, setSelectedImageLoading] = useState(false);
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -91,6 +94,7 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
   const clearSelectedFile = () => {
     // Delete image from Firebase storage in :userId/selected folder on click of 'X'
     setSelectedImage(null);
+    setSelectedImageUrl(null);
   };
 
   const handleFileChange = (e) => {
@@ -145,9 +149,9 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
   };
 
   return (
-    <div className="px-2 pb-5 border-b">
+    <div className="hidden sm:flex px-2 pb-5 border-b">
       <div className="flex">
-        {user.avatar === "" ? (
+        {user.avatar === "" || user.avatar === null ? (
           <div className="relative h-full mt-4">
             <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center z-40">
               <div className="h-12 w-12 rounded-full flex justify-center items-center">
@@ -157,7 +161,10 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
           </div>
         ) : (
           <div className="relative h-full mt-4">
-            <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center z-40">
+            <div
+              onClick={() => navigate(`/${user.username}`)}
+              className="h-16 w-16 rounded-full bg-white flex items-center justify-center z-40 cursor-pointer"
+            >
               <div className="h-12 w-12 rounded-full flex justify-center items-center">
                 <img
                   // onClick={handleUserDetails}
@@ -179,7 +186,7 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
             <input
               value={input}
               onChange={handleInputChange}
-              className="text-xl text-gray-900 outline-none"
+              className="text-md sm:text-xl text-gray-900 outline-none"
               type="text"
               placeholder="What's happening?"
             />
@@ -203,39 +210,39 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
             {selectedImageLoading ? (
               <Loader />
             ) : (
-              <>
-                {selectedImage ? (
-                  <div className="mt-10 h-40 w-40 rounded-xl object-contain shadow-lg relative">
+              <div
+                className={`${
+                  selectedImageLoading || selectedImageUrl !== null
+                    ? "h-36 sm:h-96"
+                    : ""
+                } relative mt-5`}
+              >
+                {selectedImageUrl !== null ? (
+                  <div
+                    className={`${
+                      selectedImageLoading || selectedImageUrl !== null
+                        ? "h-36 sm:h-96"
+                        : ""
+                    }  object-contain`}
+                  >
                     <div
                       onClick={clearSelectedFile}
-                      className="absolute right-0 cursor-pointer"
+                      className="absolute z-75 left-3 top-3 cursor-pointer rounded-full p-1 bg-black hover:bg-gray-700 transition ease-in-out duration-150"
                     >
-                      X
+                      <XIcon
+                        // onClick={removeBanner}
+                        className="h-4 w-4 sm:w-6 sm:h-6  text-white cursor-pointer"
+                      />
                     </div>
                     <img
-                      className="h-40 w-40 rounded"
+                      className="h-36 sm:h-96 rounded-xl"
                       src={selectedImageUrl ? selectedImageUrl : ""}
                       alt=""
                     />
                   </div>
                 ) : null}
-              </>
-            )}
-            {/* {selectedImage && (
-              <div className="mt-10 h-40 w-40 rounded-xl object-contain shadow-lg relative">
-                <div
-                  onClick={() => setSelectedImage("")}
-                  className="absolute right-0 cursor-pointer"
-                >
-                  X
-                </div>
-                <img
-                  className="h-40 w-40 rounded"
-                  src={selectedImage ? selectedImage : ""}
-                  alt=""
-                />
               </div>
-            )} */}
+            )}
           </form>
 
           <div className="flex items-center justify-between w-full">

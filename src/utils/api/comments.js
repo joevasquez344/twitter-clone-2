@@ -16,6 +16,8 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { auth } from "../../firebase/config";
+import { getUserDetails } from "./users";
+import { populatePost } from "./posts";
 
 export const createComment = async (input, replyToPost, media, user, postType) => {
   const batch = writeBatch(db);
@@ -119,3 +121,22 @@ export const createComment = async (input, replyToPost, media, user, postType) =
     return createdPost
   }
 };
+
+export const fetchComments = async (postId) => {
+  const postsRef = collection(db, "posts");
+  const postRef = doc(db, `posts/${postId}`);
+
+  const commentsQuery = query(
+    postsRef,
+    where("replyTo", "==", postRef),
+    orderBy("timestamp", "desc")
+    // limit(1)
+  );
+  const snapshot = await getDocs(commentsQuery);
+
+  let comments = await Promise.all(
+    snapshot.docs.map(async (doc) => await populatePost(doc))
+  );
+
+  return comments
+}

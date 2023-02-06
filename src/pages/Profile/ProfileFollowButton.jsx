@@ -37,7 +37,7 @@ const ProfileFollowButton = ({
         {authUsersProfile ? (
           <button
             onClick={openModal}
-            className="absolute right-5 mt-3 border rounded-full px-5 py-1 font-semibold"
+            className="absolute right-5 mt-3 border rounded-full px-3 text-xs sm:text-base sm:px-5 py-1 font-semibold"
           >
             Edit Profile
           </button>
@@ -46,14 +46,14 @@ const ProfileFollowButton = ({
             {authIsFollowingProfile ? (
               <button
                 onClick={handleUnfollowProfile}
-                className="absolute right-5 mt-3 border rounded-full px-5 py-1 font-semibold"
+                className="absolute right-5 mt-3 border rounded-full px-5 py-1 text-xs sm:text-base font-semibold"
               >
                 Unfollow
               </button>
             ) : (
               <button
                 onClick={handleFollowProfile}
-                className="absolute right-5 mt-3 border rounded-full px-5 py-1 font-semibold"
+                className="absolute right-5 mt-3 border rounded-full px-5 py-1 text-xs sm:text-base font-semibold"
               >
                 Follow
               </button>

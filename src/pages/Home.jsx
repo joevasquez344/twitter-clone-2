@@ -25,6 +25,8 @@ import { fetchTrending } from "../services/giphy";
 import SearchBar from "../components/SearchBar";
 import SearchModal from "../components/SearchModal";
 import { pinTweet, unpinTweet } from "../redux/users/users.actions";
+import ProfileSuggestions from "../components/ProfileSuggestions";
+import TweetModal from "../components/TweetModal";
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -51,7 +53,9 @@ const Home = () => {
     const searchResults = allUsers.filter(
       (user) =>
         user.username.toLowerCase().match(e.target.value.toLowerCase()) ||
-        user.username.toUpperCase().match(e.target.value.toUpperCase())
+        user.username.toUpperCase().match(e.target.value.toUpperCase()) ||
+        user.name.toUpperCase().match(e.target.value.toUpperCase()) ||
+        user.name.toUpperCase().match(e.target.value.toUpperCase())
     );
 
     setSearchedUsers(searchResults);
@@ -65,6 +69,8 @@ const Home = () => {
   const handleCloseCommentModal = () => {
     setCommentModal(false);
   };
+
+
 
   const fetchAllUsers = async () => await getAllUsers();
 
@@ -164,8 +170,8 @@ const Home = () => {
         <GiphyModal setGiphyModal={setGiphyModal} fetchGifs={fetchTrending} />
       ) : null}
       {commentModal ? null : (
-        <>
-          <div className="z-50 sticky top-0 bg-white px-5 py-4 flex flex-col justify-center">
+        <div className="hidden sm:flex">
+          <div className="z-40 sticky top-0 bg-white px-5 py-4 flex flex-col justify-center">
             <SearchBar
               input={searchInput}
               inputChange={handleSearchInput}
@@ -183,16 +189,17 @@ const Home = () => {
               )}
             </div>
           </div>
-        </>
+        </div>
       )}
 
       <TweetBox setGiphyModal={setGiphyModal} setLoading={setLoading} />
+      <ProfileSuggestions />
       {loading ? (
         <Loader />
       ) : (
         <>
           <Tooltip
-            className="p-1 rounded-sm text-xs bg-gray-500"
+            className="hidden sm:flex p-1 rounded-sm text-xs bg-gray-500"
             placement="bottom"
             content="Refresh Feed"
             animate={{
@@ -202,7 +209,7 @@ const Home = () => {
           >
             <div
               onClick={fetchPosts}
-              className="border-b w-full px-6 flex justify-center items-center h-10 hover:bg-blue-50 transition ease-in-out cursor-pointer duration-200"
+              className="border-b w-full px-6 flex justify-center items-center h-9 sm:h-10 sm:hover:bg-blue-50 transition ease-in-out cursor-pointer duration-200"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -210,7 +217,7 @@ const Home = () => {
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
                 stroke="currentColor"
-                className="w-6 h-6 text-blue-500"
+                className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500"
               >
                 <path
                   strokeLinecap="round"
@@ -255,6 +262,7 @@ const Home = () => {
           }
         />
       ) : null}
+
     </div>
   );
 };

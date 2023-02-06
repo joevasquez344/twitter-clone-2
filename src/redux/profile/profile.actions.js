@@ -59,6 +59,7 @@ import {
   query,
   where,
   writeBatch,
+  limit,
 } from "firebase/firestore/lite";
 import { auth, db } from "../../firebase/config";
 import {
@@ -201,7 +202,7 @@ const getUsersLikedPosts = (username) => async (dispatch) => {
     ...profilesSnapshot.docs[0].data(),
   };
   const likesRef = collection(db, `users/${profile.id}/likes`);
-  const likesQuery = query(likesRef, orderBy("timestamp", "desc"));
+  const likesQuery = query(likesRef, orderBy("timestamp", "desc"), limit(10));
   const postIds = await getDocs(likesQuery);
 
   const postDocs = await Promise.all(
@@ -375,7 +376,6 @@ const deleteTweet = (postId, authId) => async (dispatch) => {
     payload: tweetId,
   });
 };
-
 
 const createPost =
   (input, post, user, selectedImageUrl) => async (dispatch) => {

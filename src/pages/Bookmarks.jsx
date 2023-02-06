@@ -334,7 +334,7 @@ const Bookmarks = () => {
                         refresh={fetchBookmarks}
                       />
                     ) : null}
-                    {post.avatar === "" ? (
+                    {post.avatar === "" || post.avatar === null ? (
                       // <UserCircleIcon className="h-16 w-16" />
 
                       <img

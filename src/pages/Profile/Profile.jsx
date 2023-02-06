@@ -73,6 +73,7 @@ const Profile = () => {
   const navigate = useNavigate();
   // console.log("Location: ", !loc.pathname.split("/")[2]);
   const { user, authsPinnedPost } = useSelector((state) => state.users);
+
   const {
     profile,
     feed,
@@ -178,7 +179,7 @@ const Profile = () => {
       tabId,
       feeds,
       tabs,
-      profile,
+      params.username,
       setTabs,
       clearMessage,
       setMessage
@@ -221,18 +222,17 @@ const Profile = () => {
 
   const handleRefreshPost = (postId) => dispatch(refreshPost(postId));
 
-  const handleGetPosts = (profile) => {
-    dispatch(getPosts(profile.username));
+  const handleGetPosts = (username) => {
+    dispatch(getPosts(username));
   };
 
-  const handleGetTweetsAndReplies = (profile) =>
-    dispatch(getTweetsAndReplies(profile.username));
+  const handleGetTweetsAndReplies = (username) =>
+    dispatch(getTweetsAndReplies(username));
 
-  const handleGetMediaPosts = (profile) =>
-    dispatch(getMediaPosts(profile.username));
+  const handleGetMediaPosts = (username) => dispatch(getMediaPosts(username));
 
-  const handleGetLikedPosts = (profile) =>
-    dispatch(getUsersLikedPosts(profile.username));
+  const handleGetLikedPosts = (username) =>
+    dispatch(getUsersLikedPosts(username));
 
   const handleLikePost = async (id) => {
     const likes = await dispatch(toggleLikeTweet(id));
@@ -303,7 +303,10 @@ const Profile = () => {
 
   const handleDeletePost = async (postId) => {
     dispatch(deleteTweet(postId, user.id));
-    setPinnedTweet({})
+    if (postId === pinnedTweet.id) {
+      setPinnedTweet({});
+    }
+
     dispatch(subtractUsersPostCount());
   };
 
@@ -322,14 +325,6 @@ const Profile = () => {
 
     closeModal();
   };
-
-  const addTweetsToRouteState = (tweet) => {
-    setTweetsToRoute([...tweetsToRoute, tweet])
-  }
-
-  const routeWithUpdatedTweets = (endpoint) => {
-    navigate(`/${endpoint}`, {state: tweetsToRoute})
-  }
 
   const handleCreatePost = async (e, input, post, selectedImageUrl) => {
     e.preventDefault();
@@ -367,7 +362,6 @@ const Profile = () => {
     }
 
     dispatch(editProfile(updatedProfile, profile.id));
-    // handleGetPosts(profile);
 
     closeModal();
   };
@@ -489,9 +483,9 @@ const Profile = () => {
   const getData = async () => {
     getAuthBookmarks();
     const profile = await fetchProfile();
-    console.log("Profile: ", profile);
+
     getPinnedPost();
-    handleGetPosts(profile);
+    handleGetPosts(params.username);
 
     const updatedTabs = tabs.map((tab) => {
       tab.isActive = false;
@@ -639,7 +633,7 @@ const Profile = () => {
               profile={profile}
               profilePostCount={profilePostCount}
             />
-            <div className="relative mb-20">
+            <div className="relative mb-12 sm:mb-20">
               <ProfileBanner profile={profile} />
               <ProfileAvatar profile={profile} />
               <ProfileFollowButton
@@ -673,7 +667,8 @@ const Profile = () => {
 
               <RefreshBar activeTab={activeTab} />
 
-              {feedMessage == null ? null : (
+              {feedMessage == null ||
+              (pinnedTweet?.id && activeTab.text === "Tweets") ? null : (
                 <div className="absolute top-15 w-1/2 left-1/4 overflow-visible">
                   <img src={cageImage} alt="" />
                   <div className="text-2xl font-bold">{feedMessage.header}</div>
@@ -710,8 +705,9 @@ const Profile = () => {
                     />
                   )}
               </div>
-              {tabs?.find((tab) => tab.isActive && tab.text === "Tweets")
-                ? tweets
+              {tabs?.find((tab) => tab.isActive && tab.text === "Tweets") ? (
+                <div>
+                  {tweets
                     .filter((post) => post.id !== pinnedTweet?.id)
                     .map((post) => (
                       <Tweet2
@@ -732,11 +728,18 @@ const Profile = () => {
                         tabs={tabs}
                         bookmarks={bookmarks}
                       />
-                    ))
-                : tabs?.find(
-                    (tab) => tab.isActive && tab.text === "Tweets & Replies"
-                  )
-                ? tweetsAndReplies.map((post) => (
+                    ))}
+                  {tweets.length > 10 && (
+                    <div className="p-4 text-sm flex justify-center items-center text-blue-400 border-b font-semibold hover:bg-blue-50 transition ease-in-out cursor-pointer duration-200">
+                      Show More
+                    </div>
+                  )}
+                </div>
+              ) : tabs?.find(
+                  (tab) => tab.isActive && tab.text === "Tweets & Replies"
+                ) ? (
+                <div>
+                  {tweetsAndReplies.map((post) => (
                     <Tweet2
                       key={post.id}
                       id={post.id}
@@ -755,9 +758,16 @@ const Profile = () => {
                       tabs={tabs}
                       bookmarks={bookmarks}
                     />
-                  ))
-                : tabs?.find((tab) => tab.isActive && tab.text === "Media")
-                ? media.map((post) => (
+                  ))}
+                  {tweetsAndReplies.length > 10 && (
+                    <div className="p-4 text-sm flex justify-center items-center text-blue-400 border-b font-semibold hover:bg-blue-50 transition ease-in-out cursor-pointer duration-200">
+                      Show More
+                    </div>
+                  )}
+                </div>
+              ) : tabs?.find((tab) => tab.isActive && tab.text === "Media") ? (
+                <div>
+                  {media.map((post) => (
                     <Tweet2
                       key={post.id}
                       id={post.id}
@@ -776,9 +786,16 @@ const Profile = () => {
                       tabs={tabs}
                       bookmarks={bookmarks}
                     />
-                  ))
-                : tabs?.find((tab) => tab.isActive && tab.text === "Likes")
-                ? likes.map((post) => (
+                  ))}
+                  {media.length > 10 && (
+                    <div className="p-4 text-sm flex justify-center items-center text-blue-400 border-b font-semibold hover:bg-blue-50 transition ease-in-out cursor-pointer duration-200">
+                      Show More
+                    </div>
+                  )}
+                </div>
+              ) : tabs?.find((tab) => tab.isActive && tab.text === "Likes") ? (
+                <div>
+                  {likes.map((post) => (
                     <Tweet2
                       key={post.id}
                       id={post.id}
@@ -797,13 +814,20 @@ const Profile = () => {
                       tabs={tabs}
                       bookmarks={bookmarks}
                     />
-                  ))
-                : null}
+                  ))}
+                  {likes.length > 10 && (
+                    <div className="p-4 text-sm flex justify-center items-center text-blue-400 border-b font-semibold hover:bg-blue-50 transition ease-in-out cursor-pointer duration-200">
+                      Show More
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </div>
           )}
         </>
       )}
     </>
+    //  <div className="p-4 text-sm flex justify-center items-center text-blue-400 border-b font-semibold hover:bg-blue-50 transition ease-in-out cursor-pointer duration-200">Show More</div>
   );
 };
 

@@ -11,11 +11,11 @@ const SearchBar = ({ searchModal, openModal, closeModal, input, inputChange }) =
         ></div> 
       )}
       <div className="relative z-50">
-        <div className="flex  items-center space-x-2 bg-gray-100 p-3 rounded-full my-3">
+        <div className="flex items-center mt-6 mb-3 p-2 space-x-2 bg-gray-100 sm:p-3 rounded-full sm:my-3">
           <SearchIcon className="h-5 w-5 text-gray-400" />
           <input
             onClick={openModal}
-            className="bg-transparent flex-1 outline-none"
+            className="text-sm sm:text-base bg-transparent flex-1 outline-none"
             type="text"
             placeholder="Search Profiles"
             value={input}

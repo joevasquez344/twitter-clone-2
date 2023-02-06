@@ -1,21 +1,27 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
-
+import { useSelector, useDispatch } from "react-redux";
 import { PhotographIcon, XIcon } from "@heroicons/react/outline";
-import { createComment } from "../utils/api/comments";
 import { storage } from "../firebase/config";
 import { ref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
 import Loader from "./Loader";
-import LastSeen from "./LastSeen";
+import {
+  collection,
+  writeBatch,
+  doc,
+  serverTimestamp,
+  getDocs,
+  query,
+  where,
+  orderBy,
+} from "firebase/firestore/lite";
+import { addDoc } from "firebase/firestore";
+import { db } from "../firebase/config";
 
-const CommentModal = ({
-  post,
-  handleCloseCommentModal,
-  redux,
-  handleCreateComment,
-  updateTweetInFeedAfterCommentCreation,
-}) => {
-  const user = useSelector((state) => state.users.user);
+import { createTweet, getPosts } from "../redux/home/home.actions";
+
+const TweetModal = ({ closeModal }) => {
+  const authUser = useSelector((state) => state.users.user);
+  const dispatch = useDispatch();
 
   const [input, setInput] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
@@ -23,22 +29,12 @@ const CommentModal = ({
   const [selectedImageUrl, setSelectedImageUrl] = useState(null);
   const [selectedImageLoading, setSelectedImageLoading] = useState(false);
 
-  console.log("Selected Image: ", selectedImageLoading);
-
   const createPost = async (e) => {
-    handleCloseCommentModal();
-    if (redux === true) {
-      handleCreateComment(e, input, post, selectedImageUrl, "modal");
-      setInput("");
-      setSelectedImage(null);
-      setSelectedImageUrl(null);
-    } else {
-      await createComment(input, post, selectedImageUrl, user, post.postType);
-      updateTweetInFeedAfterCommentCreation(post.id);
-      setInput("");
-      setSelectedImage(null);
-      setSelectedImageUrl(null);
-    }
+    closeModal();
+    dispatch(createTweet(selectedImageUrl, input));
+    setInput("");
+    setSelectedImage(null);
+    setSelectedImageUrl(null);
   };
 
   console.log("Selected Image URL: ", selectedImageUrl);
@@ -73,11 +69,11 @@ const CommentModal = ({
     }
     const imageRef = ref(
       storage,
-      `${user.id}/selected/${e.target.files[0].name}`
+      `${authUser.id}/selected/${e.target.files[0].name}`
     );
     uploadBytes(imageRef, e.target.files[0])
       .then((res) => {
-        listAll(ref(storage, `${user.id}/selected/`)).then((response) => {
+        listAll(ref(storage, `${authUser.id}/selected/`)).then((response) => {
           const match = response.items.find(
             (item) => item.fullPath === res.ref.fullPath
           );
@@ -96,15 +92,16 @@ const CommentModal = ({
       });
   };
 
-  console.log("Hello", input.length);
-
   const uploadImage = () => {
     if (selectedImage === null) return;
-    const imageRef = ref(storage, `${user.id}/uploaded/${selectedImage.name}`);
+    const imageRef = ref(
+      storage,
+      `${authUser.id}/uploaded/${selectedImage.name}`
+    );
 
     uploadBytes(imageRef, selectedImage)
       .then((res) => {
-        listAll(ref(storage, `${user.id}`)).then((items) => {
+        listAll(ref(storage, `${authUser.id}`)).then((items) => {
           const match = items.items.find(
             (item) => item.fullPath === res.ref.fullPath
           );
@@ -122,37 +119,16 @@ const CommentModal = ({
   return (
     <>
       <div
-        onClick={handleCloseCommentModal}
+        onClick={closeModal}
         className="bg-black fixed top-0 bottom-0 left-0 right-0 opacity-40 z-50 w-screen h-screen"
       ></div>
-      <div className="fixed w-1/4 left-1/2.5 top-16 z-50 bg-white rounded-xl">
+      <div className="fixed w-1/4 left-1/3 top-16 z-50 bg-white rounded-xl">
         <div className="pl-4 pt-3 mb-3">
           <div className="w-9 h-9 flex justify-center items-center rounded-full hover:bg-gray-200  transition ease-in-out cursor-pointer duration-200">
-            <XIcon
-              onClick={handleCloseCommentModal}
-              className="w-5 h-5 cursor-pointer"
-            />
+            <XIcon onClick={closeModal} className="w-5 h-5 cursor-pointer" />
           </div>
         </div>
-        <div className="px-5 pt-5 pb-4 flex">
-          <img
-            className="h-12 w-12 mr-3 rounded-full object-cover"
-            src="https://picsum.photos/200"
-            alt=""
-          />
 
-          <div>
-            <div className="flex items-center space-x-1">
-              <div className="font-semibold">{post.name}</div>
-              <div className="text-gray-500">@{post.username}</div>
-              <div className="h-0.5 w-0.5 rounded-full bg-gray-500 mr-1.5"></div>
-              <div className="text-gray-500">
-                <LastSeen date={new Date(post.timestamp.seconds * 1000)} />
-              </div>
-            </div>
-            {post.message}
-          </div>
-        </div>
         <div className="px-5 pb-5">
           <div className="flex w-full">
             <img
@@ -171,7 +147,7 @@ const CommentModal = ({
                   onChange={(e) => setInput(e.target.value)}
                   className="text-xl text-gray-900 outline-none"
                   type="text"
-                  placeholder="Tweet your reply"
+                  placeholder="What's Happening?"
                 />
                 {selectedImageLoading ? (
                   <Loader />
@@ -223,9 +199,9 @@ const CommentModal = ({
                     type="file"
                   />
                   {/* <SearchCircleIcon className="h-5 w-5" />
-                  <EmojiHappyIcon className="h-5 w-5" />
-                  <CalendarIcon className="h-5 w-5" />
-                  <LocationMarkerIcon className="h-5 w-5" /> */}
+                <EmojiHappyIcon className="h-5 w-5" />
+                <CalendarIcon className="h-5 w-5" />
+                <LocationMarkerIcon className="h-5 w-5" /> */}
                 </div>
 
                 <button
@@ -246,7 +222,7 @@ const CommentModal = ({
                       : "pointer"
                   }`}
                 >
-                  Reply
+                  Tweet
                 </button>
               </div>
             </div>
@@ -257,4 +233,4 @@ const CommentModal = ({
   );
 };
 
-export default CommentModal;
+export default TweetModal;

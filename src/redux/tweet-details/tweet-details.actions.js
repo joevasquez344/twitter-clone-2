@@ -22,13 +22,14 @@ import {
   TWEET_DETAILS_REQUEST,
   LIKE_REPLIED_TO_POST,
   DELETE_COMMENT,
-  UNFOLLOW_USER,
-  FOLLOW_USER,
+  TWEET_DETAILS_UNFOLLOW_USER,
+  TWEET_DETAILS_FOLLOW_USER,
   REFRESH_POST,
   DELETE_REPLIED_TO_POST,
   GET_THREAD_POSTS,
   DELETE_POST,
   TWEET_DETAILS_FAILED,
+  PIN_COMMENT,
 } from "./tweet-details.types";
 
 import {
@@ -38,6 +39,8 @@ import {
   getPostById,
   getPostLikes,
   getPostsByThreadId,
+  pinTweet,
+  populatePost,
   toggleLikePost,
 } from "../../utils/api/posts";
 import {
@@ -51,7 +54,7 @@ const getPostDetails = (postId) => async (dispatch) => {
     type: TWEET_DETAILS_REQUEST,
   });
   const postDetails = await getPostById(postId);
-  console.log('Details: ', postDetails)
+  console.log("Details: ", postDetails);
 
   let { posts, deletedPostIds } = await getPostsByThreadId(postDetails.id);
 
@@ -107,32 +110,19 @@ const fetchComments = (postId) => async (dispatch, getState) => {
     postsRef,
     where("replyTo", "==", postRef),
     orderBy("timestamp", "desc")
+    // limit(1)
   );
   const snapshot = await getDocs(commentsQuery);
 
   let comments = await Promise.all(
-    snapshot.docs.map(async (doc) => ({
-      id: doc.id,
-
-      likes: await (
-        await getDocs(collection(db, `posts/${doc.id}/likes`))
-      ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-      comments: await getComments(doc.id),
-      followers: await (
-        await getDocs(collection(db, `users/${doc.data().uid}/followers`))
-      ).docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-      replyToUsers: await getPostsByThreadId(doc.id),
-      bookmarks: await getBookmarks(doc.data().uid),
-
-      ...doc.data(),
-    }))
+    snapshot.docs.map(async (doc) => await populatePost(doc))
   );
 
   comments = comments.map((post) => {
-    if(post.uid) {
-      post.deleted = false
+    if (post.uid) {
+      post.deleted = false;
     } else {
-      post.deleted = true
+      post.deleted = true;
     }
     if (post.uid === authUser.id) {
       if (authUser.pinnedPost.id && post.id === authUser.pinnedPost?.id) {
@@ -193,6 +183,7 @@ const likeComment = (id) => async (dispatch) => {
   });
 };
 
+
 const deletePost = (postId, authId) => async (dispatch, getState) => {
   const id = await deletePostById(postId, authId);
 
@@ -229,31 +220,39 @@ const deletePost = (postId, authId) => async (dispatch, getState) => {
 const toggleFollowPostUser = (post, authId) => async (dispatch, getState) => {
   const followers = post.followers;
 
+  const authUser = getState().users.user;
+
   const authUsersPost = post.uid === authId;
 
   if (!authUsersPost) {
-    const authIsFollowing = followers.find((user) => user.id === authId);
+    const authIsFollowing = followers?.find((user) => user.id === authId);
 
     if (authIsFollowing) {
       const { followers } = await unfollowUser(post.uid, authId);
 
       dispatch({
-        type: UNFOLLOW_USER,
+        type: TWEET_DETAILS_UNFOLLOW_USER,
         payload: {
           followers,
-          postId: post.id,
+          authUser,
+          post,
         },
       });
+
+      return followers;
     } else {
       const { followers } = await followUser(post.uid, authId);
 
       dispatch({
-        type: FOLLOW_USER,
+        type: TWEET_DETAILS_FOLLOW_USER,
         payload: {
           followers,
-          postId: post.id,
+          authUser,
+          post,
         },
       });
+
+      return followers;
     }
   }
 };
@@ -280,6 +279,16 @@ const getThreadPosts = (postId) => async (dispatch, getState) => {
     },
   });
 };
+
+// const togglePinComment = (post) => async (dispatch, getState) => {
+//   const authId = getState().users.user.id;
+//   await pinTweet(post.id, authId);
+
+//   dispatch({
+//     type: PIN_COMMENT,
+//     payload: post
+//   })
+// };
 
 export {
   likePostDetails,

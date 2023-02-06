@@ -2,11 +2,13 @@ import {
   collection,
   doc,
   getDocs,
+  addDoc,
   orderBy,
   query,
   where,
   writeBatch,
   getDoc,
+  serverTimestamp,
 } from "firebase/firestore/lite";
 import { db } from "../../firebase/config";
 import {
@@ -28,10 +30,12 @@ import {
   toggleFollow,
   unfollowUser,
 } from "../../utils/api/users";
+
 import { ADD_BOOKMARK } from "../bookmarks/bookmarks.actions";
 import { DELETE_POST } from "../profile/profile.types";
 import {
   CREATE_BOOKMARK,
+  CREATE_POST,
   DELETE_BOOKMARK,
   FOLLOW_TWEET_USER,
   GET_POSTS,
@@ -50,7 +54,7 @@ const getPosts = () => async (dispatch, getState) => {
     where: ["postType", "==", "tweet"],
     orderBy: ["timestamp", "desc"],
   };
-  
+
   let posts = await fetchPosts(query, authId);
 
   dispatch({
@@ -61,12 +65,12 @@ const getPosts = () => async (dispatch, getState) => {
   return posts;
 };
 
-const updatePostInFeedAfterCommentCreation = (replyToId) => dispatch => {
+const updatePostInFeedAfterCommentCreation = (replyToId) => (dispatch) => {
   dispatch({
     type: UPDATE_POST_IN_FEED,
-    payload: replyToId
-  })
-}
+    payload: replyToId,
+  });
+};
 
 const refreshPost = (postId) => async (dispatch) => {
   const post = await getPostById(postId);
@@ -175,15 +179,48 @@ const removeBookmark = (postId, authId) => async (dispatch) => {
     payload: id,
   });
 };
+
+const createTweet = (selectedImageUrl, input) => async (dispatch, getState) => {
+  const authUser = getState().users.user;
+  const postsRef = collection(db, `posts`);
+
+  const postData = {
+    uid: authUser.id,
+    userRef: doc(db, `users/${authUser.id}`),
+    name: authUser.name,
+    email: authUser.email,
+    username: authUser.username,
+    message: input,
+    media: selectedImageUrl ? selectedImageUrl : "",
+    avatar: authUser.avatar,
+    timestamp: serverTimestamp(),
+    postType: "tweet",
+    replyTo: doc(db, `posts/${null}`),
+    pinnedPost: false,
+    // replyToUsers: [],
+  };
+
+  const { id } = await addDoc(postsRef, postData);
+
+  const post = await getPostById(id);
+
+  console.log('Post: ', post);
+
+  dispatch({
+    type: CREATE_POST,
+    payload: post,
+  });
+};
 export {
   getPosts,
   likePost,
   refreshPost,
   deletePost,
+  createTweet,
   toggleFollowPostUser,
   addBookmark,
   removeBookmark,
   pinTweet,
   unpinTweet,
-  updatePostInFeedAfterCommentCreation
+  updatePostInFeedAfterCommentCreation,
 };

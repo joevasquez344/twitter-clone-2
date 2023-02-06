@@ -19,7 +19,7 @@ const Modal = ({
   }
 
   return (
-    <div>
+    <div className="">
       {" "}
       {modal && (
         <div
@@ -29,15 +29,17 @@ const Modal = ({
       )}
       <div
         className={`${
-          modal
-            ? "fixed top-1/5  bg-white w-1/3  rounded-lg z-50 shadow-lg border-t"
-            : "hidden"
+          modal ? "fixed mt-14   w-1/3 bg-white rounded-xl z-50" : "hidden"
         }`}
       >
         <div className="flex items-center p-3 ">
-          <div onClick={closeModal} className="mr-9 cursor-pointer">
+          <div
+            onClick={closeModal}
+            className="w-9 h-9 flex justify-center items-center rounded-full hover:bg-gray-200  transition ease-in-out cursor-pointer duration-200"
+          >
             <XIcon className="h-5 w-5" />
           </div>
+
           <div className="flex w-full justify-between items-center">
             <div className="font-bold text-lg">{headerTitle}</div>
             <div onClick={onHeaderButtonClick} className={styles.headerButton}>
@@ -45,7 +47,7 @@ const Modal = ({
             </div>
           </div>
         </div>
-        <div className="overflow-scroll bg-white overflow-y-hidden overflow-x-hidden">
+        <div className="overflow-scroll rounded-xl bg-white overflow-y-hidden overflow-x-hidden">
           {children}
         </div>
       </div>

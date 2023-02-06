@@ -16,21 +16,20 @@ const Comments = ({
   handlePinPost,
   handleUnpinPost,
   handleFollowUser,
+  handleAddBookmark,
+  handleRemoveBookmark,
   handleOpenCommentModal,
-  isPinned,
   tabs,
   bookmarks,
   fetchComments,
   comments,
   commentsLoading,
+  postDetailsDeleted,
 }) => {
-  // const comments = useSelector((state) => state.tweetDetails.comments);
   const params = useParams();
-  const dispatch = useDispatch();
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchComments();
+    // fetchComments();
   }, [params.tweetId]);
   return (
     <div>
@@ -49,23 +48,26 @@ const Comments = ({
                 </div>
               </div>
             ) : (
-              comments.map((comment) => (
-                <Tweet
-                  id={comment.id}
-                  handleLikePost={handleLikePost}
-                  handleDeletePost={handleDeletePost}
-                  handlePinPost={handlePinPost}
-                  handleUnpinPost={handleUnpinPost}
-                  handleFollowUser={handleFollowUser}
-                  handleOpenCommentModal={handleOpenCommentModal}
-                  isPinned={isPinned}
-                  tabs={tabs}
-                  post={comment}
-                  threadPost={false}
-                  hidePost={true}
-                  bookmarks={bookmarks}
-                />
-              ))
+              <div className={`${postDetailsDeleted && "mt-60 border-t"}`}>
+                {comments.map((comment) => (
+                  <Tweet
+                    id={comment.id}
+                    handleLikePost={handleLikePost}
+                    handleDeletePost={handleDeletePost}
+                    handlePinPost={handlePinPost}
+                    handleUnpinPost={handleUnpinPost}
+                    handleAddBookmark={handleAddBookmark}
+                    handleRemoveBookmark={handleRemoveBookmark}
+                    handleFollowUser={handleFollowUser}
+                    handleOpenCommentModal={handleOpenCommentModal}
+                    tabs={tabs}
+                    post={comment}
+                    threadPost={false}
+                    hidePost={true}
+                    bookmarks={bookmarks}
+                  />
+                ))}
+              </div>
             )}
           </div>
         )}

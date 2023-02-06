@@ -3,10 +3,10 @@ import DefaultAvatar from "../../components/DefaultAvatar";
 
 const ProfileAvatar = ({ profile }) => {
   return (
-    <div className="absolute bg-white  -bottom-16 left-5 rounded-full p-1">
+    <div className="absolute bg-white -bottom-10  sm:-bottom-16 left-5 rounded-full p-1">
       {profile.avatar && profile.avatar !== null ? (
         <img
-          className="h-32 w-32 object-cover rounded-full"
+          className="h-16 w-16 sm:h-32 sm:w-32 object-cover rounded-full"
           src={profile.avatar}
           alt="Avatar"
         />

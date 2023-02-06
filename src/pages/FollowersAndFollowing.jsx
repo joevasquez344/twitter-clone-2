@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { DotsHorizontalIcon, ArrowLeftIcon } from "@heroicons/react/outline";
+import { DotsHorizontalIcon } from "@heroicons/react/outline";
 import { useSelector } from "react-redux";
 import {
   followUser,
@@ -11,19 +11,17 @@ import {
 } from "../utils/api/users";
 import Loader from "../components/Loader";
 import ArrowButton from "../components/Buttons/ArrowButton";
+import DefaultAvatar from "../components/DefaultAvatar";
 
-// TODOs:
-// Route back
 const FollowersAndFollowing = () => {
   const location = useLocation();
   const { username } = useParams();
   const navigate = useNavigate();
   const user = useSelector((state) => state.users.user);
-  const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const [users, setUsers] = useState([]);
-  const [listType, setListType] = useState(null);
+
   const [profile, setProfile] = useState({});
 
   const [headers, setHeaders] = useState([
@@ -52,23 +50,6 @@ const FollowersAndFollowing = () => {
     navigate(`/${username}/${label.toLowerCase()}`);
   };
 
-  const handleToggleFollow = async (userId) => {
-    const authUser = profile.id === user.id;
-
-    const profileAlreadyFollows = users.find((u) => u.id === profile.id);
-
-    // For Auth User
-    if (authUser) {
-      if (userId === authUser.id) {
-        await unfollowUser(profile.id, user.id);
-      }
-    }
-
-    // For Non Auth User
-    if (!authUser) {
-    }
-  };
-
   const handleUnfollowUser = async (profileId) => {
     await unfollowUser(profileId, user.id);
 
@@ -90,7 +71,6 @@ const FollowersAndFollowing = () => {
     let authsFollowers = await getFollowers(authId);
     let authsFollowing = await getProfileFollowing(authId);
 
-    // If this page is related to the Auth User
     if (profileId === authId) {
       if (endpoint === "followers") {
         authsFollowers = authsFollowers.map((follower) => {
@@ -98,9 +78,7 @@ const FollowersAndFollowing = () => {
 
           authsFollowing.forEach((follow) => {
             if (follow.id === follower.id) {
-              // Display unfollow
               follower.followedByAuthUser = true;
-              setIsFollowing(true);
             }
           });
 
@@ -115,7 +93,6 @@ const FollowersAndFollowing = () => {
 
         setUsers(authsFollowers);
         setHeaders(updatedHeaders);
-        setListType("followers");
       } else if (endpoint === "following") {
         authsFollowing = authsFollowing.map((follow) => {
           follow.followedByAuthUser = true;
@@ -123,7 +100,6 @@ const FollowersAndFollowing = () => {
 
           authsFollowers.forEach((follower) => {
             if (follower.id === follow.id) {
-              // Display 'Follows You' badge
               follow.followsYou = true;
             }
             return follower;
@@ -140,7 +116,6 @@ const FollowersAndFollowing = () => {
 
         setUsers(authsFollowing);
         setHeaders(updatedHeaders);
-        setListType("following");
       }
     }
 
@@ -176,7 +151,6 @@ const FollowersAndFollowing = () => {
 
         setUsers(profileFollowers);
         setHeaders(updatedHeaders);
-        setListType("followers");
       } else if (endpoint === "following") {
         profileFollowing = profileFollowing.map((follow) => {
           follow.followedByAuthUser = false;
@@ -205,7 +179,6 @@ const FollowersAndFollowing = () => {
 
         setUsers(profileFollowing);
         setHeaders(updatedHeaders);
-        setListType("following");
       }
     }
   };
@@ -224,7 +197,7 @@ const FollowersAndFollowing = () => {
         <div>
           <div className="p-3 flex items-center">
             <div className="mr-8">
-              <ArrowButton />
+              <ArrowButton route={() => handleUserDetails(profile.username)} />
             </div>
 
             <div>
@@ -250,15 +223,37 @@ const FollowersAndFollowing = () => {
           <div>
             {users?.map((u) => (
               <div
-                className="flex p-3 hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200"
+                className="flex p-4 hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200"
                 key={u.id}
               >
-                <img
-                  onClick={() => handleUserDetails(u.username)}
-                  className="h-12 w-12 rounded-full object-cover mr-3"
-                  src="https://picsum.photos/200"
-                  alt=""
-                />
+                {u.avatar === "" || u.avatar === null ? (
+                  <div className="relative h-full mr-4 ">
+                    <div className="h-12 w-12 rounded-full bg-white flex items-center justify-center z-40">
+                      <div className="h-12 w-12 rounded-full flex justify-center items-center">
+                        <DefaultAvatar
+                          name={u.name}
+                          username={u.username}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative h-full mr-4 ">
+                    <div
+                      onClick={() => navigate(`/${u.username}`)}
+                      className="h-12 w-12  rounded-full bg-white flex items-center justify-center z-40 cursor-pointer"
+                    >
+                      <div className="h-12 w-12 rounded-full flex justify-center items-center">
+                        <img
+                          // onClick={handleUserDetails}
+                          src={user.avatar}
+                          alt="Profile Image"
+                          className={` object-cover h-12 w-12 rounded-full`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="w-full">
                   <div className="flex items-center justify-between w-full">
                     <div className="w-full">

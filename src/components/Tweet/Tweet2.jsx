@@ -1,42 +1,21 @@
 import React, { useState, useEffect } from "react";
 import "../../styles/Tweet.css";
 import {
-  ChatAlt2Icon,
-  HeartIcon,
-  SwitchHorizontalIcon,
-  UploadIcon,
-  DotsHorizontalIcon,
   LocationMarkerIcon,
   TrashIcon,
   UserAddIcon,
   UserRemoveIcon,
-  BanIcon,
-  XIcon,
 } from "@heroicons/react/outline";
 import { Tooltip } from "@material-tailwind/react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
-import { followUser, unfollowUser } from "../../utils/api/users";
-import {
-  addBookmark,
-  deleteBookmark,
-  getBookmarks,
-} from "../../utils/api/posts";
 import TweetFooter from "./TweetFooter";
 import DefaultAvatar from "../DefaultAvatar";
-import CommentModal from "../CommentModal";
 import {
   handlePostIsLiked,
   handleReplyToUsernames,
 } from "../../utils/handlers";
-import { removeDuplicateUsernames } from "../../utils/helpers";
 import MoreButton from "../Buttons/MoreButton";
-import {
-  Popover,
-  PopoverHandler,
-  PopoverContent,
-  Button,
-} from "@material-tailwind/react";
 import LastSeen from "../LastSeen";
 
 const Tweet = ({
@@ -66,7 +45,6 @@ const Tweet = ({
     uid,
     followers,
     replyToUsers,
-    pinnedPost,
   },
 }) => {
   const { user, authsPinnedPost } = useSelector((state) => state.users);
@@ -83,14 +61,17 @@ const Tweet = ({
 
   const pinPost = () => {
     handlePinPost(post);
+    closeModal();
   };
 
   const unpinPost = () => {
     handleUnpinPost(post);
+    closeModal();
   };
 
   const deletePost = () => {
     handleDeletePost(post.id);
+    closeModal();
   };
 
   const addBookmark = async () => {
@@ -99,6 +80,11 @@ const Tweet = ({
 
   const removeBookmark = async () => {
     handleRemoveBookmark(post.id, user.id);
+  };
+
+  const followUser = async () => {
+    handleFollowUser(post);
+    closeModal();
   };
 
   const handleTweetDetails = () => navigate(`/${username}/status/${id}`);
@@ -123,28 +109,24 @@ const Tweet = ({
     location.pathname !== "/home";
 
   const authUsersPost = user.id === uid;
-  // const authUserIsFollowingPostUser = followers?.find(
-  //   (follower) => follower.id === user.id
-  // );
 
   return (
-    <div className="relative hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200">
+    <div className="relative sm:hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200">
       <div
         className={`${
           isPinned && tweetsFeedActive ? "pt-2 relative" : "relative"
-        }`}
+        } ${threadPost && "py-0"}`}
       >
         <div
-          className={`pl-2 pr-4 relative ${
-            !threadPost ? "pb-2 pt-4" : "pt-0"
+          className={`px-4 relative ${
+            !threadPost ? "pt-2 sm:pb-2 sm:pt-4" : "pt-0"
           } w-full flex  ${threadPost === true ? "" : "border-b"} `}
         >
           <div className=" relative">
             {avatar === null || avatar === "" ? (
-              // <UserCircleIcon className="h-16 w-16" />
               <div className="relative h-full">
-                <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center z-40">
-                  <div className="h-12 w-12 rounded-full flex justify-center items-center">
+                <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center z-100">
+                  <div className="h-16 w-16 rounded-full flex justify-center items-center">
                     <DefaultAvatar name={name} username={username} />
                   </div>
                 </div>
@@ -154,8 +136,8 @@ const Tweet = ({
               </div>
             ) : (
               <div className="relative h-full">
-                <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center z-40">
-                  <div className="h-12 w-12 rounded-full flex justify-center items-center">
+                <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center z-100">
+                  <div className="h-16 w-16 rounded-full flex justify-center items-center">
                     <img
                       onClick={handleUserDetails}
                       src={avatar}
@@ -196,9 +178,9 @@ const Tweet = ({
             <div className="relative flex justify-between items-center">
               <div className={`flex items-center ${isPinned && "mt-1"}`}>
                 <div className="font-semibold mr-1">{name}</div>
-                <div className="text-gray-500 mr-1.5">@{username}</div>
+                <div className="text-gray-500 text-sm sm:text-base mr-1.5">@{username}</div>
                 <div className="h-0.5 w-0.5 rounded-full bg-gray-500 mr-1.5"></div>
-                <div className="text-gray-500">
+                <div className="text-gray-500 text-sm sm:text-base">
                   <LastSeen date={new Date(timestamp.seconds * 1000)} />
                 </div>
               </div>
@@ -230,7 +212,7 @@ const Tweet = ({
                     <>
                       {authIsFollowing ? (
                         <div
-                          onClick={() => handleFollowUser(post)}
+                          onClick={followUser}
                           className=" flex items-center p-4 hover:bg-gray-100"
                         >
                           <UserRemoveIcon className="h-5 w-5 mr-3" /> Unfollow @
@@ -238,7 +220,7 @@ const Tweet = ({
                         </div>
                       ) : (
                         <div
-                          onClick={() => handleFollowUser(post)}
+                          onClick={followUser}
                           className=" flex items-center p-4 hover:bg-gray-100"
                         >
                           <UserAddIcon className="h-5 w-5 mr-3" /> Follow @
@@ -257,15 +239,15 @@ const Tweet = ({
                           className="flex items-center p-4 hover:bg-gray-100"
                         >
                           <LocationMarkerIcon className="h-5 w-5 mr-3" /> Unpin
-                          to your profile
+                          Post
                         </div>
                       ) : (
                         <div
                           onClick={pinPost}
                           className="flex items-center p-4 hover:bg-gray-100"
                         >
-                          <LocationMarkerIcon className="h-5 w-5 mr-3" /> Pin to
-                          your profile
+                          <LocationMarkerIcon className="h-5 w-5 mr-3" /> Pin
+                          Post
                         </div>
                       )}
                     </div>
@@ -274,9 +256,9 @@ const Tweet = ({
               </div>
             </div>
 
-            <div className="flex">
+            <div className="flex items-center">
               {postType === "comment" ? (
-                <div className="mr-1 text-gray-500">Replying to </div>
+                <div className="mr-1 text-gray-500 text-sm sm:text-base">Replying to </div>
               ) : null}
               <div className="flex items-center">
                 {" "}
@@ -308,14 +290,15 @@ const Tweet = ({
               </div>
             </div>
 
-            <div onClick={handleTweetDetails} className="mb-4 ">
+            <div onClick={handleTweetDetails} className="mb-2 sm:mb-4">
               {message}
             </div>
             {media !== "" ? (
               <img
+                onClick={handleTweetDetails}
                 src={media}
                 alt=""
-                className=" max-w-full ml-0 mb-2 rounded-lg object-cover"
+                className="max-w-full ml-0 mb-2 rounded-xl object-cover"
               />
             ) : null}
 

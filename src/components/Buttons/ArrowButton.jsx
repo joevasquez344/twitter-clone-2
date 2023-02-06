@@ -2,8 +2,16 @@ import React from "react";
 import { Tooltip } from "@material-tailwind/react";
 import { useNavigate } from "react-router-dom";
 
-const ArrowButton = () => {
+const ArrowButton = ({ route }) => {
   const navigate = useNavigate();
+
+  const handleRoute = () => {
+    if (route) {
+      route();
+    } else {
+      navigate(-1);
+    }
+  };
   return (
     <>
       <Tooltip
@@ -16,7 +24,7 @@ const ArrowButton = () => {
         }}
       >
         <div
-          onClick={() => navigate(-1)}
+          onClick={handleRoute}
           className="w-9 h-9 flex group items-center justify-center rounded-full hover:bg-gray-200 transition ease-in-out cursor-pointer duration-200"
         >
           {" "}

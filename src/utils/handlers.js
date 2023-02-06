@@ -4,7 +4,7 @@ export const handleActiveTab = (
   tabId,
   feeds,
   tabs,
-  profile,
+  username,
   setTabs,
   clearMessage,
   setMessage
@@ -23,7 +23,7 @@ export const handleActiveTab = (
         }
         if (feeds[0].length === 0 && tab.clickCount === 0) {
           tab.clickCount = tab.clickCount + 1;
-          tab.fetchData(profile);
+          tab.fetchData(username);
         }
       } else if (tab.text === "Tweets & Replies") {
         if (feeds[1].length > 0) {
@@ -34,7 +34,7 @@ export const handleActiveTab = (
         }
         if (feeds[1].length === 0 && tab.clickCount === 0) {
           tab.clickCount = tab.clickCount + 1;
-          tab.fetchData(profile);
+          tab.fetchData(username);
         }
       } else if (tab.text === "Media") {
         if (feeds[2].length > 0) {
@@ -45,7 +45,7 @@ export const handleActiveTab = (
         }
         if (feeds[2].length === 0 && tab.clickCount === 0) {
           tab.clickCount = tab.clickCount + 1;
-          tab.fetchData(profile);
+          tab.fetchData(username);
         }
       } else if (tab.text === "Likes") {
         if (feeds[3].length > 0) {
@@ -56,7 +56,7 @@ export const handleActiveTab = (
         }
         if (feeds[3].length === 0 && tab.clickCount === 0) {
           tab.clickCount = tab.clickCount + 1;
-          tab.fetchData(profile);
+          tab.fetchData(username);
         }
       }
     }

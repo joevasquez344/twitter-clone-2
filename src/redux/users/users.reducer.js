@@ -18,6 +18,8 @@ import {
   PIN_TWEET,
   UNPIN_TWEET,
   GET_AUTHS_PINNED_TWEET,
+  SHOW_HOME_SUGGESTIONS,
+  HIDE_HOME_SUGGESTIONS,
 } from "./users.types";
 
 const initialState = {
@@ -165,6 +167,24 @@ const usersReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         authsPinnedPost: {},
+      };
+
+    case SHOW_HOME_SUGGESTIONS:
+      return {
+        ...state,
+        user: {
+          ...state.user,
+          homeSuggestions: "open",
+        },
+      };
+
+    case HIDE_HOME_SUGGESTIONS:
+      return {
+        ...state,
+        user: {
+          ...state.user,
+          homeSuggestions: "closed",
+        },
       };
 
     default:

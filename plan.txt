@@ -3,7 +3,7 @@ Look into <FlipMove> npm package for animating a post that is just getting place
 
 TODO:
 
-- 4 pages' tasks listed in page folders
+x 4 pages' tasks listed in page folders
 
 x Significant Problem (Might need a Model Restructure) **
   if auth user deletes his post that other users have liked,
@@ -32,30 +32,27 @@ x Fix pinned tweet display on Profile Page (Clickin unpin the first time doesn't
   x Issue where when you remove a Pinned Post on the Tweets tab, it will appear as a duplicate in the posts state
   x Fix Home page route on app mount after log in/register (seems to hit the / route instead of redirecting to /home)
   x implement routing to previous route on page header arrows
-  - implement Delete Banner in Edit Profile Modal
+  x implement Delete Banner in Edit Profile Modal
   x Convert DB tweet posted time to Time Ago 
   x Implement Search Profile Feature
   x Place App Search Bar only on the Home Screen
-  - Search Bar - add ability to search/filter for profile's name and not just username
   x Fix issue on Profile Page
   x Fix issue on Tweet Details page in replyToThread. Tweet component useEffect fires when a Tweet's Likes changes, then maps through an incorrect state of Bookmarks,
     within useEffect, leading to the state - isBookmarked - to be incorrect, as well
   x Update UI of More Modals, etc.
-  - Implement ability to comment an Image on Tweet Details post
-  - Update X Icon on Selected Image to Tweet
-  - Update Loader on Edit Avatar
+  x Update X Icon on Selected Image to Tweet
+
   x Fix Pinned Tweet padding on Profile Screen
   x Fix unnecessary spacing on Tweet Component below the Name, Username, and Date
   x Fix issues on Comment Modal in Bookmarks Screen where bookmarks won't refresh with updated comment length and issue where the Bookmark Header is still present
     and not shadowed out when Comment Modal is active
-  - Implement the new component Buttons on each tweet's footer in Bookmarks Screen
-  - Handle Edit Profile Banner and Avatar Selected Images that are not valid and display the "alt" attribute value
-  - Add Toolkit component to Tweet Details Post Footer Items
-  - Add BookmarkButton in Tweet Details' post footer instead of Submit Icon
-  - Fix issue with Likes Modal on Post Details Screen
+
+  x Add Toolkit component to Tweet Details Post Footer Items
+  x Add BookmarkButton in Tweet Details' post footer instead of Submit Icon
+  x Fix issue with Likes Modal on Post Details Screen
   x Add Avatar to Tweets
   x Fix issue where after you Edit Your Profile, the pinned post disappears after refetch
-  - Fix issue where some Profile Avatars (Victors Profile) on the Tweet Component displays the alt fallback and not DefaultAvatar Component fallback
+  x Fix issue where some Profile Avatars (Victors Profile) on the Tweet Component displays the alt fallback and not DefaultAvatar Component fallback
   x Profile Page Issue - In reducer, split the reused feed state into 4 separate states (Tweets, Tweets and Replies, Media, Likes) so that longer fetches
     don't display in the wrong active feed
   x Home Page and any other page with this issue - When you follow a user by the more dropdown on a Tweet, make sure to update the follow status on   
@@ -64,8 +61,15 @@ x Fix pinned tweet display on Profile Page (Clickin unpin the first time doesn't
     is reverted back to 0; meaning when a feed tab is clicked, an unnecessary fetch for posts will be invoked
   x Profile Page Issue - Like Post => Pin Post => Unlike Pin Post => Unpin Post - This Tweets liked state is not accurate when following these step-by-step 
     user interactions
-  - After a user sign up, the Tweet Box avatar fallback image (DefaultAvatar Component) is not working; the <img /> alt fallback attribute is taking effect
+  x After a user sign up, the Tweet Box avatar fallback image (DefaultAvatar Component) is not working; the <img /> alt fallback attribute is taking effect
   x When you delete a Tweet, the Tweet component's replyTo display is not showing for the Tweets that are a reply to this deleted post
+  x Search Bar - add ability to search/filter for profile's name and not just username
+  
+  - Implement ability to comment an Image on Tweet Details post
+  - Update Loader on Edit Avatar
+  - Implement the new component Buttons on each tweet's footer in Bookmarks Screen
+  - Handle Edit Profile Banner and Avatar Selected Images that are not valid and display the "alt" attribute value
+  - On Profile Screen, when unfollowing the profile via a non-pinned post or profile follow button (top right), the pinned post is not updated based on this interaction
 
   - Huge Dub for solving the univeral tweet state changes for the purpose of minimizing refetches for posts
       - Find a way to universally capture tweet state changes and transfer those changes for that specific tweet to any other page of the application containing this tweet

@@ -1,6 +1,7 @@
 import { ADD_BOOKMARK } from "../bookmarks/bookmarks.actions";
 import {
   CREATE_BOOKMARK,
+  CREATE_POST,
   DELETE_BOOKMARK,
   DELETE_POST,
   FOLLOW_TWEET_USER,
@@ -25,6 +26,12 @@ const homeReducer = (state = initialState, { type, payload }) => {
         ...state,
         posts: payload,
       };
+
+      case CREATE_POST: 
+      return {
+        ...state,
+        posts: [payload, ...state.posts]
+      }
 
     case TOGGLE_LIKE_POST:
       const postsWithUpdatedLikes = state.posts.map((post) => {
@@ -150,6 +157,7 @@ const homeReducer = (state = initialState, { type, payload }) => {
           return post;
         }),
       };
+
 
     default:
       return state;

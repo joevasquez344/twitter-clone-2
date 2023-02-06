@@ -190,10 +190,51 @@ export const getProfileFollowing = async (profileId) => {
   return following;
 };
 
+export const getFollowingIds = async (profileId) => {
+  const ref = collection(db, `users/${profileId}/following`);
+  const snapshot = await getDocs(ref);
+  const userIds = snapshot.docs.map((doc) => doc.id);
+
+  return userIds;
+};
+
 export const getAvatar = async (profileId) => {
   const ref = collection(db, `users/${profileId}`);
   const snapshot = await getDoc(ref);
   const avatar = snapshot.data().avatar;
 
   return avatar;
+};
+
+export const getSuggestedUsers = async (authUser) => {
+  const ref = collection(db, `users`);
+  const filter = query(
+    ref,
+    where("username", "!=", authUser.username),
+    limit(3)
+  );
+
+  const snapshot = await getDocs(filter);
+
+  const users = await Promise.all(
+    snapshot.docs.map(async (doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      followers: await getFollowers(doc.id),
+    }))
+  );
+
+  return users;
+};
+
+export const hideSuggestions = async (authUser) => {
+  const ref = doc(db, `users/${authUser.id}`);
+
+  await updateDoc(ref, { homeSuggestions: "closed" });
+};
+
+export const showSuggestions = async (authUser) => {
+  const ref = doc(db, `users/${authUser.id}`);
+
+  await updateDoc(ref, { homeSuggestions: "open" });
 };

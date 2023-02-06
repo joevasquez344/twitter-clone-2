@@ -21,6 +21,9 @@ import {
   TWEET_DETAILS_FAILED,
   COMMENTS_REQUEST_SENT,
   GET_COMMENTS_SUCCESS,
+  TWEET_DETAILS_FOLLOW_USER,
+  TWEET_DETAILS_UNFOLLOW_USER,
+  PIN_COMMENT,
 } from "./tweet-details.types";
 
 const initialState = {
@@ -135,6 +138,54 @@ const tweetDetailsReducer = (state = initialState, { type, payload }) => {
         ...state,
         repliedToPosts: payload.posts,
       };
+
+    case TWEET_DETAILS_FOLLOW_USER:
+      return {
+        ...state,
+        repliedToPosts: state.repliedToPosts.map((tweet) => {
+          if (tweet.uid === payload.post.uid) {
+            tweet.followers = payload.followers;
+          }
+
+          return tweet;
+        }),
+        comments: state.comments.map((tweet) => {
+          if (tweet.uid === payload.post.uid) {
+            tweet.followers = payload.followers;
+          }
+
+          return tweet;
+        }),
+        post: {
+          ...state.post,
+          followers: payload.followers,
+        },
+      };
+
+    case TWEET_DETAILS_UNFOLLOW_USER:
+      return {
+        ...state,
+        repliedToPosts: state.repliedToPosts.map((tweet) => {
+          if (tweet.uid === payload.post.uid) {
+            tweet.followers = payload.followers;
+          }
+
+          return tweet;
+        }),
+        comments: state.comments.map((tweet) => {
+          if (tweet.uid === payload.post.uid) {
+            tweet.followers = payload.followers;
+          }
+
+          return tweet;
+        }),
+        post: {
+          ...state.post,
+          followers: payload.followers,
+        },
+      };
+
+
 
     default:
       return state;
