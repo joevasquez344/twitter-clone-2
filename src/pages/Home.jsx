@@ -27,6 +27,7 @@ import SearchModal from "../components/SearchModal";
 import { pinTweet, unpinTweet } from "../redux/users/users.actions";
 import ProfileSuggestions from "../components/ProfileSuggestions";
 import TweetModal from "../components/TweetModal";
+import { TOGGLE_LIKE_POST } from "../redux/profile/profile.types";
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -35,7 +36,14 @@ const Home = () => {
   const user = useSelector((state) => state.users.user);
   const authId = useSelector((state) => state.users.user.id);
 
-  const [loading, setLoading] = useState(true);
+  const profileTweets = useSelector((state) => state.profile.tweets);
+  const profileTweetsAndReplies = useSelector(
+    (state) => state.profile.tweetsAndReplies
+  );
+  const profileMediaTweets = useSelector((state) => state.profile.media);
+  const profileLikedPosts = useSelector((state) => state.profile.likes);
+
+  const [loading, setLoading] = useState(false);
   const [input, setInput] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [commentDisplay, setCommentDisplay] = useState({});
@@ -69,8 +77,6 @@ const Home = () => {
   const handleCloseCommentModal = () => {
     setCommentModal(false);
   };
-
-
 
   const fetchAllUsers = async () => await getAllUsers();
 
@@ -120,7 +126,24 @@ const Home = () => {
     setLoading(false);
   };
 
-  const handleLikePost = (postId) => dispatch(likePost(postId));
+  const updateProfileFeeds = (postId, target) => {
+    if (target === "likes") {
+      const post = posts.find((post) => post.id === postId);
+      dispatch({
+        type: TOGGLE_LIKE_POST,
+        payload: {
+          likes: post.likes.find((u) => u.id === user.id)
+            ? post.likes.filter((u) => u.id !== user.id)
+            : [...post.likes, user.id],
+          postId,
+        },
+      });
+    }
+  };
+
+  const handleLikePost = (postId) => {
+    dispatch(likePost(postId));
+  };
   const handleDeletePost = (postId) => dispatch(deletePost(postId, user.id));
   const handleRefreshPost = (postId) => dispatch(refreshPost(postId));
   const handleRefreshPosts = () => {
@@ -159,8 +182,8 @@ const Home = () => {
 
   useEffect(() => {
     getAuthBookmarks();
-    // if (posts.length === 0) fetchPosts();
-    fetchPosts();
+    if (posts.length === 0) fetchPosts();
+    // fetchPosts();
   }, []);
 
   console.log("All Users: ", allUsers);
@@ -262,7 +285,6 @@ const Home = () => {
           }
         />
       ) : null}
-
     </div>
   );
 };

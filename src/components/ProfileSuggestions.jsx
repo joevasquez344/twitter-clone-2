@@ -85,7 +85,7 @@ const ProfileSuggestions = () => {
   }, []);
 
   return (
-    <div className="border-b mt-12 sm:mt-0 border-t sm:border-t-0">
+    <div className="border-b mt-20 sm:mt-0 border-t sm:border-t-0">
       <div className="flex items-center justify-between font-semibold px-5 py-2 sm:py-1">
         <div className="flex items-center">
           <div className="mr-3">

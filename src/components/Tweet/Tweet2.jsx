@@ -171,7 +171,7 @@ const Tweet = ({
                     clipRule="evenodd"
                   />
                 </svg>
-                <div className="ml-1">Pinned Tweet</div>
+                <div className="ml-1 text-sm">Pinned Tweet</div>
               </div>
             ) : null}
 

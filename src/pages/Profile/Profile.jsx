@@ -29,6 +29,7 @@ import {
   clearFeedMessage,
   setFeedMessage,
 } from "../../redux/profile/profile.actions";
+import { deletePost, likePost } from "../../redux/home/home.actions";
 import {
   followUser,
   getUserDetails,
@@ -65,6 +66,12 @@ import {
   SET_PINNED_POSTS_LIKES,
   SET_UNPINNED_POSTS_LIKES,
 } from "../../redux/profile/profile.types";
+import {
+  DELETE_POST,
+  FOLLOW_TWEET_USER,
+  TOGGLE_LIKE_POST,
+  UNFOLLOW_TWEET_USER,
+} from "../../redux/home/home.types";
 
 const Profile = () => {
   const params = useParams();
@@ -90,6 +97,7 @@ const Profile = () => {
   const { name, bio, location, birthday } = useSelector(
     (state) => state.profile.profile
   );
+  const homeFeed = useSelector((state) => state.home.posts);
 
   const profileUsername = window.location.pathname.split("/")[1];
   const endpoint = window.location.pathname.split("/")[2];
@@ -235,6 +243,18 @@ const Profile = () => {
     dispatch(getUsersLikedPosts(username));
 
   const handleLikePost = async (id) => {
+    const postinHomeFeed = homeFeed.find((post) => post.id === id);
+    if (postinHomeFeed) {
+      dispatch({
+        type: TOGGLE_LIKE_POST,
+        payload: {
+          postId: id,
+          likes: postinHomeFeed.likes.find((uid) => uid === user.id)
+            ? postinHomeFeed.likes.filter((uid) => uid !== user.id)
+            : [...postinHomeFeed.likes, user.id],
+        },
+      });
+    }
     const likes = await dispatch(toggleLikeTweet(id));
 
     if (id === pinnedTweet.id) {
@@ -246,6 +266,18 @@ const Profile = () => {
   };
 
   const likePinnedPost = async (postId) => {
+    const postInHomeFeed = homeFeed.find((post) => post.id === postId);
+    if (postInHomeFeed) {
+      dispatch({
+        type: TOGGLE_LIKE_POST,
+        payload: {
+          postId,
+          likes: postInHomeFeed.likes.find((uid) => uid === user.id)
+            ? postInHomeFeed.likes.filter((uid) => uid !== user.id)
+            : [...postInHomeFeed.likes, user.id],
+        },
+      });
+    }
     const alreadyLiked = pinnedTweet?.likes.find(
       (userId) => userId === user.id
     );
@@ -302,16 +334,40 @@ const Profile = () => {
   };
 
   const handleDeletePost = async (postId) => {
+    const postinHomeFeed = homeFeed.find((post) => post.id === postId);
+    if (postinHomeFeed) dispatch({ type: DELETE_POST, payload: postId });
+
     dispatch(deleteTweet(postId, user.id));
-    if (postId === pinnedTweet.id) {
-      setPinnedTweet({});
-    }
+
+    if (postId === pinnedTweet.id) setPinnedTweet({});
 
     dispatch(subtractUsersPostCount());
   };
 
   const handleToggleFollow = async (post) => {
     const authUsersPost = post.uid === user.id;
+
+    const postInHomeFeed = homeFeed.find((tweet) => tweet.uid === post.uid);
+    if (
+      postInHomeFeed &&
+      postInHomeFeed.followers.find((u) => u.id === user.id)
+    ) {
+      dispatch({
+        type: UNFOLLOW_TWEET_USER,
+        payload: {
+          followers: postInHomeFeed.followers.filter((u) => u.id !== user.id),
+          uid: post.uid,
+        },
+      });
+    } else {
+      dispatch({
+        type: FOLLOW_TWEET_USER,
+        payload: {
+          followers: [...postInHomeFeed.followers, user],
+          uid: post.uid,
+        },
+      });
+    }
 
     if (!authUsersPost) {
       const authIsFollowing = post.followers.find((u) => u.id === user.id);
@@ -499,7 +555,8 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    getData();
+     getData();
+
     resetTabsClickCount(tabs, setTabs);
   }, [params.username]);
 

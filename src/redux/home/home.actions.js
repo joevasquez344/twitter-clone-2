@@ -93,6 +93,8 @@ const likePost = (postId) => async (dispatch) => {
   });
 };
 
+
+
 const deletePost = (postId, authId) => async (dispatch) => {
   const id = await deletePostById(postId, authId);
 
@@ -117,7 +119,7 @@ const toggleFollowPostUser = (post, authId) => async (dispatch) => {
         type: UNFOLLOW_TWEET_USER,
         payload: {
           followers,
-          postId: post.id,
+          uid: post.uid,
         },
       });
     } else {
@@ -127,7 +129,7 @@ const toggleFollowPostUser = (post, authId) => async (dispatch) => {
         type: FOLLOW_TWEET_USER,
         payload: {
           followers,
-          postId: post.id,
+          uid: post.uid,
         },
       });
     }

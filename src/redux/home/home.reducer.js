@@ -78,10 +78,11 @@ const homeReducer = (state = initialState, { type, payload }) => {
           return post;
         }),
       };
+      
 
     case FOLLOW_TWEET_USER:
       const updatedTweets = state.posts.map((post) => {
-        if (post.id === payload.postId) {
+        if (post.uid === payload.uid) {
           post.followers = payload.followers;
         }
         return post;
@@ -93,7 +94,7 @@ const homeReducer = (state = initialState, { type, payload }) => {
 
     case UNFOLLOW_TWEET_USER:
       const posts = state.posts.map((post) => {
-        if (post.id === payload.postId) {
+        if (post.uid === payload.uid) {
           post.followers = payload.followers;
         }
         return post;

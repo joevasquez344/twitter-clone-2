@@ -39,7 +39,7 @@ function App() {
           <div
             className={`fixed ${
               location.pathname === "/home" ? "flex" : "hidden"
-            } items-center justify-center h-12  top-0 shadow-sm  bg-white z-50 left-0 right-0  sm:hidden`}
+            } items-center justify-center h-20  top-0 shadow-sm  bg-white z-50 left-0 right-0  sm:hidden`}
           >
             <div className="absolute left-5">
               {user.avatar === "" || user.avatar === null ? (
@@ -102,7 +102,7 @@ function App() {
           <div className="hidden sm:col-span-2 lg:inline px-2 mt-2  overflow-x-hidden">
             <Widgets />
           </div>
-          <div className=" md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-evenly h-10 border-t bg-white z-50">
+          <div className=" md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-evenly h-16 border-t bg-white z-50">
             <div onClick={() => navigate("/home")}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
