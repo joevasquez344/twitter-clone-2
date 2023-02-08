@@ -195,7 +195,7 @@ const Tweet = ({
               <div
                 className={`${
                   modal
-                    ? "flex flex-col w-3/5 absolute right-0 top-0 bg-white shadow-lg z-50"
+                    ? "flex flex-col w-3/5 absolute right-0 top-0 bg-white shadow-xl z-50 font-bold"
                     : "hidden"
                 }`}
               >
@@ -203,7 +203,7 @@ const Tweet = ({
                   {user.id === uid ? (
                     <div
                       onClick={deletePost}
-                      className="flex items-center text-red-400 p-4 hover:bg-gray-100"
+                      className="flex items-center text-red-400 p-3 hover:bg-gray-100"
                     >
                       {" "}
                       <TrashIcon className="h-5 w-5 mr-3" /> Delete
@@ -213,7 +213,7 @@ const Tweet = ({
                       {authIsFollowing ? (
                         <div
                           onClick={followUser}
-                          className=" flex items-center p-4 hover:bg-gray-100"
+                          className=" flex items-center p-3 hover:bg-gray-100"
                         >
                           <UserRemoveIcon className="h-5 w-5 mr-3" /> Unfollow @
                           {username}
@@ -221,7 +221,7 @@ const Tweet = ({
                       ) : (
                         <div
                           onClick={followUser}
-                          className=" flex items-center p-4 hover:bg-gray-100"
+                          className=" flex items-center p-3 hover:bg-gray-100"
                         >
                           <UserAddIcon className="h-5 w-5 mr-3" /> Follow @
                           {username}
@@ -236,7 +236,7 @@ const Tweet = ({
                       {authsPinnedPost?.id === post.id ? (
                         <div
                           onClick={unpinPost}
-                          className="flex items-center p-4 hover:bg-gray-100"
+                          className="flex items-center p-3 hover:bg-gray-100"
                         >
                           <LocationMarkerIcon className="h-5 w-5 mr-3" /> Unpin
                           Post
@@ -244,7 +244,7 @@ const Tweet = ({
                       ) : (
                         <div
                           onClick={pinPost}
-                          className="flex items-center p-4 hover:bg-gray-100"
+                          className="flex items-center p-3 hover:bg-gray-100"
                         >
                           <LocationMarkerIcon className="h-5 w-5 mr-3" /> Pin
                           Post

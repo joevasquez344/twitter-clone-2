@@ -65,7 +65,7 @@ x Fix pinned tweet display on Profile Page (Clickin unpin the first time doesn't
   x When you delete a Tweet, the Tweet component's replyTo display is not showing for the Tweets that are a reply to this deleted post
   x Search Bar - add ability to search/filter for profile's name and not just username
   
-  - Implement ability to comment an Image on Tweet Details post
+  x Implement ability to comment an Image on Tweet Details post
   - Update Loader on Edit Avatar
   - Implement the new component Buttons on each tweet's footer in Bookmarks Screen
   - Handle Edit Profile Banner and Avatar Selected Images that are not valid and display the "alt" attribute value

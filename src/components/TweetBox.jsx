@@ -78,8 +78,6 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
     if (selectedImageLoading === false) {
       setLoading(true);
 
-      if (input === "") return;
-
       if (selectedImageUrl !== null) {
         uploadImage();
         createPost();
@@ -150,7 +148,7 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
 
   return (
     <div className="hidden sm:flex px-2 pb-5 border-b">
-      <div className="flex">
+      <div className="flex w-full">
         {user.avatar === "" || user.avatar === null ? (
           <div className="relative h-full mt-4">
             <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center z-40">
@@ -267,19 +265,29 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
               <CalendarIcon className="h-5 w-5" />
               <LocationMarkerIcon className="h-5 w-5" /> */}
             </div>
-            {input && selectedImageLoading ? null : (
-              <button
-                onClick={handleCreatePost}
-                // disabled={input || selectedImageLoading ? true : false}
-                className={`text-white bg-blue-${
-                  input === "" ? "300" : "400"
-                } py-2 px-4 rounded-full cursor-${
-                  input === "" ? "default" : "pointer"
-                } ${input === "" ? "hidden" : "flex"}`}
-              >
-                Tweet
-              </button>
-            )}
+
+            <button
+              onClick={handleCreatePost}
+              disabled={
+                (input.length === 0 && selectedImageUrl === null) ||
+                selectedImageLoading
+                  ? true
+                  : false
+              }
+              className={`text-white font-bold bg-blue-${
+                (input.length === 0 && selectedImageUrl === null) ||
+                selectedImageLoading === true
+                  ? "300"
+                  : "400"
+              } py-2 px-4 rounded-full cursor-${
+                (input.length === 0 && selectedImageUrl === null) ||
+                selectedImageLoading === true
+                  ? "default"
+                  : "pointer"
+              }`}
+            >
+              Tweet
+            </button>
           </div>
         </div>
       </div>

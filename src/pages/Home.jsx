@@ -194,7 +194,7 @@ const Home = () => {
       ) : null}
       {commentModal ? null : (
         <div className="hidden sm:flex">
-          <div className="z-40 sticky top-0 bg-white px-5 py-4 flex flex-col justify-center">
+          <div className="z-40 sticky top-0 bg-white px-5 py-4 flex flex-col justify-center w-full">
             <SearchBar
               input={searchInput}
               inputChange={handleSearchInput}

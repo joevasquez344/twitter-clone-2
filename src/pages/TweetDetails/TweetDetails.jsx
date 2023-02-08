@@ -3,6 +3,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { Tooltip } from "@material-tailwind/react";
 
+import { storage } from "../../firebase/config";
+import { ref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
+
 import cageImage from "../../images/cage.png";
 
 import Modal from "../../components/Modal";
@@ -81,7 +84,7 @@ const TweetDetails = () => {
   const { user, authsPinnedPost } = useSelector((state) => state.users);
   const { post, loading, comments, commentsLoading, repliedToPosts, error } =
     useSelector((state) => state.tweetDetails);
-  const ref = useRef("");
+  const pageRef = useRef("");
   const [layoutLoading, setLayoutLoading] = useState(true);
 
   const [height, setHeight] = useState(0);
@@ -107,7 +110,87 @@ const TweetDetails = () => {
   const [commentModal, setCommentModal] = useState(false);
   const [moreModal, setMoreModal] = useState(false);
 
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [uploadedImage, setUploadedImage] = useState(null);
+  const [selectedImageUrl, setSelectedImageUrl] = useState(null);
+  const [selectedImageLoading, setSelectedImageLoading] = useState(false);
+
   useAutosizeTextArea(textAreaRef.current, input);
+
+  const handleCreatePost = async (e) => {
+    e.preventDefault();
+
+    setInput("");
+    if (selectedImageLoading === false) {
+      // setLoading(true);
+
+      if (selectedImageUrl !== null) {
+        uploadImage();
+        createPost(e, input, post, selectedImageUrl, "comment_section");
+      } else {
+        createPost(e, input, post, selectedImageUrl, "comment_section");
+      }
+
+      setSelectedImage(null);
+    }
+  };
+
+  const clearSelectedFile = () => {
+    // Delete image from Firebase storage in :userId/selected folder on click of 'X'
+    setSelectedImage(null);
+    setSelectedImageUrl(null);
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files[0]) {
+      setSelectedImageLoading(true);
+    }
+    const imageRef = ref(
+      storage,
+      `${user.id}/selected/${e.target.files[0].name}`
+    );
+    uploadBytes(imageRef, e.target.files[0])
+      .then((res) => {
+        listAll(ref(storage, `${user.id}/selected/`)).then((response) => {
+          const match = response.items.find(
+            (item) => item.fullPath === res.ref.fullPath
+          );
+
+          if (match) {
+            setSelectedImage(match);
+            getDownloadURL(match).then((url) => {
+              setSelectedImageUrl(url);
+              setSelectedImageLoading(false);
+            });
+          }
+        });
+      })
+      .catch((err) => {
+        alert(`Error ${err.message}`);
+      });
+  };
+
+  const uploadImage = () => {
+    if (selectedImage === null) return;
+    const imageRef = ref(storage, `${user.id}/uploaded/${selectedImage.name}`);
+
+    uploadBytes(imageRef, selectedImage)
+      .then((res) => {
+        listAll(ref(storage, `${user.id}`)).then((items) => {
+          const match = items.items.find(
+            (item) => item.fullPath === res.ref.fullPath
+          );
+
+          if (match) setUploadedImage(null);
+        });
+      })
+      .catch((err) => {
+        alert(`Error ${err}`);
+      });
+
+    setSelectedImageUrl(null);
+    setSelectedImage(null);
+  };
 
   const openLikesModal = () => {
     setModal(true);
@@ -207,7 +290,7 @@ const TweetDetails = () => {
   };
 
   useLayoutEffect(() => {
-    setHeight(ref.current.offsetHeight);
+    setHeight(pageRef.current.offsetHeight);
   }, [params.tweetId]);
 
   useEffect(() => {
@@ -231,7 +314,7 @@ const TweetDetails = () => {
   }, [params.tweetId]);
 
   useEffect(() => {
-    window.addEventListener("resize", setHeight(ref.current.offsetHeight));
+    window.addEventListener("resize", setHeight(pageRef.current.offsetHeight));
     setLayoutLoading(false);
   }, []);
   console.log("Rows:", input.length + (input.match(/\n/g) || []).length);
@@ -405,7 +488,7 @@ const TweetDetails = () => {
                 <div className="text-xl font-bold">Thread</div>
               </div>
 
-              <div ref={ref} className="">
+              <div ref={pageRef} className="">
                 {repliedToPosts?.map((post) => (
                   <div className="relative">
                     {post.replyToPostDeleted && (
@@ -754,13 +837,11 @@ const TweetDetails = () => {
                           />
                           {!commentDropdown && (
                             <button
-                              onClick={(e) =>
-                                createPost(e, post, "comment_section")
-                              }
+                              onClick={(e) => handleCreatePost(e)}
                               disabled={input === "" ? true : false}
                               className={`bg-blue-400 ${
                                 input === "" && "opacity-70"
-                              } text-white py-2 px-5 rounded-full font-bold`}
+                              } text-white py-2 px-4 rounded-full font-bold`}
                             >
                               Reply
                             </button>
@@ -768,33 +849,95 @@ const TweetDetails = () => {
                         </div>
 
                         {commentDropdown && (
-                          <div
-                            className={`flex justify-between items-center text-blue-400 mt-6 `}
-                          >
-                            <div className="relative flex items-center cursor-pointer transition-transform duration-150 ease-out hover:scale-125">
-                              <PhotographIcon className="h-5 w-5 z-50 hover:cursor-pointer transition-transform duration-150 ease-out hover:scale-150" />
-                              <input
-                                onClick={(e) => {
-                                  return (e.target.value = null);
-                                }}
-                                // onChange={handleFileChange}
-                                className="w-5 h-5 z-10 opacity-0 absolute top-0 flex-wrap"
-                                name="file"
-                                type="file"
-                              />
-                            </div>
-                            <button
-                              onClick={(e) =>
-                                createPost(e, post, "comment_section")
-                              }
-                              disabled={input.length === 0 ? true : false}
-                              className={`bg-blue-400 ${
-                                input.length === 0 && "opacity-70"
-                              } text-white py-2 px-5 h-10 flex rounded-full justify-center items-center font-bold`}
+                          <>
+                            {selectedImageLoading ? (
+                              <Loader />
+                            ) : (
+                              <div
+                                className={`${
+                                  selectedImageLoading ||
+                                  selectedImageUrl !== null
+                                    ? "h-36 sm:h-96"
+                                    : ""
+                                } relative mt-5`}
+                              >
+                                {selectedImageUrl !== null ? (
+                                  <div
+                                    className={`${
+                                      selectedImageLoading ||
+                                      selectedImageUrl !== null
+                                        ? "h-36 sm:h-96"
+                                        : ""
+                                    }  object-contain`}
+                                  >
+                                    <div
+                                      onClick={clearSelectedFile}
+                                      className="absolute z-75 left-3 top-3 cursor-pointer rounded-full p-1 bg-black hover:bg-gray-700 transition ease-in-out duration-150"
+                                    >
+                                      <XIcon
+                                        // onClick={removeBanner}
+                                        className="h-4 w-4 sm:w-6 sm:h-6  text-white cursor-pointer"
+                                      />
+                                    </div>
+                                    <img
+                                      className="h-36 sm:h-96 rounded-xl"
+                                      src={
+                                        selectedImageUrl ? selectedImageUrl : ""
+                                      }
+                                      alt=""
+                                    />
+                                  </div>
+                                ) : null}
+                              </div>
+                            )}
+                            <div
+                              className={`flex justify-between items-center text-blue-400 mt-6 `}
                             >
-                              Reply
-                            </button>
-                          </div>
+                              <div className="relative flex items-center">
+                                <div className="relative cursor-pointer transition-transform duration-150 ease-out hover:scale-125">
+                                  <PhotographIcon className="h-5 w-5 z-50 hover:cursor-pointer transition-transform duration-150 ease-out hover:scale-150" />
+                                  <input
+                                    onClick={(e) => {
+                                      return (e.target.value = null);
+                                    }}
+                                    onChange={handleFileChange}
+                                    className="w-5 h-5 z-10 opacity-0 absolute top-0 flex-wrap"
+                                    name="file"
+                                    type="file"
+                                  />
+                                </div>
+                              </div>
+                              <button
+                                onClick={(e) => handleCreatePost(e)}
+                                // disabled={input.length === 0 ? true : false}
+                                disabled={
+                                  (input.length === 0 &&
+                                    selectedImageUrl === null) ||
+                                  selectedImageLoading
+                                    ? true
+                                    : false
+                                }
+                                className={`text-white font-bold bg-blue-${
+                                  (input.length === 0 &&
+                                    selectedImageUrl === null) ||
+                                  selectedImageLoading === true
+                                    ? "300"
+                                    : "400"
+                                } py-2 px-4 rounded-full cursor-${
+                                  (input.length === 0 &&
+                                    selectedImageUrl === null) ||
+                                  selectedImageLoading === true
+                                    ? "default"
+                                    : "pointer"
+                                }`}
+                                // className={`bg-blue-400 ${
+                                //   input.length === 0 && "opacity-70"
+                                // } text-white py-2 px-5 h-10 flex rounded-full justify-center items-center font-bold`}
+                              >
+                                Reply
+                              </button>
+                            </div>
+                          </>
                         )}
                       </div>
                     </div>
