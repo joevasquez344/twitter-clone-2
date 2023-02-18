@@ -69,21 +69,13 @@ x Fix pinned tweet display on Profile Page (Clickin unpin the first time doesn't
   - Update Loader on Edit Avatar
   - Implement the new component Buttons on each tweet's footer in Bookmarks Screen
   - Handle Edit Profile Banner and Avatar Selected Images that are not valid and display the "alt" attribute value
-  - On Profile Screen, when unfollowing the profile via a non-pinned post or profile follow button (top right), the pinned post is not updated based on this interaction
-
-  - Huge Dub for solving the univeral tweet state changes for the purpose of minimizing refetches for posts
-      - Find a way to universally capture tweet state changes and transfer those changes for that specific tweet to any other page of the application containing this tweet
-      - Capture new state, push it to an array (possibly a new state variable), and then when a page transition takes place, send that new state, containing an array of
-        tweets that have been updated, into the react router dom state
-      - From here, the new page will have access to these modified posts and now find/map over the page's feed and compare the react router state to it and update
-        the found posts
+  x On Profile Screen, when unfollowing the profile via a non-pinned post or profile follow button (top right), the pinned post is not updated based on this interaction
 
 - Implement Mobile scaling
 
-- Redesign/Update Portfolio (Make sure to add UCI Bootcamp digital certification badges, Github link, Linkdin link, etc.)
-- Add Twitter Clone to Portfolio
-- Add Netflix Clone to Portfolio
-- Add other existing projects to Portfolio if you want
+x Redesign/Update Portfolio (Make sure to add UCI Bootcamp digital certification badges, Github link, Linkdin link, etc.)
+x Add Twitter Clone to Portfolio
+x Add Netflix Clone to Portfolio
 
 - Update and improve Resume
 - Good to go... submit application

@@ -3,6 +3,8 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Tweet from "../components/Tweet/Tweet2";
 import cageImage from "../images/cage.png";
+import { Tooltip } from "@material-tailwind/react";
+
 import {
   getBookmarks,
   toggleLikePost,
@@ -46,6 +48,8 @@ import { removeDuplicateUsernames } from "../utils/helpers";
 import BookmarkButton from "../components/Buttons/BookmarkButton";
 import LastSeen from "../components/LastSeen";
 import PinListItem from "../components/ListItems/PinListItem";
+import TweetAvatar from "../components/Tweet/TweetAvatar";
+import MoreButton from "../components/Buttons/MoreButton";
 
 const Bookmarks = () => {
   const [bookmarks, setBookmarks] = useState([]);
@@ -119,7 +123,7 @@ const Bookmarks = () => {
 
         const updatedBookmarks = bookmarks.map((bookmark) => {
           bookmark.followers = followers;
-
+          bookmark.modal = false;
           bookmark.authIsFollowing = false;
 
           return bookmark;
@@ -130,7 +134,7 @@ const Bookmarks = () => {
         const { followers } = await followUser(post.uid, user.id);
         const updatedBookmarks = bookmarks.map((bookmark) => {
           bookmark.followers = followers;
-
+          bookmark.modal = false;
           bookmark.authIsFollowing = true;
 
           return bookmark;
@@ -267,8 +271,8 @@ const Bookmarks = () => {
     setBookmarks(updatedBookmarks);
   };
 
-  const routeTweetDetails = async (postId) => {
-    navigate(`/${user.username}/status/${postId}`);
+  const routeTweetDetails = async (post) => {
+    navigate(`/${post.username}/status/${post.id}`);
   };
   const routeUserDetails = async (username) => {
     navigate(`/${username}`);
@@ -288,7 +292,13 @@ const Bookmarks = () => {
         <Loader />
       ) : (
         <div className="relative">
-          <div className="z-50 sticky top-0 bg-white px-5 py-2 flex justify-between items-center">
+          {modal ? (
+            <div
+              onClick={() => setModal(false)}
+              className="bg-transparent cursor-default fixed top-0 bottom-0 left-0 right-0 opacity-40 w-screen h-screen z-50"
+            ></div>
+          ) : null}
+          <div className="z-50 sticky top-0 bg-white p-4 flex justify-between items-center">
             <div>
               <div className="text-xl font-bold">Bookmarks</div>
               <div className="text-sm text-gray-500">@{user.username}</div>
@@ -322,8 +332,8 @@ const Bookmarks = () => {
               </div>
 
               {bookmarks.map((post) => (
-                <div key={post.id} className={`${post.isPinned && "pt-2"}`}>
-                  <div className="relative p-5 w-full flex hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200 border-b">
+                <div key={post.id}>
+                  <div className="relative px-4 pt-2 sm:pb-1 sm:pt-3 w-full flex hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200 border-b">
                     {post.commentModal ? (
                       <CommentModal
                         post={post}
@@ -334,47 +344,17 @@ const Bookmarks = () => {
                         refresh={fetchBookmarks}
                       />
                     ) : null}
-                    {post.avatar === "" || post.avatar === null ? (
-                      // <UserCircleIcon className="h-16 w-16" />
+                    <TweetAvatar
+                      avatar={post.avatar}
+                      name={post.name}
+                      username={post.username}
+                      threadPost={false}
+                      isPinned={false}
+                    />
 
-                      <img
-                        onClick={() => routeUserDetails(post.username)}
-                        className="h-12 w-12 rounded-full object-cover"
-                        src="https://picsum.photos/200"
-                        alt="Profile Image"
-                      />
-                    ) : (
-                      <img
-                        onClick={() => routeUserDetails(post.username)}
-                        src={post.avatar}
-                        alt="Profile Image"
-                        className="mt-1 my-2
-                     object-cover h-12 w-12 rounded-full"
-                      />
-                    )}
-
-                    <div className="ml-3 w-full ">
-                      <div className="flex justify-between items-center relative">
-                        <div className="flex items-center">
-                          <div className="font-semibold mr-1">{post.name}</div>
-                          <div className="text-gray-500 mr-1.5">
-                            @{post.username}
-                          </div>
-                          <div className="h-0.5 w-0.5 rounded-full bg-gray-500 mr-1.5"></div>
-
-                          <div className="text-gray-500">
-                            <LastSeen
-                              date={new Date(post.timestamp.seconds * 1000)}
-                            />
-                          </div>
-                        </div>
-
-                        <div
-                          onClick={() => openModal(post.id)}
-                          className="w-9 h-9 flex group items-center justify-center absolute right-0 rounded-full hover:bg-blue-100 transition ease-in-out cursor-pointer duration-200"
-                        >
-                          <DotsHorizontalIcon className="h-5 w-5 text-gray-500 group-hover:text-blue-400 transition ease-in-out duration-200" />
-                        </div>
+                    <div className="ml-3 w-full relative">
+                      <MoreButton openModal={() => openModal(post.id)} />
+                      <>
                         {post.modal ? (
                           <div
                             onClick={closeModal}
@@ -384,29 +364,28 @@ const Bookmarks = () => {
                         <div
                           className={`${
                             post.modal
-                              ? "flex flex-col w-3/5 absolute right-0 top-0 bg-white shadow-lg rounded-lg z-50"
+                              ? "flex flex-col w-3/5 absolute right-0 top-0 bg-white shadow-xl z-50 font-bold"
                               : "hidden"
                           }`}
                         >
-                          <div>
-                            {user.id === post.uid ? (
-                              <div
-                                onClick={() => handleDeletePost(post.id)}
-                                className="flex items-center text-red-400 p-2 hover:bg-gray-100"
-                              >
-                                {" "}
-                                <TrashIcon className="h-5 w-5 mr-3" /> Delete
-                              </div>
-                            ) : null}
-                          </div>
-                          <PinListItem post={post} />
+                          {user.id === post.uid && (
+                            <div
+                              onClick={() => handleDeletePost(post.id)}
+                              className="flex items-center text-red-400 p-3 hover:bg-gray-100"
+                            >
+                              {" "}
+                              <TrashIcon className="h-5 w-5 mr-3" /> Delete
+                            </div>
+                          )}
+
+                          <PinListItem post={post} closeModal={closeModal} />
 
                           {user.id === post.uid ? null : (
-                            <div>
+                            <div className="">
                               {post.authIsFollowing === true ? (
                                 <div
                                   onClick={() => followOrUnfollowUser(post)}
-                                  className=" flex items-center rounded-md p-2 hover:bg-gray-100"
+                                  className="flex items-center p-3 hover:bg-gray-100"
                                 >
                                   <UserRemoveIcon className="h-5 w-5 mr-3" />{" "}
                                   Unfollow @{post.username}
@@ -414,7 +393,7 @@ const Bookmarks = () => {
                               ) : post.authIsFollowing === false ? (
                                 <div
                                   onClick={() => followOrUnfollowUser(post)}
-                                  className=" flex items-center rounded-md p-2 hover:bg-gray-100"
+                                  className="flex items-center p-3 hover:bg-gray-100"
                                 >
                                   <UserAddIcon className="h-5 w-5 mr-3" />{" "}
                                   Follow @{post.username}
@@ -422,94 +401,146 @@ const Bookmarks = () => {
                               ) : null}
                             </div>
                           )}
+                        </div>
+                      </>
+                      <div onClick={() => routeTweetDetails(post)}>
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center">
+                            <div className="font-semibold mr-1">
+                              {post.name}
+                            </div>
+                            <div className="text-gray-500 mr-1.5">
+                              @{post.username}
+                            </div>
+                            <div className="h-0.5 w-0.5 rounded-full bg-gray-500 mr-1.5"></div>
 
-                          <div></div>
-                          <div>
-                            {user.id !== post.uid && (
-                              <div className="flex items-center p-2 hover:bg-gray-100">
-                                <BanIcon className="h-5 w-5 mr-3" /> Block @
-                                {post.username}
-                              </div>
+                            <div className="text-gray-500">
+                              <LastSeen
+                                date={new Date(post.timestamp.seconds * 1000)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex">
+                          {post.postType === "comment" ? (
+                            <div className="mr-1 text-gray-500">
+                              Replying to{" "}
+                            </div>
+                          ) : null}
+                          {post.replyToUsers?.length === 0 &&
+                          post.postType === "comment" ? (
+                            <div className="text-blue-500">@User</div>
+                          ) : null}
+                          <div className="flex items-center">
+                            {" "}
+                            {removeDuplicateUsernames(post.replyToUsers).map(
+                              (username) => (
+                                <div className="tweet__userWhoReplied flex items-center text-blue-500">
+                                  <div
+                                    onClick={() => navigate(`/${username}`)}
+                                    className="mr-1 hover:underline"
+                                    key={username}
+                                  >
+                                    @{username}
+                                  </div>{" "}
+                                  <div className="username mr-1">and</div>
+                                </div>
+                              )
                             )}
                           </div>
                         </div>
-                      </div>
 
-                      <div className="flex">
-                        {post.postType === "comment" ? (
-                          <div className="mr-1 text-gray-500">Replying to </div>
-                        ) : null}
-                        {post.replyToUsers?.length === 0 &&
-                        post.postType === "comment" ? (
-                          <div className="text-blue-500">@User</div>
-                        ) : null}
-                        <div className="flex items-center">
-                          {" "}
-                          {removeDuplicateUsernames(post.replyToUsers).map(
-                            (username) => (
-                              <div className="tweet__userWhoReplied flex items-center text-blue-500">
-                                <div
-                                  onClick={() => navigate(`/${username}`)}
-                                  className="mr-1 hover:underline"
-                                  key={username}
-                                >
-                                  @{username}
-                                </div>{" "}
-                                <div className="username mr-1">and</div>
-                              </div>
-                            )
-                          )}
+                        <div
+                          onClick={() => routeTweetDetails(post)}
+                          className="mb-2  inline-block"
+                        >
+                          {post.message}
                         </div>
+                        {post.media !== "" ? (
+                          <img
+                            src={post.media}
+                            alt=""
+                            className="w-full ml-0 mb-1 rounded-lg object-cover shadow-sm"
+                          />
+                        ) : null}
                       </div>
 
-                      <div
-                        onClick={() => routeTweetDetails(post.id)}
-                        className="mb-4 "
-                      >
-                        {post.message}
-                      </div>
-                      {post.media !== "" ? (
-                        <img
-                          src={post.media}
-                          alt=""
-                          className="w-full ml-0 mb-1 rounded-lg object-cover shadow-sm"
-                        />
-                      ) : null}
                       <div className="relative flex items-center justify-between">
-                        <div
-                          onClick={() => handleOpenBookmarkModal(post.id)}
-                          className="flex cursor-pointer items-center space-x-3 text-gray-400"
+                        <Tooltip
+                          className="hidden sm:flex p-1 rounded-sm text-xs bg-gray-500"
+                          placement="bottom"
+                          content="Reply"
+                          animate={{
+                            mount: { scale: 1, y: 0 },
+                            unmount: { scale: 0, y: 1 },
+                          }}
                         >
-                          <ChatAlt2Icon className="h-5 w-5" />
-                          <p className="text-sm">
-                            {post.comments.length === 0
-                              ? null
-                              : post.comments.length}
-                          </p>
-                        </div>
-                        <div className="flex cursor-pointer items-center space-x-3 text-gray-400">
-                          <SwitchHorizontalIcon className={`h-5 w-5 `} />
-                        </div>
-                        <div
-                          onClick={() => toggleLikeBookmark(post.id)}
-                          className={`flex cursor-pointer items-center space-x-3 text-${
-                            post.isLiked ? "red" : "gray"
-                          }-400`}
-                        >
-                          <div className="flex items-center group">
-                            <div className="w-9 mr-1 h-9 group-hover:bg-red-100 flex items-center rounded-full justify-center  transition ease-in-out cursor-pointer duration-200">
-                              <HeartIcon
-                                fill={post.isLiked ? "red" : "transparent"}
-                                className="h-5 w-5 rounded-full group-hover:bg-red-100 group-hover:text-red-500 transition ease-in-out cursor-pointer duration-200"
+                          <div
+                            onClick={() => handleOpenBookmarkModal(post.id)}
+                            className="flex group cursor-pointer items-center text-gray-400"
+                          >
+                            <div className="w-9 sm:mr-1 h-9 group-hover:bg-blue-100 flex items-center rounded-full justify-center transition ease-in-out cursor-pointer duration-200">
+                              <ChatAlt2Icon
+                                fill={"transparent"}
+                                className="w-4 h-4 sm:h-5 sm:w-5 rounded-full group-hover:bg-blue-100 group-hover:text-blue-400 transition ease-in-out cursor-pointer duration-200"
                               />
                             </div>
-                            <p className="text-sm group-hover:text-red-500 transition ease-in-out cursor-pointer duration-200">
-                              {post.likes?.length === 0
-                                ? ""
-                                : post.likes?.length}
+                            <p className="text-sm">
+                              {post.comments.length === 0
+                                ? null
+                                : post.comments.length}
                             </p>
                           </div>
-                        </div>
+                        </Tooltip>
+                        <Tooltip
+                          className=" p-1 rounded-sm text-xs bg-gray-500"
+                          placement="bottom"
+                          content="Retweet feature coming soon"
+                          animate={{
+                            mount: { scale: 1, y: 0 },
+                            unmount: { scale: 0, y: 1 },
+                          }}
+                        >
+                          <div className="flex group cursor-pointer items-center space-x-3 text-gray-400">
+                            <div className="w-9 mr-1 h-9 sm:group-hover:bg-green-100 flex items-center rounded-full justify-center  transition ease-in-out cursor-pointer duration-200">
+                              <SwitchHorizontalIcon
+                                fill={"transparent"}
+                                className="h-4 w-4 sm:h-5 sm:w-5 rounded-full sm:group-hover:bg-green-100 sm:group-hover:text-green-400 transition ease-in-out cursor-pointer duration-200"
+                              />
+                            </div>
+                          </div>
+                        </Tooltip>
+                        <Tooltip
+                          className="hidden sm:flex p-1 rounded-sm text-xs bg-gray-500"
+                          placement="bottom"
+                          content={post.isLiked ? "Unlike" : "Like"}
+                          animate={{
+                            mount: { scale: 1, y: 0 },
+                            unmount: { scale: 0, y: 1 },
+                          }}
+                        >
+                          <div
+                            onClick={() => toggleLikeBookmark(post.id)}
+                            className={`flex cursor-pointer items-center space-x-3 text-${
+                              post.isLiked ? "red" : "gray"
+                            }-400`}
+                          >
+                            <div className="flex items-center group">
+                              <div className="w-9 mr-1 h-9 group-hover:bg-red-100 flex items-center rounded-full justify-center  transition ease-in-out cursor-pointer duration-200">
+                                <HeartIcon
+                                  fill={post.isLiked ? "red" : "transparent"}
+                                  className="h-5 w-5 rounded-full group-hover:bg-red-100 group-hover:text-red-500 transition ease-in-out cursor-pointer duration-200"
+                                />
+                              </div>
+                              <p className="text-sm group-hover:text-red-500 transition ease-in-out cursor-pointer duration-200">
+                                {post.likes?.length === 0
+                                  ? ""
+                                  : post.likes?.length}
+                              </p>
+                            </div>
+                          </div>
+                        </Tooltip>
 
                         <BookmarkButton
                           handleAddBookmark={() => addBookmark(post.id)}

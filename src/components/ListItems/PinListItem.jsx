@@ -7,7 +7,6 @@ const PinListItem = ({ post, closeModal }) => {
   const authUser = useSelector((state) => state.users.user);
   const authsPinnedPost = useSelector((state) => state.users.authsPinnedPost);
   const authId = authUser.id;
- 
 
   const dispatch = useDispatch();
 
@@ -27,7 +26,8 @@ const PinListItem = ({ post, closeModal }) => {
   };
 
   useEffect(() => {
-    if (authsPinnedPost.id && authsPinnedPost.id === post.id) setPinnedPost(true);
+    if (authsPinnedPost.id && authsPinnedPost.id === post.id)
+      setPinnedPost(true);
     else setPinnedPost(false);
   }, []);
 
@@ -36,18 +36,19 @@ const PinListItem = ({ post, closeModal }) => {
       <>
         {pinnedPost ? (
           <div
-            className="flex items-center cursor-pointer p-4  hover:bg-gray-100"
+            className="flex items-center cursor-pointer p-3  hover:bg-gray-100"
             onClick={handleUnpinPost}
           >
             <LocationMarkerIcon className="w-5 h-5 mr-3" />{" "}
-            <div>Unpin Post</div>
+            <div>Unpin from profile</div>
           </div>
         ) : (
           <div
-            className="flex items-center cursor-pointer p-4  hover:bg-gray-100"
+            className="flex items-center cursor-pointer p-3  hover:bg-gray-100"
             onClick={handlePinPost}
           >
-            <LocationMarkerIcon className="w-5 h-5 mr-3" /> <div>Pin Post</div>
+            <LocationMarkerIcon className="w-5 h-5 mr-3" />{" "}
+            <div>Pin to your profile</div>
           </div>
         )}
       </>

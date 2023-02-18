@@ -1,4 +1,4 @@
-import React from "react";
+import React, { forwardRef } from "react";
 import {
   ChatAlt2Icon,
   HeartIcon,
@@ -15,39 +15,43 @@ import {
 } from "@material-tailwind/react";
 import RetweetButton from "../Buttons/RetweetButton";
 
-const TweetFooter = ({
-  isLiked,
-  handleLikePost,
-  handleAddBookmark,
-  handleRemoveBookmark,
-  bookmarks,
-  handleOpenCommentModal,
-  post,
-}) => {
-
-  
-  return (
-    <div className="flex items-center justify-between ">
+const TweetFooter = forwardRef(
+  (
+    {
+      isLiked,
+      handleLikePost,
+      handleAddBookmark,
+      handleRemoveBookmark,
+      bookmarks,
+      handleOpenCommentModal,
+      post,
+    },
+    ref
+  ) => (
+    <div className="flex items-center justify-between ml-1">
       <CommentButton
         post={post}
         handleOpenCommentModal={handleOpenCommentModal}
+        ref={ref}
       />
 
-      <RetweetButton />
+      <RetweetButton ref={ref} />
       <LikeButton
         post={post}
         isLiked={isLiked}
         likes={post.likes}
         handleLikePost={handleLikePost}
+        ref={ref}
       />
       <BookmarkButton
         bookmarks={bookmarks}
         handleAddBookmark={handleAddBookmark}
         handleRemoveBookmark={handleRemoveBookmark}
         post={post}
+        ref={ref}
       />
     </div>
-  );
-};
+  )
+);
 
 export default TweetFooter;

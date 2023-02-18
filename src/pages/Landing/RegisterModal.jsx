@@ -1,10 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { register } from "../../redux/users/users.actions";
 import { XIcon } from "@heroicons/react/outline";
+
+import { db } from "../../firebase/config";
+import { writeBatch } from "firebase/firestore/lite";
+import {
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  collection,
+  where,
+} from "firebase/firestore";
 const RegisterModal = ({ closeModal }) => {
   const registerError = useSelector((state) => state.users.error);
   const dispatch = useDispatch();
+
+  const [error, setError] = useState(null);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,8 +35,25 @@ const RegisterModal = ({ closeModal }) => {
   const handleNameChange = (e) => setName(e.target.value);
   const handleLocationChange = (e) => setLocation(e.target.value);
 
+  const fetchUsernames = async () => {
+    const ref = collection(db, "users");
+    const snapshot = await getDocs(ref);
+    const usernames = snapshot.docs.map((doc) => doc.data());
+    console.log("Usernames: ", usernames);
+  };
+
+  function usernameValidation() {
+    let whiteSpace = username.indexOf(" ") >= 0;
+    if (whiteSpace) {
+      setError("Username cannot have any spaces");
+
+      return;
+    }
+  }
+
   const handleRegister = (e) => {
     e.preventDefault();
+
     const data = {
       email,
       password,
@@ -35,6 +65,10 @@ const RegisterModal = ({ closeModal }) => {
     };
     dispatch(register(data));
   };
+
+  useEffect(() => {
+    fetchUsernames();
+  }, []);
   return (
     <div>
       <form
@@ -102,11 +136,12 @@ const RegisterModal = ({ closeModal }) => {
           >
             Sign Up
           </button>
+          {error !== null && (
+            <div className="mt-5 text-red-500 font-bold">{error}</div>
+          )}
+          {registerError && <div className="mt-10">{registerError}</div>}
         </div>
-        {registerError && <div>{registerError}</div>}
       </form>
-
-      {registerError && <div>{registerError}</div>}
     </div>
   );
 };

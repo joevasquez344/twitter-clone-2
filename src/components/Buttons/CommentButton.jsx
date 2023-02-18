@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, forwardRef } from "react";
 import { ChatAlt2Icon } from "@heroicons/react/outline";
 import { Tooltip } from "@material-tailwind/react";
 
-const CommentButton = ({  handleOpenCommentModal, post }) => {
+const CommentButton = forwardRef(({  handleOpenCommentModal, post}, ref) => 
 
-  return (
+   (
     <Tooltip
       className="hidden sm:flex p-1 rounded-sm text-xs bg-gray-500"
       placement="bottom"
@@ -17,6 +17,7 @@ const CommentButton = ({  handleOpenCommentModal, post }) => {
         <div
           onClick={() => handleOpenCommentModal(post)}
           className="flex items-center group text-gray-400"
+          ref={ref}
         >
           <div className="w-9 sm:mr-1 h-9 group-hover:bg-blue-100 flex items-center rounded-full justify-center  transition ease-in-out cursor-pointer duration-200">
             <ChatAlt2Icon
@@ -29,7 +30,7 @@ const CommentButton = ({  handleOpenCommentModal, post }) => {
           </p>
         </div>
     </Tooltip>
-  );
-};
+  ));
+
 
 export default CommentButton;

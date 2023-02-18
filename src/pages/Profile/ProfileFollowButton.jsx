@@ -13,16 +13,28 @@ const ProfileFollowButton = ({
   fetchProfile,
   isFollowing,
   setIsFollowing,
+  setPinnedTweet,
+  pinnedTweet,
 }) => {
   const authUser = useSelector((state) => state.users.user);
   const profile = useSelector((state) => state.profile.profile);
   const dispatch = useDispatch();
 
-  const handleFollowProfile = async () =>
+  const handleFollowProfile = async () => {
     dispatch(followProfile(profile.id, authUser));
+    setPinnedTweet({
+      ...pinnedTweet,
+      followers: [...pinnedTweet.followers, authUser],
+    });
+  };
 
-  const handleUnfollowProfile = async () =>
+  const handleUnfollowProfile = async () => {
     dispatch(unfollowProfile(profile.id, authUser));
+    setPinnedTweet({
+      ...pinnedTweet,
+      followers: pinnedTweet.followers.filter((u) => u.id !== authUser.id),
+    });
+  };
 
   useEffect(() => {
     handleAuthLayout(profile, setIsFollowing, authUser);

@@ -71,6 +71,10 @@ import useAutosizeTextArea from "../../hooks/useAuthsizeTextArea";
 import isAuthFollowingPostDetailsUser from "./helpers/authFollowingChecker";
 import { pinTweet, unpinTweet } from "../../redux/users/users.actions";
 import { getPostDetailsLikes } from "./helpers/getPostLikes";
+import {
+  TWEET_DETAILS_FOLLOW_USER,
+  TWEET_DETAILS_UNFOLLOW_USER,
+} from "../../redux/tweet-details/tweet-details.types";
 
 // TODOs:
 // Reply to users - above tweet details
@@ -212,6 +216,7 @@ const TweetDetails = () => {
     e.preventDefault();
 
     if (target === "comment_section") {
+      setCommentDropdown(false);
       await createComment(
         input,
         replyToPost,
@@ -219,12 +224,14 @@ const TweetDetails = () => {
         user,
         replyToPost.postType
       );
+
       dispatch(fetchComments(post.id));
 
       setInput("");
     }
 
     if (target === "modal") {
+      setCommentDropdown(false);
       await createComment(
         input,
         commentDisplay,
@@ -235,9 +242,6 @@ const TweetDetails = () => {
       dispatch(fetchComments(post.id));
 
       setCommentModal(false);
-    }
-
-    if (target === "replyTo_section") {
     }
   };
 
@@ -366,7 +370,18 @@ const TweetDetails = () => {
     const match = userToFollow.followers.find(
       (follower) => follower.id === user.id
     );
+
     if (match) {
+      dispatch({
+        type: TWEET_DETAILS_UNFOLLOW_USER,
+        payload: {
+          followers: userToFollow.followers.filter(
+            (follower) => follower.id !== user.id
+          ),
+          authUser: user,
+          post: { uid: userToFollow.id },
+        },
+      });
       const updatedLikes = postLikes.map((u) => {
         if (u.id === userToFollow.id) {
           u.followers = u.followers.filter(
@@ -380,6 +395,14 @@ const TweetDetails = () => {
 
       await unfollowUser(userToFollow.id, user.id);
     } else {
+      dispatch({
+        type: TWEET_DETAILS_FOLLOW_USER,
+        payload: {
+          followers: [...userToFollow.followers, user],
+          authUser: user,
+          post: { uid: userToFollow.id },
+        },
+      });
       const updatedLikes = postLikes.map((u) => {
         if (u.id === userToFollow.id) {
           u.followers = [...u.followers, user];

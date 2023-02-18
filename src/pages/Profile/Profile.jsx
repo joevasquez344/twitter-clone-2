@@ -374,8 +374,16 @@ const Profile = () => {
 
       if (authIsFollowing) {
         dispatch(unfollowPostUser(post, user));
+        setPinnedTweet({
+          ...pinnedTweet,
+          followers: pinnedTweet.followers.filter((u) => u.id !== user.id),
+        });
       } else {
         dispatch(followPostUser(post, user));
+        setPinnedTweet({
+          ...pinnedTweet,
+          followers: [...pinnedTweet.followers, user],
+        });
       }
     }
 
@@ -555,7 +563,7 @@ const Profile = () => {
   };
 
   useEffect(() => {
-     getData();
+    getData();
 
     resetTabsClickCount(tabs, setTabs);
   }, [params.username]);
@@ -698,6 +706,8 @@ const Profile = () => {
                 fetchProfile={fetchProfile}
                 isFollowing={isFollowing}
                 setIsFollowing={setIsFollowing}
+                setPinnedTweet={setPinnedTweet}
+                pinnedTweet={pinnedTweet}
               />
             </div>
 

@@ -296,14 +296,7 @@ export const getBookmarks = async (userId) => {
   );
 
   let bookmarks = await Promise.all(
-    bookmarkDocs.map(async (doc) => ({
-      ...doc.data(),
-      id: doc.id,
-      followers: await getFollowers(userId),
-      likes: await getLikes(doc.id),
-      comments: await getComments(doc.id),
-      replyToUsers: await getPostsByThreadId(doc.id),
-    }))
+    bookmarkDocs.map(async (doc) => await populatePost(doc))
   );
 
   bookmarks = bookmarks.map((post) => ({

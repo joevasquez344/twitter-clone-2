@@ -230,10 +230,7 @@ const FollowersAndFollowing = () => {
                   <div className="relative h-full mr-4 ">
                     <div className="h-12 w-12 rounded-full bg-white flex items-center justify-center z-40">
                       <div className="h-12 w-12 rounded-full flex justify-center items-center">
-                        <DefaultAvatar
-                          name={u.name}
-                          username={u.username}
-                        />
+                        <DefaultAvatar name={u.name} username={u.username} />
                       </div>
                     </div>
                   </div>
@@ -246,7 +243,7 @@ const FollowersAndFollowing = () => {
                       <div className="h-12 w-12 rounded-full flex justify-center items-center">
                         <img
                           // onClick={handleUserDetails}
-                          src={user.avatar}
+                          src={u.avatar}
                           alt="Profile Image"
                           className={` object-cover h-12 w-12 rounded-full`}
                         />
@@ -283,15 +280,6 @@ const FollowersAndFollowing = () => {
                           Follow
                         </div>
                       ) : u.followedByAuthUser === null ? null : null}
-
-                      {user.id !== u.id && (
-                        <div
-                          // onClick={openModal}
-                          className="w-9 h-9 flex group items-center justify-center  right-0 rounded-full hover:bg-blue-100 transition ease-in-out cursor-pointer duration-200"
-                        >
-                          <DotsHorizontalIcon className="h-5 w-5 text-gray-500 group-hover:text-blue-400 transition ease-in-out duration-200" />
-                        </div>
-                      )}
                     </div>
                   </div>
                   <div>{u.bio}</div>

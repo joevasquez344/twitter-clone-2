@@ -13,6 +13,7 @@ import { logout } from "../redux/users/users.actions";
 
 import { useNavigate, useLocation } from "react-router-dom";
 import TweetModal from "../components/TweetModal";
+import LogoutIcon from "../components/Icons/LogoutIcon";
 const Sidebar = () => {
   const user = useSelector((state) => state.users.user);
 
@@ -83,7 +84,7 @@ const Sidebar = () => {
           className="w-full flex justify-center md:justify-start mt-2"
           onClick={handleLogout}
         >
-          <SidebarRow Icon={UserIcon} title="Sign Out" />
+          <SidebarRow Icon={LogoutIcon} title="Sign Out" />
         </div>
         <div
           className="w-full flex justify-center md:justify-start mt-4"
