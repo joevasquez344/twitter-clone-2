@@ -127,8 +127,8 @@ const Tweet = ({
     <div className="sm:hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200 ">
       <div
         className={`${
-          isPinned && tweetsFeedActive ? "pt-2 relative" : "relative"
-        } ${threadPost && "py-0"}`}
+          isPinned && tweetsFeedActive ? "pt-4 relative" : "relative"
+        } ${threadPost && "pb-2 pt-3"}`}
       >
         <div
           className={`px-2 relative ${

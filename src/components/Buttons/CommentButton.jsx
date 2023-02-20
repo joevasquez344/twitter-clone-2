@@ -19,13 +19,13 @@ const CommentButton = forwardRef(({  handleOpenCommentModal, post}, ref) =>
           className="flex items-center group text-gray-400"
           ref={ref}
         >
-          <div className="w-9 sm:mr-1 h-9 group-hover:bg-blue-100 flex items-center rounded-full justify-center  transition ease-in-out cursor-pointer duration-200">
+          <div className="w-9 sm:mr-1 h-9 sm:group-hover:bg-blue-100 flex items-center rounded-full justify-center  transition ease-in-out cursor-pointer duration-200">
             <ChatAlt2Icon
               fill={"transparent"}
-              className="w-4 h-4 sm:h-5 sm:w-5 rounded-full group-hover:bg-blue-100 group-hover:text-blue-400 transition ease-in-out cursor-pointer duration-200"
+              className="w-4 h-4 sm:h-5 sm:w-5 rounded-full sm:group-hover:bg-blue-100 sm:group-hover:text-blue-400 transition ease-in-out cursor-pointer duration-200"
             />
           </div>
-          <p className="text-xs sm:text-sm group-hover:text-blue-400 transition ease-in-out cursor-pointer duration-200">
+          <p className="text-xs sm:text-sm sm:group-hover:text-blue-400 transition ease-in-out cursor-pointer duration-200">
             {post.comments?.length === 0 ? null : post.comments?.length}
           </p>
         </div>
