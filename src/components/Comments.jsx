@@ -32,7 +32,7 @@ const Comments = ({
     // fetchComments();
   }, [params.tweetId]);
   return (
-    <div>
+   
       <div>
         {commentsLoading ? (
           <Loader />
@@ -72,7 +72,7 @@ const Comments = ({
           </div>
         )}
       </div>
-    </div>
+    
   );
 };
 

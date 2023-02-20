@@ -32,7 +32,7 @@ const BookmarkButton = forwardRef(
                 strokeWidth={1.5}
                 stroke="currentColor"
                 className={`${
-                  enlarged ? "w-6 h-6 sm:w-7 sm:h-7" : "w-4 h-4 sm:w-5 sm:h-5"
+                  enlarged ? "w-5 h-5 sm:w-7 sm:h-7" : "w-4 h-4 sm:w-5 sm:h-5"
                 } sm:group-hover:text-blue-400 text-blue-400
       `}
               >
@@ -70,7 +70,7 @@ const BookmarkButton = forwardRef(
                 strokeWidth={1.5}
                 stroke="currentColor"
                 className={`${
-                  enlarged ? "w-6 h-6 sm:w-7 sm:h-7" : "w-4 h-4 sm:w-5 sm:h-5"
+                  enlarged ? "w-5 h-5 sm:w-7 sm:h-7" : "w-4 h-4 sm:w-5 sm:h-5"
                 } sm:group-hover:text-blue-400`}
               >
                 <path

@@ -438,6 +438,7 @@ const TweetDetails = () => {
                 modal={modal}
                 closeModal={closeLikesModal}
                 component="Edit Profile"
+                headerTitle="Liked By"
               >
                 {postLikes.map((like) => (
                   <div className="hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200 py-2 px-4 z-100">
@@ -557,8 +558,8 @@ const TweetDetails = () => {
                   </div>
                 </div>
               ) : (
-                <div className="px-1">
-                  <div className="relative flex justify-between pl-3 pt-2">
+                <div className="px-2">
+                  <div className="relative flex justify-between pt-2">
                     <div className="flex items-center">
                       {post.avatar === null ? (
                         <div className="h-16 w-16 flex items-center justify-center rounded-full bg-white">
@@ -586,7 +587,9 @@ const TweetDetails = () => {
                       </div>
                     </div>
                     {!commentsLoading && (
-                      <MoreButton openModal={() => setMoreModal(true)} />
+                      <div className="absolute right-0">
+                        <MoreButton openModal={() => setMoreModal(true)} />
+                      </div>
                     )}
 
                     {moreModal ? (
@@ -597,12 +600,12 @@ const TweetDetails = () => {
                     ) : null}
 
                     {moreModal ? (
-                      <div className="rounded-md w-1/2 absolute top-10 right-10 z-50 shadow-lg bg-white border-t">
+                      <div className="rounded-md w-4/6 sm:w-3/5 absolute top-0 right-0 z-50 shadow-lg bg-white sm:font-bold">
                         {post.uid === user.id ? (
                           <>
                             <div
                               onClick={() => handleDeletePost(post.id)}
-                              className="flex items-center p-4 text-red-500 cursor-pointer hover:bg-gray-100"
+                              className="flex items-center p-3 text-red-500 cursor-pointer hover:bg-gray-100"
                             >
                               <TrashIcon className="h-5 w-5 mr-3" />{" "}
                               <div>Delete</div>
@@ -640,11 +643,11 @@ const TweetDetails = () => {
                   </div>
 
                   <div
-                    className={`flex space-x-1 ${
-                      post.postType === "comment" && "mt-4"
+                    className={`flex items-center sm:items-start space-x-1 ${
+                      post.postType === "comment" && "mt-4 mb-4"
                     }`}
                   >
-                    <div className="text-gray-500 ml-4">
+                    <div className="text-gray-500 text-sm sm:text-base ml-2 sm:ml-4">
                       {post.postType === "tweet" ? null : (
                         <div>Replying to</div>
                       )}{" "}
@@ -652,7 +655,7 @@ const TweetDetails = () => {
                     {repliedToPosts.length === 0 &&
                     post.postType === "comment" ? (
                       <Tooltip
-                        className="p-1 rounded-sm text-xs bg-gray-500"
+                        className="hidden sm:flex p-1 rounded-sm text-xs bg-gray-500"
                         placement="bottom"
                         content="Unknown user"
                         animate={{
@@ -660,10 +663,12 @@ const TweetDetails = () => {
                           unmount: { scale: 0, y: 1 },
                         }}
                       >
-                        <div className="text-blue-500 cursor-text">user</div>
+                        <div className="text-blue-500 text-sm sm:text-base cursor-text">
+                          user
+                        </div>
                       </Tooltip>
                     ) : null}
-                    <div className="flex items-center mb-4">
+                    <div className="flex items-center">
                       {" "}
                       {handleReplyToUsernames(repliedToPosts, post).map(
                         (username) => (
@@ -681,8 +686,10 @@ const TweetDetails = () => {
                       )}
                     </div>
                   </div>
-                  <div className="text-2xl px-4 pb-3">{post.message}</div>
-                  <div className="px-4 pb-3">
+                  <div className="text-xl sm:text-2xl px-2 pb-3">
+                    {post.message}
+                  </div>
+                  <div className="px-2 pb-3">
                     {post.media ? (
                       <img
                         className="w-full h-100 rounded-xl"
@@ -696,7 +703,7 @@ const TweetDetails = () => {
                       post.comments?.length === 0 && post.likes.length === 0
                         ? "border-none"
                         : "border-b"
-                    } px-4 pb-4`}
+                    } px-2 pb-4`}
                   >
                     <div className="text-gray-500">
                       <Moment unix format="hh:mm A">
@@ -713,7 +720,11 @@ const TweetDetails = () => {
                   </div>
 
                   <div
-                    className={`flex items-center space-x-4 px-4 py-4 border-b`}
+                    className={`flex items-center ${
+                      post.comments.length > 0 && post.likes.length > 0
+                        ? "space-x-4"
+                        : ""
+                    } px-2 py-2 sm:py-4 border-b`}
                   >
                     <div className="flex items-center">
                       <div className="mr-1 font-semibold">
@@ -743,9 +754,9 @@ const TweetDetails = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-evenly border-b px-4 py-4">
+                  <div className="flex items-center justify-evenly border-b px-2 py-1 sm:py-4">
                     <Tooltip
-                      className="p-1 rounded-sm text-xs bg-gray-500"
+                      className="hidden sm:flex p-1 rounded-sm text-xs bg-gray-500"
                       placement="bottom"
                       content="Reply"
                       animate={{
@@ -757,11 +768,11 @@ const TweetDetails = () => {
                         onClick={() => handleOpenCommentModal(post)}
                         className="flex cursor-pointer items-center space-x-3 text-gray-400"
                       >
-                        <ChatAlt2Icon className="h-7 w-7" />
+                        <ChatAlt2Icon className="h-5 w-5 sm:h-7 sm:w-7" />
                       </div>
                     </Tooltip>
                     <Tooltip
-                      className="p-1 rounded-sm text-xs bg-gray-500"
+                      className="hidden sm:flex p-1 rounded-sm text-xs bg-gray-500"
                       placement="bottom"
                       content="Retweet feature coming soon"
                       animate={{
@@ -770,11 +781,11 @@ const TweetDetails = () => {
                       }}
                     >
                       <div className="flex cursor-pointer items-center space-x-3 text-gray-400">
-                        <SwitchHorizontalIcon className={`h-7 w-7 `} />
+                        <SwitchHorizontalIcon className="h-5 w-5 sm:h-7 sm:w-7" />
                       </div>
                     </Tooltip>
                     <Tooltip
-                      className="p-1 rounded-sm text-xs bg-gray-500"
+                      className="hidden sm:flex p-1 rounded-sm text-xs bg-gray-500"
                       placement="bottom"
                       content={isLiked ? "Unlike" : "Like"}
                       animate={{
@@ -790,7 +801,7 @@ const TweetDetails = () => {
                       >
                         <HeartIcon
                           fill={isLiked ? "red" : "transparent"}
-                          className="h-7 w-7"
+                          className="h-5 w-5 sm:h-7 sm:w-7"
                         />
                       </div>
                     </Tooltip>
@@ -811,7 +822,7 @@ const TweetDetails = () => {
                   </div>
                   <>
                     <div
-                      className={`relative flex ${
+                      className={`relative hidden sm:flex ${
                         !commentDropdown && "items-center"
                       }  border-b px-2 py-4`}
                     >
@@ -856,7 +867,7 @@ const TweetDetails = () => {
                             type="text"
                             ref={textAreaRef}
                             placeholder="Tweet your reply"
-                            className="text-gray-400 text-xl outline-none w-full resize-none"
+                            className="text-gray-400 text-lg  sm:text-xl outline-none w-full resize-none"
                           />
                           {!commentDropdown && (
                             <button

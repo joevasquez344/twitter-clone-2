@@ -1,18 +1,31 @@
 import React from "react";
-import {useSelector} from 'react-redux';
+import { useSelector } from "react-redux";
 import {
-    LocationMarkerIcon,
-    TrashIcon,
-    UserAddIcon,
-    UserRemoveIcon,
-  } from "@heroicons/react/outline";
+  LocationMarkerIcon,
+  TrashIcon,
+  UserAddIcon,
+  UserRemoveIcon,
+} from "@heroicons/react/outline";
 import MoreButton from "../Buttons/MoreButton";
 
-const TweetPopup = ({openModal, modal, closeModal, uid, deletePost, followUser, postUsername, authIsFollowing, authUsersPost, authsPinnedPost, post, unpinPost, pinPost}) => {
-  const user = useSelector(state => state.users.user)
-    return (
+const TweetPopup = ({
+  openModal,
+  modal,
+  closeModal,
+  uid,
+  deletePost,
+  followUser,
+  postUsername,
+  authIsFollowing,
+  authUsersPost,
+  authsPinnedPost,
+  post,
+  unpinPost,
+  pinPost,
+}) => {
+  const user = useSelector((state) => state.users.user);
+  return (
     <>
-     
       {modal ? (
         <div
           onClick={closeModal}
@@ -22,7 +35,7 @@ const TweetPopup = ({openModal, modal, closeModal, uid, deletePost, followUser, 
       <div
         className={`${
           modal
-            ? "flex flex-col w-3/5 absolute right-0 top-0 bg-white shadow-xl z-50 font-bold"
+            ? "flex flex-col w-4/5 sm:w-3/5 absolute right-0 top-0 bg-white shadow-xl z-50 sm:font-bold"
             : "hidden"
         }`}
       >
@@ -30,10 +43,10 @@ const TweetPopup = ({openModal, modal, closeModal, uid, deletePost, followUser, 
           {user.id === uid ? (
             <div
               onClick={deletePost}
-              className="flex items-center text-red-400 p-3 hover:bg-gray-100"
+              className="flex items-center sm:font-bold  text-red-500 p-3 hover:bg-gray-100"
             >
               {" "}
-              <TrashIcon className="h-5 w-5 mr-3" /> Delete
+              <TrashIcon className=" h-5 w-5 mr-3" /> Delete
             </div>
           ) : (
             <>
@@ -50,7 +63,8 @@ const TweetPopup = ({openModal, modal, closeModal, uid, deletePost, followUser, 
                   onClick={followUser}
                   className=" flex items-center p-3 hover:bg-gray-100"
                 >
-                  <UserAddIcon className="h-5 w-5 mr-3" /> Follow @{postUsername}
+                  <UserAddIcon className="h-5 w-5 mr-3" /> Follow @
+                  {postUsername}
                 </div>
               )}
             </>

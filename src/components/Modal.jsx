@@ -29,7 +29,7 @@ const Modal = ({
       )}
       <div
         className={`${
-          modal ? "fixed mt-14   w-1/3 bg-white rounded-xl z-50" : "hidden"
+          modal ? "fixed top-0 right-0 bottom-0 left-0 sm:mt-14   sm:w-1/3 bg-white sm:rounded-xl z-50" : "hidden"
         }`}
       >
         <div className="flex items-center p-3 ">
@@ -41,7 +41,7 @@ const Modal = ({
           </div>
 
           <div className="flex w-full justify-between items-center">
-            <div className="font-bold text-lg">{headerTitle}</div>
+            <div className="font-bold ml-6 text-lg">{headerTitle}</div>
             <div onClick={onHeaderButtonClick} className={styles.headerButton}>
               {headerButton}
             </div>

@@ -35,12 +35,12 @@ const TweetReplyTo = ({
           <div className="tweet__userWhoReplied flex items-center text-blue-500 z-100 bg-white">
             <div
               onClick={() => navigate(`/${username}`)}
-              className="mr-1 hover:underline"
+              className="mr-1 text-sm sm:text-base sm:hover:underline"
               key={username}
             >
               @{username}
             </div>{" "}
-            <div className="username mr-1">and</div>
+            <div className="username text-sm sm:text-base mr-1">and</div>
           </div>
         ))}
       </div>

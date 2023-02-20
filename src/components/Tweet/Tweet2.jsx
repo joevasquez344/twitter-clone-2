@@ -131,7 +131,7 @@ const Tweet = ({
         } ${threadPost && "py-0"}`}
       >
         <div
-          className={`px-4 relative ${
+          className={`px-2 relative ${
             !threadPost ? "pt-2 sm:pb-1 sm:pt-3" : "pt-0"
           } w-full flex  ${threadPost === true ? "" : "border-b"}`}
         >
