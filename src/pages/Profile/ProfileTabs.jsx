@@ -14,7 +14,7 @@ const ProfileTabs = ({ tabs, handleTabs }) => {
           <div
             className={` flex ${
               tab.isActive ? "border-b-4 border-blue-500" : ""
-            } items-center justify-center absolute top-0 bottom-0 h-full`}
+            } items-center justify-center absolute top-0 inline-block whitespace-nowrap overflow-ellipsis text-sm sm:text-base bottom-0 h-full`}
           >
             {tab.text}
           </div>

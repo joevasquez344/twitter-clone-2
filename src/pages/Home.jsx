@@ -126,21 +126,6 @@ const Home = () => {
     setLoading(false);
   };
 
-  const updateProfileFeeds = (postId, target) => {
-    if (target === "likes") {
-      const post = posts.find((post) => post.id === postId);
-      dispatch({
-        type: TOGGLE_LIKE_POST,
-        payload: {
-          likes: post.likes.find((u) => u.id === user.id)
-            ? post.likes.filter((u) => u.id !== user.id)
-            : [...post.likes, user.id],
-          postId,
-        },
-      });
-    }
-  };
-
   const handleLikePost = (postId) => {
     dispatch(likePost(postId));
   };

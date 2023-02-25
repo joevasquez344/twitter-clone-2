@@ -75,6 +75,7 @@ import {
   TWEET_DETAILS_FOLLOW_USER,
   TWEET_DETAILS_UNFOLLOW_USER,
 } from "../../redux/tweet-details/tweet-details.types";
+import LikedBy from "./LikedBy";
 
 // TODOs:
 // Reply to users - above tweet details
@@ -84,10 +85,10 @@ import {
 // Load the getThreadPosts return posts after the TWEET_DETAILS_SUCCESS
 
 const TweetDetails = () => {
-  // const user = useSelector((state) => state.users.user);
-  const { user, authsPinnedPost } = useSelector((state) => state.users);
-  const { post, loading, comments, commentsLoading, repliedToPosts, error } =
+  const { user } = useSelector((state) => state.users);
+  const { post, loading, comments, commentsLoading, repliedToPosts } =
     useSelector((state) => state.tweetDetails);
+
   const pageRef = useRef("");
   const [layoutLoading, setLayoutLoading] = useState(true);
 
@@ -104,13 +105,7 @@ const TweetDetails = () => {
   const [isLiked, setIsLiked] = useState(null);
   const [commentDisplay, setCommentDisplay] = useState({});
   const [commentDropdown, setCommentDropdown] = useState(false);
-  const [commentDropdownHeight, setCommentDropdownHeight] = useState();
-  const [textAreaRows, setTextAreaRows] = useState(1);
-  const [authsFollowing, setAuthsFollowing] = useState([]);
-  const [followingPostDetailsUser, setFollowingPostDetailsUser] =
-    useState(false);
   const [postLikes, setPostLikes] = useState([]);
-
   const [commentModal, setCommentModal] = useState(false);
   const [moreModal, setMoreModal] = useState(false);
 
@@ -126,8 +121,6 @@ const TweetDetails = () => {
 
     setInput("");
     if (selectedImageLoading === false) {
-      // setLoading(true);
-
       if (selectedImageUrl !== null) {
         uploadImage();
         createPost(e, input, post, selectedImageUrl, "comment_section");
@@ -260,33 +253,12 @@ const TweetDetails = () => {
     handleIsLiked(likes);
   };
 
-  const handleLikeComment = async (postId) => {
-    dispatch(likeComment(postId));
-  };
+  const handleLikeComment = async (postId) => dispatch(likeComment(postId));
 
   const handleIsLiked = (likes) => {
     const liked = likes?.find((like) => like === user.id);
     if (liked) setIsLiked(true);
     else setIsLiked(false);
-  };
-
-  const getAuthsFollowing = async () => {
-    const userIds = await getFollowingIds(user.id);
-    setAuthsFollowing(userIds);
-    return userIds;
-  };
-
-  const followPostDetailsUser = async () => {
-    const match = authsFollowing.find((userId) => userId === post.uid);
-    if (match) {
-      await unfollowUser(post.uid, user.id);
-      setAuthsFollowing(authsFollowing.filter((userId) => userId !== post.uid));
-      setFollowingPostDetailsUser(false);
-    } else {
-      await followUser(post.uid, user.id);
-      setAuthsFollowing([...authsFollowing, post.uid]);
-      setFollowingPostDetailsUser(true);
-    }
   };
 
   const handleUserDetails = () => {
@@ -311,9 +283,6 @@ const TweetDetails = () => {
       handleIsLiked(postDetails.likes);
     };
 
-    console.log("Post Likes: ", postLikes);
-
-    // setHeight(ref.current.offsetHeight);
     asyncFunc();
   }, [params.tweetId]);
 
@@ -440,70 +409,10 @@ const TweetDetails = () => {
                 component="Edit Profile"
                 headerTitle="Liked By"
               >
-                {postLikes.map((like) => (
-                  <div className="hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200 py-2 px-4 z-100">
-                    <div className="flex">
-                      {like.avatar === null || like.avatar === "" ? (
-                        <div className="h-16 w-16 flex items-center justify-center rounded-full bg-white">
-                          <DefaultAvatar
-                            name={like.name}
-                            username={like.username}
-                          />
-                        </div>
-                      ) : (
-                        <div className="h-16 w-16 flex items-center justify-center  rounded-full bg-white">
-                          <img
-                            onClick={handleUserDetails}
-                            className="h-12 w-12 rounded-full object-cover"
-                            src={like.avatar}
-                            alt=""
-                          />
-                        </div>
-                      )}
-                      <div className="items-center mb-2 w-full">
-                        <div className="flex justify-between items-center">
-                          <div
-                            onClick={() => navigate(`/${like.username}`)}
-                            className="w-full"
-                          >
-                            <div className="font-bold">{like.name}</div>
-                            <div className="text-gray-500 mb-1">
-                              @{like.username}
-                            </div>
-                          </div>
-                          <>
-                            {user.id === like.id ? (
-                              ""
-                            ) : (
-                              <div className="">
-                                {like.followers.find(
-                                  (follower) => follower.id === user.id
-                                ) ? (
-                                  <div
-                                    className="bg-black flex items-center justify-center h-8 text-white text-sm font-bold rounded-full px-4"
-                                    onClick={() => handleFollowLikedUser(like)}
-                                  >
-                                    Unfollow
-                                  </div>
-                                ) : (
-                                  <div
-                                    className="bg-black flex items-center justify-center h-8 text-white text-sm font-bold rounded-full px-4"
-                                    onClick={() => handleFollowLikedUser(like)}
-                                  >
-                                    Follow
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </>
-                        </div>
-                        <div onClick={() => navigate(`/${like.username}`)}>
-                          {user.id === like.uid ? "" : like.bio}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                <LikedBy
+                  postLikes={postLikes}
+                  handleFollowLikedUser={handleFollowLikedUser}
+                />
               </Modal>
               <div className="z-30 sticky top-0 bg-white px-3 py-2 flex items-center">
                 <div className="mr-6">
@@ -559,7 +468,7 @@ const TweetDetails = () => {
                 </div>
               ) : (
                 <div className="flex flex-col space-y-2">
-                  <div className="relative px-2 flex justify-between">
+                  <div className="relative px-2 sm:px-4 flex justify-between">
                     <div className="flex items-center">
                       {post.avatar === null ? (
                         <div className="h-16 w-16 flex items-center justify-center rounded-full bg-white">
@@ -587,7 +496,7 @@ const TweetDetails = () => {
                       </div>
                     </div>
                     {!commentsLoading && (
-                      <div className="absolute top-2 right-2">
+                      <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
                         <MoreButton openModal={() => setMoreModal(true)} />
                       </div>
                     )}
@@ -643,7 +552,7 @@ const TweetDetails = () => {
                   </div>
                   {post.postType === "comment" && (
                     <div
-                      className={`flex px-4 items-center sm:items-start space-x-1
+                      className={`flex px-4 sm:px-7 items-center sm:items-start space-x-1
                       `}
                     >
                       <div className="text-gray-500 text-sm sm:text-base">
@@ -687,8 +596,8 @@ const TweetDetails = () => {
                     </div>
                   )}
 
-                  <div className="text-xl sm:text-2xl px-4">{post.message}</div>
-                  <div className="px-4">
+                  <div className="text-xl sm:text-2xl px-4 sm:px-7 inline-block w-full break-words">{post.message}</div>
+                  <div className="px-4 sm:px-7">
                     {post.media ? (
                       <img
                         className="w-full h-100 rounded-xl"
@@ -702,7 +611,7 @@ const TweetDetails = () => {
                       post.comments?.length === 0 && post.likes.length === 0
                         ? "border-none"
                         : "border-b"
-                    } px-4 pb-2 sm:pb-4`}
+                    } px-4 sm:px-7 pb-2 sm:pb-4`}
                   >
                     <div className="text-gray-500">
                       <Moment unix format="hh:mm A">
@@ -719,7 +628,7 @@ const TweetDetails = () => {
                   </div>
 
                   <div
-                    className={`flex items-center px-4 py-1 sm:py-4 ${
+                    className={`flex items-center px-4 sm:px-7 py-1 sm:py-4 ${
                       post.comments.length > 0 && post.likes.length > 0
                         ? "space-x-4"
                         : ""
@@ -753,7 +662,7 @@ const TweetDetails = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-evenly border-b px-4 sm:py-2">
+                  <div className="flex items-center justify-evenly border-b   sm:py-2">
                     <Tooltip
                       className="hidden sm:flex p-1 rounded-sm text-xs bg-gray-500"
                       placement="bottom"
@@ -792,16 +701,18 @@ const TweetDetails = () => {
                         unmount: { scale: 0, y: 1 },
                       }}
                     >
-                      <div
-                        onClick={handleLikePostDetails}
-                        className={`flex cursor-pointer items-center space-x-3 text-${
-                          isLiked ? "red" : "gray"
-                        }-400`}
-                      >
-                        <HeartIcon
-                          fill={isLiked ? "red" : "transparent"}
-                          className="h-5 w-5 sm:h-7 sm:w-7"
-                        />
+                      <div className="flex items-center group">
+                        <div
+                          onClick={handleLikePostDetails}
+                          className={`sm:group-hover:bg-red-100 sm:h-10 sm:w-10 flex items-center rounded-full justify-center  transition ease-in-out cursor-pointer duration-200 text-${
+                            isLiked ? "red" : "gray"
+                          }-400`}
+                        >
+                          <HeartIcon
+                            fill={isLiked ? "red" : "transparent"}
+                            className="h-5 w-5 sm:h-7 sm:w-7 sm:group-hover:bg-red-100 sm:group-hover:text-red-500 transition ease-in-out cursor-pointer duration-200"
+                          />
+                        </div>
                       </div>
                     </Tooltip>
                     {/* <div className="flex cursor-pointer items-center space-x-3 text-gray-400">
@@ -823,7 +734,7 @@ const TweetDetails = () => {
                     <div
                       className={`relative hidden sm:flex ${
                         !commentDropdown && "items-center"
-                      }  border-b px-2 py-4`}
+                      }  border-b px-2 sm:px-6 py-2`}
                     >
                       <div className="relative mr-2">
                         {user.avatar === null || user.avatar === "" ? (
@@ -866,7 +777,7 @@ const TweetDetails = () => {
                             type="text"
                             ref={textAreaRef}
                             placeholder="Tweet your reply"
-                            className="text-gray-400 text-lg  sm:text-xl outline-none w-full resize-none"
+                            className="text-gray-400 text-lg sm:text-xl outline-none w-full resize-none"
                           />
                           {!commentDropdown && (
                             <button
@@ -924,7 +835,7 @@ const TweetDetails = () => {
                               </div>
                             )}
                             <div
-                              className={`flex justify-between items-center text-blue-400 mt-6 `}
+                              className={`flex justify-between items-center text-blue-400 mt-6 pb-2`}
                             >
                               <div className="relative flex items-center">
                                 <div className="relative cursor-pointer transition-transform duration-150 ease-out hover:scale-125">

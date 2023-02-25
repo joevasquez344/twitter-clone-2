@@ -12,7 +12,7 @@ const TweetReplyTo = ({
   return (
     <div className="flex items-center">
       {postType === "comment" ? (
-        <div className="mr-1 text-gray-500 text-sm sm:text-base z-100">
+        <div className="z-100 mr-1 text-gray-500 text-sm sm:text-base">
           Replying to{" "}
         </div>
       ) : null}
@@ -20,7 +20,7 @@ const TweetReplyTo = ({
         {" "}
         {replyToUsers?.length === 0 && postType === "comment" ? (
           <Tooltip
-            className="p-1 rounded-sm text-xs bg-gray-500"
+            className="p-1 text-xs bg-gray-500 rounded-sm"
             placement="bottom"
             content="Unknown user"
             animate={{
@@ -28,11 +28,11 @@ const TweetReplyTo = ({
               unmount: { scale: 0, y: 1 },
             }}
           >
-            <div className="text-blue-500 cursor-text z-100">user</div>
+            <div className="z-100 text-blue-500 cursor-text">user</div>
           </Tooltip>
         ) : null}
         {handleReplyToUsernames(replyToUsers, post).map((username) => (
-          <div className="tweet__userWhoReplied flex items-center text-blue-500 z-100 bg-white">
+          <div className="tweet__userWhoReplied z-100 flex items-center text-blue-500 bg-white">
             <div
               onClick={() => navigate(`/${username}`)}
               className="mr-1 text-sm sm:text-base sm:hover:underline"
@@ -40,7 +40,7 @@ const TweetReplyTo = ({
             >
               @{username}
             </div>{" "}
-            <div className="username text-sm sm:text-base mr-1">and</div>
+            <div className="mr-1 username text-sm sm:text-base">and</div>
           </div>
         ))}
       </div>

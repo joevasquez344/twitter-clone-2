@@ -62,7 +62,7 @@ const BookmarkButton = forwardRef(
             className="flex items-center group text-gray-400 bookmark__button"
             ref={ref}
           >
-            <div className="w-9 h-9 sm:group-hover:bg-blue-100 flex items-center rounded-full justify-center  transition ease-in-out cursor-pointer duration-200">
+            <div className={'w-9 h-9 sm:group-hover:bg-blue-100 flex items-center rounded-full justify-center  transition ease-in-out cursor-pointer duration-200'}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="transparent"

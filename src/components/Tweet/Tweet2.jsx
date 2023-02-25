@@ -20,6 +20,7 @@ import LastSeen from "../LastSeen";
 import TweetPopup from "./TweetPopup";
 import TweetAvatar from "./TweetAvatar";
 import TweetReplyTo from "./TweetReplyTo";
+import TweetHeader from "./TweetHeader";
 
 const Tweet = ({
   id,
@@ -124,16 +125,16 @@ const Tweet = ({
   const authUsersPost = user.id === uid;
 
   return (
-    <div className="sm:hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200 ">
+    <div className="sm:hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200">
       <div
         className={`${
           isPinned && tweetsFeedActive ? "pt-4 relative" : "relative"
         } ${threadPost && "pb-2 pt-3"}`}
       >
         <div
-          className={`px-2 relative ${
+          className={`relative px-2 sm:px-4 flex overflow-visible ${
             !threadPost ? "pt-2 sm:pb-1 sm:pt-3" : "pt-0"
-          } w-full flex  ${threadPost === true ? "" : "border-b"}`}
+          }   ${threadPost === true ? "" : "border-b"}`}
         >
           <TweetAvatar
             avatar={avatar}
@@ -143,7 +144,7 @@ const Tweet = ({
             isPinned={isPinned}
           />
 
-          <div className="w-full relative">
+          <div className="relative w-full min-w-0 ">
             <MoreButton openModal={openModal} />
             <TweetPopup
               openModal={openModal}
@@ -167,10 +168,10 @@ const Tweet = ({
                   ? null
                   : () => navigate(`/${username}/status/${id}`)
               }
-              className={`ml-3 w-full flex flex-col ${threadPost && "mt-2"}`}
+              className={`${threadPost && "mt-2"} ml-3`}
             >
               {isPinned && tweetsFeedActive ? (
-                <div className="absolute -top-4 flex text-gray-500 font-semibold text-sm">
+                <div className="absolute -top-4 flex text-sm text-gray-500 font-semibold">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -187,21 +188,12 @@ const Tweet = ({
                 </div>
               ) : null}
 
-              <div className=" flex justify-between items-center">
-                <div
-                  ref={topRef}
-                  className={`flex items-center ${isPinned && "mt-1"}`}
-                >
-                  <div className="font-semibold mr-1">{name}</div>
-                  <div className="text-gray-500 text-sm sm:text-base mr-1.5">
-                    @{username}
-                  </div>
-                  <div className="h-0.5 w-0.5 rounded-full bg-gray-500 mr-1.5"></div>
-                  <div className="text-gray-500 text-sm sm:text-base">
-                    <LastSeen date={new Date(timestamp.seconds * 1000)} />
-                  </div>
-                </div>
-              </div>
+              <TweetHeader
+                name={name}
+                username={username}
+                timestamp={timestamp}
+                isPinned={isPinned}
+              />
 
               <TweetReplyTo
                 postType={postType}
@@ -211,19 +203,17 @@ const Tweet = ({
               />
 
               <div
-                ref={midRef}
                 onClick={handleTweetDetails}
-                className="mb-2 inline-block"
+                className="mb-2 inline-block w-full break-words"
               >
                 {message}
               </div>
               {media !== "" ? (
                 <img
-                  ref={midRef}
                   onClick={handleTweetDetails}
                   src={media}
                   alt=""
-                  className="max-w-full ml-0 mb-2 rounded-xl object-cover"
+                  className="ml-0 mb-2 w-full rounded-xl object-cover"
                 />
               ) : null}
             </div>

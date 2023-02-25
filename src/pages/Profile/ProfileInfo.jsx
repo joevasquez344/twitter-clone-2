@@ -31,16 +31,16 @@ const ProfileInfo = () => {
       <div className="flex items-center mb-2">
         <div
           onClick={handleFollowingRoute}
-          className="flex items-center text-sm mr-4 cursor-pointer hover:underline"
+          className="flex items-center mr-4 cursor-pointer hover:underline"
         >
-          <div className="font-semibold mr-1">{following?.length}</div>
+          <div className="font-semibold mr-1 text-sm sm:text-base">{following?.length}</div>
           <div className="text-slate-500 text-xs sm:text-sm">Following</div>
         </div>
         <div
           onClick={handleFollowersRoute}
-          className="flex items-center text-sm cursor-pointer hover:underline"
+          className="flex items-center cursor-pointer hover:underline"
         >
-          <div className="font-semibold mr-1">{followers?.length}</div>
+          <div className="font-semibold text-sm sm:text-base mr-1">{followers?.length}</div>
           <div className="text-slate-500 text-xs sm:text-sm">Followers</div>
         </div>
       </div>

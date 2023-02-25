@@ -15,7 +15,7 @@ const ArrowButton = ({ route }) => {
   return (
     <>
       <Tooltip
-        className="p-1 z-50 rounded-sm text-xs bg-gray-500"
+        className="hidden sm:flex p-1 z-50 rounded-sm text-xs bg-gray-500"
         placement="bottom"
         content="Back"
         animate={{

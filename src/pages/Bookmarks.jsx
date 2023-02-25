@@ -332,7 +332,7 @@ const Bookmarks = () => {
 
               {bookmarks.map((post) => (
                 <div key={post.id}>
-                  <div className="relative px-4 pt-2 sm:pb-1 sm:pt-3 w-full flex hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200 border-b">
+                  <div className="relative px-4 pt-2 sm:pb-1 sm:pt-3 w-full flex overflow-hidden hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200 border-b">
                     {post.commentModal ? (
                       <CommentModal
                         post={post}
@@ -351,7 +351,7 @@ const Bookmarks = () => {
                       isPinned={false}
                     />
 
-                    <div className="ml-3 w-full relative">
+                    <div className="ml-3 w-full relative min-w-0">
                       <MoreButton openModal={() => openModal(post.id)} />
                       <>
                         {post.modal ? (
@@ -402,7 +402,7 @@ const Bookmarks = () => {
                           )}
                         </div>
                       </>
-                      <div onClick={() => routeTweetDetails(post)}>
+                      <div className="" onClick={() => routeTweetDetails(post)}>
                         <div className="flex justify-between items-center">
                           <div className="flex items-center">
                             <div className="font-semibold mr-1">
@@ -452,7 +452,7 @@ const Bookmarks = () => {
 
                         <div
                           onClick={() => routeTweetDetails(post)}
-                          className="mb-2  inline-block"
+                          className=" mb-2 inline-block w-full break-words"
                         >
                           {post.message}
                         </div>

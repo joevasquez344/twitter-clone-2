@@ -29,7 +29,7 @@ const Modal = ({
       )}
       <div
         className={`${
-          modal ? "fixed top-0 right-0 bottom-0 left-0 sm:mt-14   sm:w-1/3 bg-white sm:rounded-xl z-50" : "hidden"
+          modal ? "fixed top-0 right-0 bottom-0 sm:bottom-auto left-0 sm:left-1/3 sm:mt-14   sm:w-1/3 bg-white sm:rounded-xl z-50" : "hidden"
         }`}
       >
         <div className="flex items-center p-3 ">

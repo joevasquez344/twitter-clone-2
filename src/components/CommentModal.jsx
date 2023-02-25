@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useSelector } from "react-redux";
+import useAutosizeTextArea from "../hooks/useAuthsizeTextArea";
 
 import { PhotographIcon, XIcon } from "@heroicons/react/outline";
 import { createComment } from "../utils/api/comments";
@@ -17,13 +18,16 @@ const CommentModal = ({
 }) => {
   const user = useSelector((state) => state.users.user);
 
+
+
   const [input, setInput] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState(null);
   const [selectedImageLoading, setSelectedImageLoading] = useState(false);
 
-  console.log("Selected Image: ", selectedImageLoading);
+  const inputRef = useRef(null);
+  useAutosizeTextArea(inputRef.current, input);
 
   const createPost = async (e) => {
     handleCloseCommentModal();
@@ -125,7 +129,7 @@ const CommentModal = ({
         onClick={handleCloseCommentModal}
         className="bg-black fixed top-0 bottom-0 left-0 right-0 opacity-40 z-50 w-screen h-screen"
       ></div>
-      <div className="fixed top-0 left-0 right-0 bottom-0 sm:w-1/4 sm:left-1/2.5 sm:top-16 z-50 bg-white sm:rounded-xl">
+      <div className="fixed top-0 left-0 right-0 bottom-0 sm:w-1/4 sm:left-1/3 sm:top-16 sm:bottom-auto z-50 bg-white sm:rounded-xl">
         <div className="pl-4 pt-3 mb-3">
           <div className="w-9 h-9 flex justify-center items-center rounded-full hover:bg-gray-200  transition ease-in-out cursor-pointer duration-200">
             <XIcon
@@ -166,13 +170,22 @@ const CommentModal = ({
                 className="mt-8 mb-7"
                 action=""
               >
-                <input
+                <textarea
+                  rows={1}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  type="text"
+                  ref={inputRef}
+                  placeholder="Tweet your reply"
+                  className="text-gray-400 text-lg sm:text-xl outline-none w-full resize-none"
+                />
+                {/* <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   className="text-xl text-gray-900 outline-none"
                   type="text"
                   placeholder="Tweet your reply"
-                />
+                /> */}
                 {selectedImageLoading ? (
                   <Loader />
                 ) : (

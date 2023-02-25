@@ -28,6 +28,7 @@ import Loader from "./Loader";
 import { useEffect } from "react";
 import DefaultAvatar from "./DefaultAvatar";
 import { XIcon } from "@heroicons/react/outline";
+import useAutosizeTextArea from "../hooks/useAuthsizeTextArea";
 
 const TweetBox = ({ setLoading, setGiphyModal }) => {
   const user = useSelector((state) => state.users.user);
@@ -39,6 +40,9 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const inputRef = useRef(null);
+  useAutosizeTextArea(inputRef.current, input);
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -181,30 +185,16 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
             className="mt-8 mb-7"
             action=""
           >
-            <input
-              value={input}
-              onChange={handleInputChange}
-              className="text-md sm:text-xl text-gray-900 outline-none"
-              type="text"
-              placeholder="What's happening?"
-            />
-            {/* {imageUrlBoxIsOpen && (
-              <form className="mt-5 flex rounded-lf bg-blue-400 py-2 px-4 rounded">
-                <input
-                  ref={imageInputRef}
-                  className="flex-1 bg-transparent p-2 text-white outline-none placeholder:text-white"
+                    <textarea
+                  rows={1}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
                   type="text"
-                  placeholder="Enter Image URL..."
+                  ref={inputRef}
+                  placeholder="What's happening?"
+                  className="text-gray-400 text-lg sm:text-xl outline-none w-full resize-none"
                 />
-                <button
-                  type="submit"
-                  onClick={addImageToTweet}
-                  className="font-bold text-white"
-                >
-                  Add Image
-                </button>
-              </form>
-            )} */}
+         
             {selectedImageLoading ? (
               <Loader />
             ) : (
