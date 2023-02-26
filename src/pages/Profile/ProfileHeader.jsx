@@ -8,7 +8,7 @@ const ProfileHeader = ({profile, profilePostsCount}) => {
                 <ArrowButton />
               </div>
               <div>
-                <div className="text-xl font-bold">{profile.name}</div>
+                <div className="text-base sm:text-xl font-bold">{profile.name}</div>
                 <div className="text-sm text-gray-500">
                   {profilePostsCount} Tweets
                 </div>

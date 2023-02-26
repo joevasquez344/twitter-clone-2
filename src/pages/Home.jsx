@@ -34,53 +34,16 @@ const Home = () => {
 
   const posts = useSelector((state) => state.home.posts);
   const user = useSelector((state) => state.users.user);
-  const authId = useSelector((state) => state.users.user.id);
 
-  const profileTweets = useSelector((state) => state.profile.tweets);
-  const profileTweetsAndReplies = useSelector(
-    (state) => state.profile.tweetsAndReplies
-  );
-  const profileMediaTweets = useSelector((state) => state.profile.media);
-  const profileLikedPosts = useSelector((state) => state.profile.likes);
-
-  const [loadingPage] = useState(true);
-  const [loadingUsers, setLoadingUsers] = useState(true);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [input, setInput] = useState("");
-  const [searchInput, setSearchInput] = useState("");
   const [commentDisplay, setCommentDisplay] = useState({});
   const [commentModal, setCommentModal] = useState(false);
-  const [searchModal, setSearchModal] = useState(false);
   const [giphyModal, setGiphyModal] = useState(false);
   const [bookmarks, setBookmarks] = useState([]);
-  const [allUsers, setAllUsers] = useState([]);
-  const [searchedUsers, setSearchedUsers] = useState([]);
+  const [suggestedUsers, setSuggestedUsers] = useState([]);
 
   const handleInputChange = (e) => setInput(e.target.value);
-
-  const handleSearchInput = (e) => {
-    setSearchInput(e.target.value);
-    const searchResults = allUsers.filter(
-      (user) =>
-        user.username.toLowerCase().match(e.target.value.toLowerCase()) ||
-        user.username.toUpperCase().match(e.target.value.toUpperCase()) ||
-        user.name.toUpperCase().match(e.target.value.toUpperCase()) ||
-        user.name.toUpperCase().match(e.target.value.toUpperCase())
-    );
-
-    setSearchedUsers(searchResults);
-  };
-
-  const handleSearchedInputBeforeFetch = (users) => {
-    const searchResults = users.filter(
-      (user) =>
-        user.username.toLowerCase().match(searchInput.toLowerCase()) ||
-        user.username.toUpperCase().match(searchInput.toUpperCase()) ||
-        user.name.toUpperCase().match(searchInput.toUpperCase()) ||
-        user.name.toUpperCase().match(searchInput.toUpperCase())
-    );
-    setSearchedUsers(searchResults);
-  };
 
   const handleOpenCommentModal = (post) => {
     setCommentModal(true);
@@ -89,46 +52,6 @@ const Home = () => {
 
   const handleCloseCommentModal = () => {
     setCommentModal(false);
-  };
-
-  const fetchAllUsers = async () => await getAllUsers();
-
-  const handleOpenSearchModal = async () => {
-    setSearchModal(true);
-    setLoadingUsers(true);
-    let users = await fetchAllUsers();
-
-    setLoadingUsers(false);
-
-    let authFollowing = await getProfileFollowing(user.id);
-
-    users = users.map((user) => {
-      const authFollowsListUser = authFollowing.find(
-        (profile) => profile.id === user.id
-      );
-
-      const listUserFollowsAuth = user.following.find(
-        (profile) => profile.id === authId
-      );
-
-      if (listUserFollowsAuth && authFollowsListUser) {
-        user.display = "You follow each other";
-      } else if (listUserFollowsAuth && !authFollowsListUser) {
-        user.display = "Follows you";
-      } else if (authFollowsListUser && !listUserFollowsAuth) {
-        user.display = "Following";
-      } else {
-        user.display = null;
-      }
-
-      return user;
-    });
-
-    setAllUsers(users);
-  };
-  const handleCloseSearchModal = () => {
-    setSearchModal(false);
-    setSearchInput("");
   };
 
   const getAuthBookmarks = async () => {
@@ -151,7 +74,6 @@ const Home = () => {
   const handleDeletePost = (postId) => dispatch(deletePost(postId, user.id));
   const handleRefreshPost = (postId) => dispatch(refreshPost(postId));
   const handleRefreshPosts = () => {
-    // setLoading(true);
     dispatch(getPosts());
     setLoadingPosts(false);
   };
@@ -159,16 +81,32 @@ const Home = () => {
 
   const handleUnpinPost = async (post) => dispatch(unpinTweet(post, user.id));
 
-  const handleFollowUser = async (post) =>
+  const handleFollowUser = async (post) => {
     dispatch(toggleFollowPostUser(post, user.id));
 
-  // const handleAddBookmark = async (postId, userId) => {
-  //   dispatch(addBookmark(postId, userId));
-  // };
+    const match = post.followers.find((u) => u.id === user.id);
 
-  // const handleRemoveBookmark = async (postId) => {
-  //   dispatch(removeBookmark(postId, user.id));
-  // };
+    if (match) {
+      const updatedSuggested = suggestedUsers.map((u) => {
+        if (u.id === post.uid) {
+          u.followers = u.followers.filter((u) => u.id !== user.id);
+        }
+
+        return u;
+      });
+
+      setSuggestedUsers(updatedSuggested);
+    } else {
+      const updatedSuggested = suggestedUsers.map((u) => {
+        if (u.id === post.uid) {
+          u.followers = [...u.followers, user];
+        }
+
+        return u;
+      });
+      setSuggestedUsers(updatedSuggested);
+    }
+  };
 
   const handleAddBookmark = async (postId) => {
     setBookmarks([...bookmarks, postId]);
@@ -187,10 +125,8 @@ const Home = () => {
   useEffect(() => {
     getAuthBookmarks();
     if (posts.length === 0) fetchPosts();
-    // fetchPosts();
   }, []);
 
-  console.log("All Users: ", allUsers);
   return (
     <div className="">
       {giphyModal ? (
@@ -224,9 +160,11 @@ const Home = () => {
           </div>
         </div>
       )} */}
-      <div className="sticky hidden sm:flex top-20 sm:top-0 bg-white w-full z-40 text-md px-4 py-2 sm:text-xl font-bold sm:p-4">Home</div>{" "}
+      <div className="sticky hidden sm:flex top-20 sm:top-0 bg-white w-full z-40 text-md px-4 py-2 sm:text-xl font-bold sm:p-4">
+        Home
+      </div>{" "}
       <TweetBox setGiphyModal={setGiphyModal} setLoading={setLoadingPosts} />
-      <ProfileSuggestions />
+      <ProfileSuggestions users={suggestedUsers} setUsers={setSuggestedUsers} />
       {loadingPosts ? (
         <Loader />
       ) : (

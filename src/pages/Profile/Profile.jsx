@@ -573,7 +573,7 @@ const Profile = () => {
 
     const postsCount = await getUsersPostsCount(profile.id);
     setPostsCount(postsCount);
-    
+
     setTabs(updatedTabs);
   };
 
@@ -645,15 +645,14 @@ const Profile = () => {
               <div className="relative mb-20">
                 <div className="w-full h-60">
                   <div className="absolute w-full h-60 flex space-x-4 items-center justify-center">
-                    <div className=" opacity-40 z-50 bg-black p-3 rounded-full transition ease-in-out cursor-pointer duration-200">
-                      <div>
-                        <input
-                          onChange={getBannerUrl}
-                          className="absolute opacity-0 w-6 h-6 cursor-pointer"
-                          type="file"
-                        />
-                      </div>
-                      <CameraIcon styles="w-6 h-6 opacity-100 z-50 peer ease-in-out cursor-pointer duration-200" />
+                    <div className="relative opacity-40 z-50 bg-black p-3 rounded-full transition hover:bg-gray-400 peer-hover:opacity-30 ease-in-out cursor-pointer duration-200">
+                      <input
+                        onChange={getBannerUrl}
+                        className="absolute opacity-0 left-0 right-0 bottom-0 top-0 z-50 cursor-pointer"
+                        type="file"
+                      />
+
+                      <CameraIcon styles="w-6 h-6 z-40 peer ease-in-out duration-200" />
                     </div>
                     <XIcon
                       onClick={removeBanner}
@@ -674,15 +673,15 @@ const Profile = () => {
                     </>
                   )}
                 </div>
-                <div className="absolute flex items-center justify-center bg-white z-40 -bottom-16 left-5 rounded-full p-1">
-                  <div className="absolute opacity-40 bg-black p-6 rounded-full peer-hover:opacity-30 transition ease-in-out cursor-pointer duration-200">
+                <div className="absolute flex items-center justify-center bg-white z-50 -bottom-16 left-5 rounded-full p-1">
+                  <div className="absolute opacity-40 z-50 bg-black p-6 rounded-full hover:bg-gray-400 peer-hover:opacity-30 transition ease-in-out cursor-pointer duration-200">
                     <input
                       onChange={getAvatarUrl}
-                      className="absolute opacity-0"
+                      className="absolute cursor-pointer opacity-0 top-0 right-0 left-0 bottom-0 z-50"
                       type="file"
                     />
                   </div>
-                  <CameraIcon styles="w-6 h-6 absolute peer ease-in-out cursor-pointer duration-200" />
+                  <CameraIcon styles="w-6 h-6 z-40 absolute peer ease-in-out cursor-pointer duration-200" />
                   {avatarLoading ? (
                     <Loader />
                   ) : (

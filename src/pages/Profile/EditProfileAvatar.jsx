@@ -15,7 +15,7 @@ const EditProfileAvatar = ({ avatar, avatarUrl, profile }) => {
         <>
           {profile.avatar && profile.avatar !== null ? (
             <div>
-              <div className="bg-black rounded-full absolute top-0 bottom-0 left-0 right-0 opacity-40 z-50 "></div>
+              <div className="bg-black rounded-full absolute top-1 bottom-1 left-1 right-1 opacity-40 z-30 "></div>
 
               <img
                 className="h-32 w-32 object-cover rounded-full"

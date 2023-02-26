@@ -299,7 +299,7 @@ const Bookmarks = () => {
           ) : null}
           <div className="z-50 sticky top-0 bg-white p-4 flex justify-between items-center">
             <div>
-              <div className="text-xl font-bold">Bookmarks</div>
+              <div className="sm:text-xl font-bold">Bookmarks</div>
               <div className="text-sm text-gray-500">@{user.username}</div>
             </div>
             <div className="relative py-2 flex justify-between items-center">
@@ -408,7 +408,7 @@ const Bookmarks = () => {
                             <div className="font-semibold mr-1">
                               {post.name}
                             </div>
-                            <div className="text-gray-500 mr-1.5">
+                            <div className="text-gray-500 text-sm sm:text-base mr-1.5">
                               @{post.username}
                             </div>
                             <div className="h-0.5 w-0.5 rounded-full bg-gray-500 mr-1.5"></div>

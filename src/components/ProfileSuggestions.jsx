@@ -17,9 +17,13 @@ import {
   HIDE_HOME_SUGGESTIONS,
   SHOW_HOME_SUGGESTIONS,
 } from "../redux/users/users.types";
+import {
+  FOLLOW_TWEET_USER,
+  UNFOLLOW_TWEET_USER,
+} from "../redux/home/home.types";
 
-const ProfileSuggestions = () => {
-  const [users, setUsers] = useState([]);
+const ProfileSuggestions = ({users, setUsers}) => {
+  // const [users, setUsers] = useState([]);
   const authUser = useSelector((state) => state.users.user);
 
   const [dropdown, setDropdown] = useState(true);
@@ -62,7 +66,13 @@ const ProfileSuggestions = () => {
         return u;
       });
       setUsers(updatedSuggested);
-
+      dispatch({
+        type: UNFOLLOW_TWEET_USER,
+        payload: {
+          followers: userToFollow.followers.filter((u) => u.id !== authUser.id),
+          uid: userToFollow.id,
+        },
+      });
       await unfollowUser(userToFollow.id, authUser.id);
     } else {
       const updatedSuggested = users.map((u) => {
@@ -73,11 +83,18 @@ const ProfileSuggestions = () => {
         return u;
       });
       setUsers(updatedSuggested);
+      dispatch({
+        type: FOLLOW_TWEET_USER,
+        payload: {
+          followers: [...userToFollow.followers, authUser],
+          uid: userToFollow.id,
+        },
+      });
 
       await followUser(userToFollow.id, authUser.id);
     }
   };
-
+  console.log("Users: ", users);
   const handleUserRoute = (username) => navigate(`/${username}`);
 
   useEffect(() => {
@@ -96,7 +113,7 @@ const ProfileSuggestions = () => {
 
         {dropdown && authUser.homeSuggestions === "open" ? (
           <Tooltip
-            className="p-1 rounded-sm text-xs bg-gray-500"
+            className="hidden sm:flex p-1 rounded-sm text-xs bg-gray-500"
             placement="bottom"
             content="Hide Suggestions"
             animate={{
@@ -110,7 +127,7 @@ const ProfileSuggestions = () => {
           </Tooltip>
         ) : (
           <Tooltip
-            className="p-1 rounded-sm text-xs bg-gray-500"
+            className="hidden sm:flex p-1 rounded-sm text-xs bg-gray-500"
             placement="bottom"
             content="View Suggestions"
             animate={{

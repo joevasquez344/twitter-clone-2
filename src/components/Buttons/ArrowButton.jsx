@@ -25,7 +25,7 @@ const ArrowButton = ({ route }) => {
       >
         <div
           onClick={handleRoute}
-          className="w-9 h-9 flex group items-center justify-center rounded-full hover:bg-gray-200 transition ease-in-out cursor-pointer duration-200"
+          className="w-9 h-9 flex group items-center justify-center rounded-full sm:hover:bg-gray-200 transition ease-in-out cursor-pointer duration-200"
         >
           {" "}
           <svg
