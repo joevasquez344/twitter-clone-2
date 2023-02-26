@@ -211,18 +211,22 @@ export const getSuggestedUsers = async (authUser) => {
   const filter = query(
     ref,
     where("username", "!=", authUser.username),
-    limit(3)
+    limit(10)
   );
 
   const snapshot = await getDocs(filter);
 
-  const users = await Promise.all(
+  let users = await Promise.all(
     snapshot.docs.map(async (doc) => ({
       id: doc.id,
       ...doc.data(),
       followers: await getFollowers(doc.id),
     }))
   );
+
+  users = users.filter((user) => {
+    return !user.followers.find((u) => u.id === authUser.id);
+  });
 
   return users;
 };

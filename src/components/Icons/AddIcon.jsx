@@ -2,7 +2,7 @@ import React from "react";
 
 const AddIcon = () => {
   return (
-    <div className="w-5 h-5 sm:w-9 sm:h-9 flex justify-center items-center rounded-full hover:bg-gray-100  transition ease-in-out cursor-pointer duration-200">
+    <div className="w-5 h-5 sm:w-9 sm:h-9 flex justify-center items-center rounded-full sm:hover:bg-gray-100  transition ease-in-out cursor-pointer duration-200">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
