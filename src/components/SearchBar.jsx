@@ -7,6 +7,7 @@ const SearchBar = ({
   closeModal,
   input,
   inputChange,
+  loadingUsers,
   mobile,
 }) => {
   return (

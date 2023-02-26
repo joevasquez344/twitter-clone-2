@@ -9,7 +9,7 @@ const ProfileTabs = ({ tabs, handleTabs }) => {
           onClick={() => handleTabs(tab.id)}
           className={`w-full relative h-14 flex justify-center  border-b ${
             tab.isActive ? "text-black-500" : "text-gray-500"
-          } font-semibold py-4 hover:bg-gray-200 transition ease-in-out cursor-pointer duration-200 `}
+          } font-semibold py-4 sm:hover:bg-gray-200 transition ease-in-out cursor-pointer duration-200 `}
         >
           <div
             className={` flex ${

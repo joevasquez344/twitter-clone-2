@@ -43,7 +43,9 @@ const Home = () => {
   const profileMediaTweets = useSelector((state) => state.profile.media);
   const profileLikedPosts = useSelector((state) => state.profile.likes);
 
-  const [loading, setLoading] = useState(false);
+  const [loadingPage] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingPosts, setLoadingPosts] = useState(false);
   const [input, setInput] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [commentDisplay, setCommentDisplay] = useState({});
@@ -69,6 +71,17 @@ const Home = () => {
     setSearchedUsers(searchResults);
   };
 
+  const handleSearchedInputBeforeFetch = (users) => {
+    const searchResults = users.filter(
+      (user) =>
+        user.username.toLowerCase().match(searchInput.toLowerCase()) ||
+        user.username.toUpperCase().match(searchInput.toUpperCase()) ||
+        user.name.toUpperCase().match(searchInput.toUpperCase()) ||
+        user.name.toUpperCase().match(searchInput.toUpperCase())
+    );
+    setSearchedUsers(searchResults);
+  };
+
   const handleOpenCommentModal = (post) => {
     setCommentModal(true);
     setCommentDisplay(post);
@@ -82,8 +95,11 @@ const Home = () => {
 
   const handleOpenSearchModal = async () => {
     setSearchModal(true);
-
+    setLoadingUsers(true);
     let users = await fetchAllUsers();
+
+    setLoadingUsers(false);
+
     let authFollowing = await getProfileFollowing(user.id);
 
     users = users.map((user) => {
@@ -110,7 +126,10 @@ const Home = () => {
 
     setAllUsers(users);
   };
-  const handleCloseSearchModal = () => setSearchModal(false);
+  const handleCloseSearchModal = () => {
+    setSearchModal(false);
+    setSearchInput("");
+  };
 
   const getAuthBookmarks = async () => {
     const bookmarkIds = await getBookmarkIds(user.id);
@@ -119,11 +138,11 @@ const Home = () => {
   };
 
   const fetchPosts = async () => {
-    setLoading(true);
+    setLoadingPosts(true);
 
     await dispatch(getPosts());
 
-    setLoading(false);
+    setLoadingPosts(false);
   };
 
   const handleLikePost = (postId) => {
@@ -134,7 +153,7 @@ const Home = () => {
   const handleRefreshPosts = () => {
     // setLoading(true);
     dispatch(getPosts());
-    setLoading(false);
+    setLoadingPosts(false);
   };
   const handlePinPost = async (post) => dispatch(pinTweet(post, user.id));
 
@@ -177,15 +196,20 @@ const Home = () => {
       {giphyModal ? (
         <GiphyModal setGiphyModal={setGiphyModal} fetchGifs={fetchTrending} />
       ) : null}
-      {commentModal ? null : (
+      {/* {commentModal || loadingPosts ? (
+        <div className="h-10 bg-white">
+          <Loader />
+        </div>
+      ) : (
         <div className="hidden sm:flex">
-          <div className="z-40 sticky top-0 bg-white px-5 py-4 flex flex-col justify-center w-full">
+          <div className="z-50 sticky top-0 bg-white px-5 py-4 flex flex-col justify-center w-full">
             <SearchBar
               input={searchInput}
               inputChange={handleSearchInput}
               searchModal={searchModal}
               openModal={handleOpenSearchModal}
               closeModal={handleCloseSearchModal}
+              loadingUsers={loadingUsers}
             />
             <div className="relative">
               <div className="text-xl font-bold">Home</div>{" "}
@@ -193,16 +217,17 @@ const Home = () => {
                 <SearchModal
                   searchedUsers={searchedUsers}
                   input={searchInput}
+                  loadingUsers={loadingUsers}
                 />
               )}
             </div>
           </div>
         </div>
-      )}
-
-      <TweetBox setGiphyModal={setGiphyModal} setLoading={setLoading} />
+      )} */}
+      <div className="sticky hidden sm:flex top-20 sm:top-0 bg-white w-full z-40 text-md px-4 py-2 sm:text-xl font-bold sm:p-4">Home</div>{" "}
+      <TweetBox setGiphyModal={setGiphyModal} setLoading={setLoadingPosts} />
       <ProfileSuggestions />
-      {loading ? (
+      {loadingPosts ? (
         <Loader />
       ) : (
         <>

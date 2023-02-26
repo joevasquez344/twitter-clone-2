@@ -3,10 +3,16 @@ import { useNavigate } from "react-router-dom";
 import DefaultAvatar from "./DefaultAvatar";
 import { UserIcon } from "@heroicons/react/solid";
 
-const SearchModal = ({ input, searchedUsers }) => {
+const SearchModal = ({ input, searchedUsers, closeModal, loadingUsers }) => {
   const navigate = useNavigate();
+  const handleSearchUser = (username) => {
+    navigate(`/${username}`);
+    closeModal();
+  };
   return (
+    <>
     <div className="">
+     
       {input.length === 0 || searchedUsers.length === 0 ? (
         <div className="z-50 flex justify-center pt-3 pb-12 bg-white shadow-lg absolute left-0 top-0 w-full text-gray-500">
           Try searching for people
@@ -15,7 +21,7 @@ const SearchModal = ({ input, searchedUsers }) => {
         <div className="z-50 bg-white shadow-lg absolute left-0 top-0 w-full ">
           {searchedUsers.map((user) => (
             <div
-              onClick={() => navigate(`/${user.username}`)}
+              onClick={() => handleSearchUser(user.username)}
               className="flex p-3 hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200"
               key={user.id}
             >
@@ -38,7 +44,9 @@ const SearchModal = ({ input, searchedUsers }) => {
                   <div className="w-full">
                     <div className="font-bold">{user.name}</div>
 
-                    <div className="text-gray-500 mr-1 text-sm">@{user.username}</div>
+                    <div className="text-gray-500 mr-1 text-sm">
+                      @{user.username}
+                    </div>
                     {user.display !== null ? (
                       <div className="flex items-center text-gray-500 text-sm">
                         <UserIcon className="w-4 h-4 mr-1" />
@@ -56,6 +64,8 @@ const SearchModal = ({ input, searchedUsers }) => {
         </div>
       )}
     </div>
+    </>
+    
   );
 };
 

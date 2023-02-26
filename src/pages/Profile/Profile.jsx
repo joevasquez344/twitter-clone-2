@@ -701,14 +701,16 @@ const Profile = () => {
             <div className="relative mb-12 sm:mb-20">
               <ProfileBanner profile={profile} />
               <ProfileAvatar profile={profile} />
-              <ProfileFollowButton
-                openModal={openModal}
-                fetchProfile={fetchProfile}
-                isFollowing={isFollowing}
-                setIsFollowing={setIsFollowing}
-                setPinnedTweet={setPinnedTweet}
-                pinnedTweet={pinnedTweet}
-              />
+              {!feedLoading && (
+                <ProfileFollowButton
+                  openModal={openModal}
+                  fetchProfile={fetchProfile}
+                  isFollowing={isFollowing}
+                  setIsFollowing={setIsFollowing}
+                  setPinnedTweet={setPinnedTweet}
+                  pinnedTweet={pinnedTweet}
+                />
+              )}
             </div>
 
             <ProfileInfo />

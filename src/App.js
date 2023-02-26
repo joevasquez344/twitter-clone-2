@@ -21,12 +21,16 @@ function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const [loadingUsers, setLoadingUsers] = useState(true);
   const [searchModal, setSearchModal] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
   const [searchedUsers, setSearchedUsers] = useState([]);
   const [searchInput, setSearchInput] = useState("");
 
-  const fetchAllUsers = async () => await getAllUsers();
+  const fetchAllUsers = async () => {
+    await getAllUsers()
+    setLoadingUsers(false);
+  };
 
   const handleSearchInput = (e) => {
     setSearchInput(e.target.value);
@@ -43,6 +47,7 @@ function App() {
 
   const handleOpenSearchModal = async () => {
     setSearchModal(true);
+    setSearchInput("");
 
     let users = await fetchAllUsers();
     let authFollowing = await getProfileFollowing(user.id);
@@ -71,7 +76,9 @@ function App() {
 
     setAllUsers(users);
   };
-  const handleCloseSearchModal = () => setSearchModal(false);
+  const handleCloseSearchModal = () => {
+    setSearchModal(false);
+  };
 
   useEffect(() => {
     const auth = getAuth();
@@ -239,6 +246,7 @@ function App() {
                   searchModal={searchModal}
                   openModal={handleOpenSearchModal}
                   closeModal={handleCloseSearchModal}
+                  loadingUsers={loadingUsers}
                   mobile={true}
                 />
                 <div className="relative">
@@ -248,6 +256,8 @@ function App() {
                       searchedUsers={searchedUsers}
                       input={searchInput}
                       mobile={true}
+                      closeModal={handleCloseSearchModal}
+                      loadingUsers={loadingUsers}
                     />
                   )}
                 </div>
