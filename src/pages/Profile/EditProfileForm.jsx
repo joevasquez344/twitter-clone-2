@@ -48,8 +48,6 @@ const EditProfileForm = ({
         type="date"
         className="border mb-6 p-3 rounded-md"
       />
-
-      <button onClick={handleEditProfile}>Submit</button>
     </form>
   );
 };

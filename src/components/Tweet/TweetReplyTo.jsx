@@ -32,7 +32,7 @@ const TweetReplyTo = ({
           </Tooltip>
         ) : null}
         {handleReplyToUsernames(replyToUsers, post).map((username) => (
-          <div className="tweet__userWhoReplied z-100 flex items-center text-blue-500 bg-white">
+          <div className="tweet__userWhoReplied z-100 flex items-center text-blue-500">
             <div
               onClick={() => navigate(`/${username}`)}
               className="mr-1 text-sm sm:text-base sm:hover:underline"

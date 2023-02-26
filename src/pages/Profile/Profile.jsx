@@ -105,7 +105,6 @@ const Profile = () => {
   console.log("Location: ", loc);
 
   const [bookmarks, setBookmarks] = useState([]);
-  const [profilePostsCount, setProfilePostsCount] = useState(null);
   const [commentDisplay, setCommentDisplay] = useState({});
   const [commentModal, setCommentModal] = useState(false);
   const [birthdayInput, setBirthdayInput] = useState("");
@@ -115,6 +114,7 @@ const Profile = () => {
   const [input, setInput] = useState("");
   const [pinnedTweet, setPinnedTweet] = useState({});
   const [tweetsToRoute, setTweetsToRoute] = useState([]);
+  const [postsCount, setPostsCount] = useState(null);
 
   const [avatar, setAvatar] = useState(null);
   const [avatarLoading, setAvatarLoading] = useState(false);
@@ -341,7 +341,7 @@ const Profile = () => {
 
     if (postId === pinnedTweet.id) setPinnedTweet({});
 
-    dispatch(subtractUsersPostCount());
+    decrementTweetCount();
   };
 
   const handleToggleFollow = async (post) => {
@@ -402,6 +402,7 @@ const Profile = () => {
         comments: [...pinnedTweet.comments, createdComment],
       });
     }
+    incrementTweetCount();
 
     handleCloseCommentModal();
   };
@@ -544,6 +545,17 @@ const Profile = () => {
     return pinnedPost;
   };
 
+  const incrementTweetCount = () => {
+    if (profile.id === user.id) {
+      setPostsCount(postsCount + 1);
+    }
+  };
+  const decrementTweetCount = () => {
+    if (profile.id === user.id) {
+      setPostsCount(postsCount - 1);
+    }
+  };
+
   const getData = async () => {
     getAuthBookmarks();
     const profile = await fetchProfile();
@@ -559,6 +571,9 @@ const Profile = () => {
       return tab;
     });
 
+    const postsCount = await getUsersPostsCount(profile.id);
+    setPostsCount(postsCount);
+    
     setTabs(updatedTabs);
   };
 
@@ -694,10 +709,7 @@ const Profile = () => {
                 birthdayInput={birthdayInput}
               />
             </Modal>
-            <ProfileHeader
-              profile={profile}
-              profilePostCount={profilePostCount}
-            />
+            <ProfileHeader profile={profile} profilePostsCount={postsCount} />
             <div className="relative mb-12 sm:mb-20">
               <ProfileBanner profile={profile} />
               <ProfileAvatar profile={profile} />

@@ -28,8 +28,10 @@ function App() {
   const [searchInput, setSearchInput] = useState("");
 
   const fetchAllUsers = async () => {
-    await getAllUsers()
+    const users = await getAllUsers()
     setLoadingUsers(false);
+
+    return users;
   };
 
   const handleSearchInput = (e) => {
