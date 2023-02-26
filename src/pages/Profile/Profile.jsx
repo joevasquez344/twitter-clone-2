@@ -461,6 +461,7 @@ const Profile = () => {
   };
   const getBannerUrl = (e) => {
     const fileImage = e.target.files[0];
+    console.log('File: ', e.target.files[0])
 
     if (fileImage) {
       setBannerLoading(true);
@@ -487,6 +488,8 @@ const Profile = () => {
         alert(`Error ${err.message}`);
       });
   };
+
+  console.log('Banner URL: ', bannerUrl)
 
   const uploadAvatarToStorage = () => {
     if (avatar === null) return;
@@ -650,6 +653,7 @@ const Profile = () => {
                         onChange={getBannerUrl}
                         className="absolute opacity-0 left-0 right-0 bottom-0 top-0 z-50 cursor-pointer"
                         type="file"
+                        accept="image/png, image/gif, image/jpeg"
                       />
 
                       <CameraIcon styles="w-6 h-6 z-40 peer ease-in-out duration-200" />
@@ -679,6 +683,7 @@ const Profile = () => {
                       onChange={getAvatarUrl}
                       className="absolute cursor-pointer opacity-0 top-0 right-0 left-0 bottom-0 z-50"
                       type="file"
+                      accept="image/png, image/gif, image/jpeg"
                     />
                   </div>
                   <CameraIcon styles="w-6 h-6 z-40 absolute peer ease-in-out cursor-pointer duration-200" />

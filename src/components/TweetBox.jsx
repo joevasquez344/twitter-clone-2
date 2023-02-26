@@ -245,6 +245,7 @@ const TweetBox = ({ setLoading, setGiphyModal }) => {
                   className="w-5 h-5 z-10 opacity-0 absolute top-0 "
                   name="file"
                   type="file"
+                  accept="image/png, image/gif, image/jpeg"
                 />
               </div>
               {/* <SearchCircleIcon

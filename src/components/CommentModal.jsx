@@ -234,6 +234,7 @@ const CommentModal = ({
                     className="w-5 h-5 z-10 opacity-0 absolute top-0 "
                     name="file"
                     type="file"
+                    accept="image/png, image/gif, image/jpeg"
                   />
                   {/* <SearchCircleIcon className="h-5 w-5" />
                   <EmojiHappyIcon className="h-5 w-5" />

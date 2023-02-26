@@ -13,6 +13,7 @@ import DefaultAvatar from "./components/DefaultAvatar";
 import SearchBar from "./components/SearchBar";
 import { getAllUsers, getProfileFollowing } from "./utils/api/users";
 import SearchModal from "./components/SearchModal";
+import TweetModal from "./components/TweetModal";
 
 function App() {
   const user = useSelector((state) => state.users.user);
@@ -22,13 +23,17 @@ function App() {
   const navigate = useNavigate();
 
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [tweetModal, setTweetModal] = useState(false);
   const [searchModal, setSearchModal] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
   const [searchedUsers, setSearchedUsers] = useState([]);
   const [searchInput, setSearchInput] = useState("");
 
+  const handleCloseTweetModal = () => setTweetModal(false);
+  const handleOpenTweetModal = () => setTweetModal(true);
+
   const fetchAllUsers = async () => {
-    const users = await getAllUsers()
+    const users = await getAllUsers();
     setLoadingUsers(false);
 
     return users;
@@ -150,7 +155,7 @@ function App() {
             <div className=" hidden sm:flex sm:col-span-1 md:flex md:col-span-2 lg:flex lg:col-span-2">
               <Sidebar />
             </div>
-            <div className="border-x col-span-9 pb-16 sm:mb-0 sm:col-span-7 sm:border-x md:col-span-7 md:border-x lg:col-span-5 lg:border-x xl:border-x">
+            <div className="relative border-x col-span-9 pb-16 sm:mb-0 sm:col-span-7 sm:border-x md:col-span-7 md:border-x lg:col-span-5 lg:border-x xl:border-x">
               <Routes>
                 {routes.map((route, idx) => (
                   <Route
@@ -163,10 +168,17 @@ function App() {
                   />
                 ))}
               </Routes>
+              <div
+                onClick={handleOpenTweetModal}
+                className="fixed bottom-20 right-3 sm:hidden bg-blue-400 rounded-full flex items-center justify-center p-3"
+              >
+                <i className="fa-solid fa-plus text-white "></i>
+              </div>
             </div>
             <div className="hidden sm:col-span-2 lg:inline px-2 mt-2  overflow-x-hidden">
               <Widgets />
             </div>
+
             <div className=" sm:hidden fixed bottom-0 left-0 right-0 flex items-center justify-evenly h-16 border-t bg-white z-50">
               <div onClick={() => navigate("/home")}>
                 <svg
@@ -266,6 +278,7 @@ function App() {
               </div>
             </>
           )}
+          {tweetModal && <TweetModal closeModal={handleCloseTweetModal} />}
         </>
       ) : (
         <Landing />
