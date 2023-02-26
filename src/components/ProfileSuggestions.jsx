@@ -149,11 +149,11 @@ const ProfileSuggestions = ({users, setUsers}) => {
                 key={user.id}
               >
                 {user.avatar === null ? (
-                  <div className="h-12 w-12 mr-3 flex items-center justify-center rounded-full bg-white z-50">
+                  <div className="h-12 w-12 mr-3 flex items-center justify-center rounded-full bg-white">
                     <DefaultAvatar name={user.name} username={user.username} />
                   </div>
                 ) : (
-                  <div className="h-14 w-14 mr-3 flex items-center justify-center rounded-full bg-white z-50">
+                  <div className="h-14 w-14 mr-3 flex items-center justify-center rounded-full bg-white">
                     <img
                       //   onClick={handleUserDetails}
                       className="h-12 w-12 rounded-full object-cover"
