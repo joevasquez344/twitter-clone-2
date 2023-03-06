@@ -204,7 +204,7 @@ const Tweet = ({
 
               <div
                 onClick={handleTweetDetails}
-                className="mb-2 inline-block w-full break-words text-gray-700"
+              className={`mb-2 w-full break-words text-gray-700`}
               >
                 {message}
               </div>
@@ -213,7 +213,7 @@ const Tweet = ({
                   onClick={handleTweetDetails}
                   src={media}
                   alt=""
-                  className="ml-0 mb-2 w-full rounded-xl object-cover"
+                  className={`ml-0 mb-2 w-full rounded-xl object-cover`}
                 />
               ) : null}
             </div>

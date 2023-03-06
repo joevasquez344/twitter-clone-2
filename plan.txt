@@ -68,11 +68,11 @@ x Fix pinned tweet display on Profile Page (Clickin unpin the first time doesn't
   x Implement ability to comment an Image on Tweet Details post
   - Update Loader on Edit Avatar
   x Implement the new component Buttons on each tweet's footer in Bookmarks Screen
-  - Handle Edit Profile Banner and Avatar Selected Images that are not valid and display the "alt" attribute value
-  - Unfollowing/following a suggested user does not update the the tweet user in the feed accordingly and vice versa
+  x Handle Edit Profile Banner and Avatar Selected Images that are not valid and display the "alt" attribute value
+  x Unfollowing/following a suggested user does not update the the tweet user in the feed accordingly and vice versa
   x On Profile Screen, when unfollowing the profile via a non-pinned post or profile follow button (top right), the pinned post is not updated based on this interaction
 
-- Implement Mobile scaling
+x Implement Mobile scaling
 
 x Redesign/Update Portfolio (Make sure to add UCI Bootcamp digital certification badges, Github link, Linkdin link, etc.)
 x Add Twitter Clone to Portfolio

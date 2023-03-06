@@ -132,34 +132,7 @@ const Home = () => {
       {giphyModal ? (
         <GiphyModal setGiphyModal={setGiphyModal} fetchGifs={fetchTrending} />
       ) : null}
-      {/* {commentModal || loadingPosts ? (
-        <div className="h-10 bg-white">
-          <Loader />
-        </div>
-      ) : (
-        <div className="hidden sm:flex">
-          <div className="z-50 sticky top-0 bg-white px-5 py-4 flex flex-col justify-center w-full">
-            <SearchBar
-              input={searchInput}
-              inputChange={handleSearchInput}
-              searchModal={searchModal}
-              openModal={handleOpenSearchModal}
-              closeModal={handleCloseSearchModal}
-              loadingUsers={loadingUsers}
-            />
-            <div className="relative">
-              <div className="text-xl font-bold">Home</div>{" "}
-              {searchModal && (
-                <SearchModal
-                  searchedUsers={searchedUsers}
-                  input={searchInput}
-                  loadingUsers={loadingUsers}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      )} */}
+
       <div className="sticky hidden sm:flex top-20 sm:top-0 bg-white w-full z-40 text-md px-4 py-2 sm:text-xl font-bold sm:p-4">
         Home
       </div>{" "}

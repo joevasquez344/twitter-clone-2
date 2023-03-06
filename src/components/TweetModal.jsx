@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { PhotographIcon, XIcon } from "@heroicons/react/outline";
 import { storage } from "../firebase/config";
 import { ref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
+import { useNavigate } from "react-router-dom";
 import Loader from "./Loader";
 import {
   collection,
@@ -20,10 +21,12 @@ import { db } from "../firebase/config";
 import { createTweet, getPosts } from "../redux/home/home.actions";
 import useAutosizeTextArea from "../hooks/useAuthsizeTextArea";
 import { useRef } from "react";
+import DefaultAvatar from "./DefaultAvatar";
 
 const TweetModal = ({ closeModal }) => {
   const authUser = useSelector((state) => state.users.user);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [input, setInput] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
@@ -136,18 +139,41 @@ const TweetModal = ({ closeModal }) => {
 
         <div className="px-5 pb-5">
           <div className="flex w-full">
-            <img
-              className="h-12 w-12 rounded-full object-cover mt-4"
-              src="https://picsum.photos/200"
-              alt="Profile Image"
-            />
+            {authUser.avatar === "" || authUser.avatar === null ? (
+              <div className="relative h-full mt-4">
+                <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center z-40">
+                  <div className="h-12 w-12 rounded-full flex justify-center items-center">
+                    <DefaultAvatar
+                      name={authUser.name}
+                      username={authUser.username}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="relative h-full mt-4">
+                <div
+                  onClick={() => navigate(`/${authUser.username}`)}
+                  className="h-16 w-16 rounded-full bg-white flex items-center justify-center z-40 cursor-pointer"
+                >
+                  <div className="h-12 w-12 rounded-full flex justify-center items-center">
+                    <img
+                      // onClick={handleUserDetails}
+                      src={authUser.avatar}
+                      alt="Profile Image"
+                      className={` object-cover h-12 w-12 rounded-full`}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="ml-3 w-full">
               <form
                 onSubmit={(e) => e.preventDefault()}
                 className="mt-8 mb-7"
                 action=""
               >
-                        <textarea
+                <textarea
                   rows={1}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}

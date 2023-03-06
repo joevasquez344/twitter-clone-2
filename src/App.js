@@ -99,7 +99,7 @@ function App() {
         navigate("/");
       }
     });
-  }, []);
+  }, [user]);
 
   return (
     <div className="bg-white">
@@ -170,9 +170,9 @@ function App() {
               </Routes>
               <div
                 onClick={handleOpenTweetModal}
-                className="fixed bottom-20 right-3 sm:hidden bg-blue-400 rounded-full flex items-center justify-center p-3"
+                className="fixed bottom-20 right-3 sm:hidden bg-blue-400 rounded-full flex items-center justify-center w-12 h-12"
               >
-                <i className="fa-solid fa-plus text-white "></i>
+                <i className="fa-solid fa-plus text-white"></i>
               </div>
             </div>
             <div className="hidden sm:col-span-2 lg:inline px-2 mt-2  overflow-x-hidden">
@@ -187,7 +187,7 @@ function App() {
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className="w-6 h-6"
+                  className="w-6 h-6 text-gray-500"
                 >
                   <path
                     strokeLinecap="round"
@@ -203,7 +203,7 @@ function App() {
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className="w-6 h-6"
+                  className="w-6 h-6 text-gray-500"
                 >
                   <path
                     strokeLinecap="round"
@@ -220,7 +220,7 @@ function App() {
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className="w-6 h-6"
+                  className="w-6 h-6 text-gray-500"
                 >
                   <path
                     strokeLinecap="round"
@@ -236,7 +236,7 @@ function App() {
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className="w-6 h-6"
+                  className="w-6 h-6 text-gray-500"
                 >
                   <path
                     strokeLinecap="round"

@@ -461,7 +461,7 @@ const Profile = () => {
   };
   const getBannerUrl = (e) => {
     const fileImage = e.target.files[0];
-    console.log('File: ', e.target.files[0])
+    console.log("File: ", e.target.files[0]);
 
     if (fileImage) {
       setBannerLoading(true);
@@ -489,7 +489,7 @@ const Profile = () => {
       });
   };
 
-  console.log('Banner URL: ', bannerUrl)
+  console.log("Banner URL: ", bannerUrl);
 
   const uploadAvatarToStorage = () => {
     if (avatar === null) return;
@@ -678,6 +678,14 @@ const Profile = () => {
                   )}
                 </div>
                 <div className="absolute flex items-center justify-center bg-white z-50 -bottom-16 left-5 rounded-full p-1">
+                  {avatarLoading && (
+                    <div className="absolute left-2 right-0 top-0 bottom-5 rounded-full">
+                      <div className="w-full h-full flex justify-center items-center">
+                      <Loader />
+                      </div>
+                      
+                    </div>
+                  )}
                   <div className="absolute opacity-40 z-50 bg-black p-6 rounded-full sm:hover:bg-gray-400 sm:peer-hover:opacity-30 transition ease-in-out cursor-pointer duration-200">
                     <input
                       onChange={getAvatarUrl}
@@ -687,15 +695,22 @@ const Profile = () => {
                     />
                   </div>
                   <CameraIcon styles="w-6 h-6 z-40 absolute peer ease-in-out cursor-pointer duration-200" />
-                  {avatarLoading ? (
-                    <Loader />
+                  {/* {avatarLoading ? (
+                    <div className="absolute">
+                      <Loader />
+                    </div>
                   ) : (
                     <EditProfileAvatar
                       avatar={avatar}
                       avatarUrl={avatarUrl}
                       profile={profile}
                     />
-                  )}
+                  )} */}
+                  <EditProfileAvatar
+                    avatar={avatar}
+                    avatarUrl={avatarUrl}
+                    profile={profile}
+                  />
                 </div>
               </div>
               <EditProfileForm
@@ -750,7 +765,7 @@ const Profile = () => {
                 />
               )}
 
-              <RefreshBar activeTab={activeTab} />
+              {/* <RefreshBar activeTab={activeTab} /> */}
 
               {feedMessage == null ||
               (pinnedTweet?.id && activeTab.text === "Tweets") ? null : (
