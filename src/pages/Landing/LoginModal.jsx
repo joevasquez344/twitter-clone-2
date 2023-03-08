@@ -38,16 +38,16 @@ const LoginModal = ({ closeModal }) => {
             <input
               value={password}
               onChange={handlePasswordChange}
-              type="text"
+              type="password"
               placeholder="Password"
               className="border rounded-md p-2"
             />
 
             <button
-              className="bg-gray-400 m-auto w-2/3 p-3 rounded-full text-white"
+              className="bg-gray-400 mx-auto w-full p-3 md:w-1/3 lg:w-1/2 xl:w-1/3 rounded-full text-white"
               onClick={handleLogin}
             >
-              Sign Up
+              Sign In
             </button>
           </div>
         </div>

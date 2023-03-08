@@ -294,7 +294,7 @@ const Bookmarks = () => {
           {modal ? (
             <div
               onClick={() => setModal(false)}
-              className="bg-transparent cursor-default fixed top-0 bottom-0 left-0 right-0 opacity-40 w-screen h-screen z-50"
+              className="bg-transparent cursor-default fixed top-0 bottom-0 left-0 right-0 opacity-40 w-screen h-screen z-40"
             ></div>
           ) : null}
           <div className="z-40 sticky top-0 bg-white p-4 flex justify-between items-center">
@@ -316,7 +316,7 @@ const Bookmarks = () => {
               onClick={clearAllBookmarks}
               className={`${
                 modal
-                  ? "flex flex-col absolute right-3 top-3 bg-white shadow-lg border rounded-lg z-50 text-red-600 p-4 hover:bg-neutral-50 transition ease-in-out cursor-pointer duration-200"
+                  ? "flex flex-col absolute right-3 top-3 bg-white shadow-lg border rounded-lg z-40 text-red-600 p-4 hover:bg-neutral-50 transition ease-in-out cursor-pointer duration-200"
                   : "hidden"
               }`}
             >

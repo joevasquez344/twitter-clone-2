@@ -92,8 +92,7 @@ function App() {
     onAuthStateChanged(auth, (userCredentials) => {
       if (userCredentials) {
         dispatch(loadUser(userCredentials.uid));
-
-        if (location.pathname === "/") navigate("/home");
+        navigate("/home");
       } else {
         dispatch(logout());
         navigate("/");

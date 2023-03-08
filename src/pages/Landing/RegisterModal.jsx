@@ -90,7 +90,7 @@ const RegisterModal = ({ closeModal }) => {
             <input
               value={password}
               onChange={handlePasswordChange}
-              type="text"
+              type="password"
               placeholder="Password"
               className="border rounded-md p-2"
             />
@@ -128,14 +128,14 @@ const RegisterModal = ({ closeModal }) => {
               placeholder="Location"
               className="border rounded-md p-2"
             />
+            <button
+              className="bg-gray-400 mx-auto w-full  md:w-1/3 lg:w-1/2 xl:w-1/3 p-3 rounded-full text-white"
+              onClick={handleRegister}
+            >
+              Sign Up
+            </button>
           </div>
 
-          <button
-            className="bg-gray-400 m-auto w-2/3 p-3 rounded-full text-white"
-            onClick={handleRegister}
-          >
-            Sign Up
-          </button>
           {error !== null && (
             <div className="mt-5 text-red-500 font-bold">{error}</div>
           )}

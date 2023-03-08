@@ -31,10 +31,6 @@ const DefaultAvatar = ({
     textSize = "2xl";
   }
 
-
-
-console.log(textSize)
-
   return (
     <div
       onClick={handleUserDetails}

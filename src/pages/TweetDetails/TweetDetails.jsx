@@ -735,7 +735,7 @@ const TweetDetails = () => {
                   >
                     <div className="relative mr-2">
                       {user.avatar === null || user.avatar === "" ? (
-                        <div className="absolute top-0 h-full">
+                        <div className=" h-full">
                           <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center z-40">
                             <div className="h-12 w-12 rounded-full flex justify-center items-center">
                               <DefaultAvatar
