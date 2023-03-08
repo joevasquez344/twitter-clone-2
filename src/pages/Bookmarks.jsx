@@ -297,7 +297,7 @@ const Bookmarks = () => {
               className="bg-transparent cursor-default fixed top-0 bottom-0 left-0 right-0 opacity-40 w-screen h-screen z-50"
             ></div>
           ) : null}
-          <div className="z-50 sticky top-0 bg-white p-4 flex justify-between items-center">
+          <div className="z-40 sticky top-0 bg-white p-4 flex justify-between items-center">
             <div>
               <div className="sm:text-xl font-bold">Bookmarks</div>
               <div className="text-sm text-gray-500">@{user.username}</div>

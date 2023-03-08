@@ -17,6 +17,9 @@ const ProfileAvatar = ({ profile }) => {
           height="32"
           width="32"
           textSize="4xl"
+          mobileHeight="16"
+          mobileWidth="16"
+          mobileTextSize="2xl"
         />
       )}
     </div>

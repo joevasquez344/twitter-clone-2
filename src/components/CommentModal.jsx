@@ -132,11 +132,11 @@ const CommentModal = ({
       ></div>
       <div className="fixed top-0 left-0 right-0 bottom-0 sm:w-1/4 sm:left-1/3 sm:top-16 sm:bottom-auto z-50 bg-white sm:rounded-xl">
         <div className="pl-4 pt-3 mb-3">
-          <div className="w-9 h-9 flex justify-center items-center rounded-full hover:bg-gray-200  transition ease-in-out cursor-pointer duration-200">
-            <XIcon
-              onClick={handleCloseCommentModal}
-              className="w-5 h-5 cursor-pointer"
-            />
+          <div
+            onClick={handleCloseCommentModal}
+            className="w-9 h-9 flex justify-center items-center rounded-full hover:bg-gray-200  transition ease-in-out cursor-pointer duration-200"
+          >
+            <XIcon className="w-5 h-5 cursor-pointer" />
           </div>
         </div>
         <div className="px-3">

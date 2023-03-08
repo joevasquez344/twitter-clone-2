@@ -99,7 +99,7 @@ function App() {
         navigate("/");
       }
     });
-  }, [user]);
+  }, []);
 
   return (
     <div className="bg-white">

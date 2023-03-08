@@ -6,7 +6,7 @@ import {
   BookmarkIcon,
   ColorSwatchIcon,
   HashtagIcon,
-  SearchIcon
+  SearchIcon,
 } from "@heroicons/react/outline";
 
 import SidebarRow from "../components/SidebarRow";
@@ -35,10 +35,9 @@ const Sidebar = () => {
   const [searchInput, setSearchInput] = useState("");
 
   const fetchAllUsers = async () => {
-    const users = await getAllUsers()
+    const users = await getAllUsers();
 
     return users;
- 
   };
 
   const handleSearchInput = (e) => {
@@ -59,7 +58,7 @@ const Sidebar = () => {
     setSearchInput("");
 
     let users = await fetchAllUsers();
-    console.log("users: ", users)
+    console.log("users: ", users);
     let authFollowing = await getProfileFollowing(user.id);
 
     users = users.map((user) => {
@@ -90,7 +89,6 @@ const Sidebar = () => {
     setSearchModal(false);
   };
 
-
   const handleOpenTweetModal = () => setTweetModal(true);
 
   const handleCloseTweetModal = () => setTweetModal(false);
@@ -104,9 +102,9 @@ const Sidebar = () => {
 
   return (
     <>
-      <div className="flex flex-col items-center fixed md:items-start lg:items-start">
+      <div className="flex flex-col ml-4 md:ml-0 fixed md:items-start ">
         <img
-          className="mt-6 ml-4 h-8 w-8"
+          className="mt-6 mx-auto md:mx-0 md:ml-4 h-8 w-8"
           src="https://links.papareact.com/drq"
           alt=""
         />
@@ -120,8 +118,11 @@ const Sidebar = () => {
             title="Home"
           />
         </div>
-      
-        <div onClick={handleOpenSearchModal} className="w-full flex justify-center md:justify-start mt-2">
+
+        <div
+          onClick={handleOpenSearchModal}
+          className="w-full flex justify-center md:justify-start mt-2"
+        >
           <SidebarRow Icon={SearchIcon} title="Search" />
         </div>
 
@@ -163,8 +164,14 @@ const Sidebar = () => {
           className="w-full flex justify-center md:justify-start mt-4"
           onClick={handleOpenTweetModal}
         >
-          <div className="bg-blue-400 text-white font-bold w-full text-center text-lg rounded-full py-3 cursor-pointer ">
+          <div className="hidden md:flex items-center justify-center bg-blue-400 text-white font-bold w-full text-center text-lg rounded-full py-3 cursor-pointer">
             Tweet
+          </div>
+          <div
+            onClick={handleOpenTweetModal}
+            className=" bg-blue-400 rounded-full flex md:hidden items-center justify-center w-12 h-12"
+          >
+            <i className="fa-solid fa-plus text-white"></i>
           </div>
         </div>
       </div>
