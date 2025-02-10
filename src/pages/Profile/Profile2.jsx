@@ -53,11 +53,7 @@ import {
   fetchProfileTweetsAndReplies,
   getBookmarks,
   getComments,
-  getLikes,
-  getUsersPostsCount,
 } from "../../utils/api/posts";
-import DefaultAvatar from "../../components/DefaultAvatar";
-import ArrowButton from "../../components/Buttons/ArrowButton";
 import EditProfileBanner from "./EditProfileBanner";
 import EditProfileAvatar from "./EditProfileAvatar";
 import EditProfileForm from "./EditProfileForm";

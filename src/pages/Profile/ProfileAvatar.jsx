@@ -1,5 +1,6 @@
 import React from "react";
-import DefaultAvatar from "../../components/DefaultAvatar";
+import DefaultAvatarLarge from "../../components/DefaultAvatarLarge";
+
 
 const ProfileAvatar = ({ profile }) => {
   return (
@@ -11,15 +12,10 @@ const ProfileAvatar = ({ profile }) => {
           alt="Avatar"
         />
       ) : (
-        <DefaultAvatar
+        <DefaultAvatarLarge
           name={profile.name}
           username={profile.username}
-          height="32"
-          width="32"
-          textSize="4xl"
-          mobileHeight="16"
-          mobileWidth="16"
-          mobileTextSize="2xl"
+   
         />
       )}
     </div>
