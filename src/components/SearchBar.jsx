@@ -2,7 +2,7 @@ import React from "react";
 import { SearchIcon } from "@heroicons/react/outline";
 
 const SearchBar = ({
-  searchModal,
+  modal,
   openModal,
   closeModal,
   input,
@@ -12,7 +12,7 @@ const SearchBar = ({
 }) => {
   return (
     <>
-      {searchModal && !mobile ? (
+      {modal && !mobile ? (
         <div
           onClick={closeModal}
           className="fixed left-0 top-0 w-screen h-screen z-40"

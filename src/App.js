@@ -16,6 +16,7 @@ import TweetModal from "./components/TweetModal";
 import MobileHeader from "./layout/MobileHeader";
 import MobileTweetButton from "./layout/MobileTweetButton";
 import MobileNavbar from "./layout/MobileNavbar";
+import UserSearchContainer from "./layout/UserSearchContainer";
 
 function App() {
   const user = useSelector((state) => state.users.user);
@@ -23,7 +24,6 @@ function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [loadingUsers, setLoadingUsers] = useState(true);
   const [tweetModal, setTweetModal] = useState(false);
   const [searchModal, setSearchModal] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
@@ -32,61 +32,6 @@ function App() {
 
   const handleCloseTweetModal = () => setTweetModal(false);
   const handleOpenTweetModal = () => setTweetModal(true);
-
-  const fetchAllUsers = async () => {
-    const users = await getAllUsers();
-    setLoadingUsers(false);
-
-    return users;
-  };
-
-  const handleSearchInput = (e) => {
-    setSearchInput(e.target.value);
-    const searchResults = allUsers.filter(
-      (user) =>
-        user.username.toLowerCase().match(e.target.value.toLowerCase()) ||
-        user.username.toUpperCase().match(e.target.value.toUpperCase()) ||
-        user.name.toUpperCase().match(e.target.value.toUpperCase()) ||
-        user.name.toUpperCase().match(e.target.value.toUpperCase())
-    );
-
-    setSearchedUsers(searchResults);
-  };
-
-  const handleOpenSearchModal = async () => {
-    setSearchModal(true);
-    setSearchInput("");
-
-    let users = await fetchAllUsers();
-    let authFollowing = await getProfileFollowing(user.id);
-
-    users = users.map((user) => {
-      const authFollowsListUser = authFollowing.find(
-        (profile) => profile.id === user.id
-      );
-
-      const listUserFollowsAuth = user.following.find(
-        (profile) => profile.id === user.id
-      );
-
-      if (listUserFollowsAuth && authFollowsListUser) {
-        user.display = "You follow each other";
-      } else if (listUserFollowsAuth && !authFollowsListUser) {
-        user.display = "Follows you";
-      } else if (authFollowsListUser && !listUserFollowsAuth) {
-        user.display = "Following";
-      } else {
-        user.display = null;
-      }
-
-      return user;
-    });
-
-    setAllUsers(users);
-  };
-  const handleCloseSearchModal = () => {
-    setSearchModal(false);
-  };
 
   useEffect(() => {
     const auth = getAuth();
@@ -107,6 +52,7 @@ function App() {
         <>
           <MobileHeader />
           <MobileTweetButton openModal={handleOpenTweetModal} />
+          <MobileNavbar openModal={() => setSearchModal(true)} />
 
           <div className="w-full grid grid-cols-9 mx-auto lg:max-w-6xl h-screen">
             <div className="hidden sm:flex sm:col-span-1 md:flex md:col-span-2 lg:flex lg:col-span-2">
@@ -129,40 +75,8 @@ function App() {
             <div className="hidden sm:col-span-2 lg:inline px-2 mt-2  overflow-x-hidden">
               <Widgets />
             </div>
-
-            <MobileNavbar openModal={() => setSearchModal(true)} />
           </div>
-          {searchModal && (
-            <>
-              <div
-                onClick={() => setSearchModal(false)}
-                className="fixed left-0 top-0 bottom-0 right-0 z-50"
-              ></div>
-              <div className="inline sm:hidden fixed top-16 left-0 right-0 bg-white z-50 mx-4">
-                <SearchBar
-                  input={searchInput}
-                  inputChange={handleSearchInput}
-                  searchModal={searchModal}
-                  openModal={handleOpenSearchModal}
-                  closeModal={handleCloseSearchModal}
-                  loadingUsers={loadingUsers}
-                  mobile={true}
-                />
-                <div className="relative">
-                  <div className="text-xl font-bold">Home</div>{" "}
-                  {searchModal && (
-                    <SearchModal
-                      searchedUsers={searchedUsers}
-                      input={searchInput}
-                      mobile={true}
-                      closeModal={handleCloseSearchModal}
-                      loadingUsers={loadingUsers}
-                    />
-                  )}
-                </div>
-              </div>
-            </>
-          )}
+          {searchModal && <UserSearchContainer />}
           {tweetModal && <TweetModal closeModal={handleCloseTweetModal} />}
         </>
       ) : (
