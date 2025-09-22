@@ -9,6 +9,7 @@ import FollowersAndFollowing from "./pages/FollowersAndFollowing";
 import Bookmarks from "./pages/Bookmarks";
 import PostDetails from "./pages/PostDetails";
 import { getPosts } from "./redux/home/home.actions";
+import Explore from "./pages/Explore/Explore";
 
 const routes = [
   // TODO: move new routes to separate section
@@ -77,6 +78,14 @@ const routes = [
     component: Bookmarks,
     private: true,
   },
+  {
+    path: "/explore",
+    exact: true,
+    name: "Explore",
+    component: Explore,
+    private: true,
+  },
+
 
   // {   path: "/CreateNewPlan",   exact: true,   name: "NewPlan", component:
   // NewPlan, },

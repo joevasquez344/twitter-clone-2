@@ -94,6 +94,7 @@ const Sidebar = () => {
   const handleCloseTweetModal = () => setTweetModal(false);
 
   const handleHomeNavigation = () => navigate("/home");
+  const handleExploreNavigation = () => navigate("/explore");
   const handleProfileNavigation = () =>
     navigate(`/${user.username}`, { state: { userId: user.id } });
   const handleBookmarksNavigation = () => navigate("/bookmarks");
@@ -124,6 +125,12 @@ const Sidebar = () => {
           className="w-full flex justify-center md:justify-start mt-2"
         >
           <SidebarRow Icon={SearchIcon} title="Search" />
+        </div>
+        <div
+          onClick={handleExploreNavigation}
+          className="w-full flex justify-center md:justify-start mt-2"
+        >
+          <SidebarRow bold={location.pathname === "/explore" ? true : false} Icon={SearchIcon} title="Explore" />
         </div>
 
         {/* <SidebarRow Icon={HashtagIcon} title="Explore" />
