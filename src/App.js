@@ -17,6 +17,7 @@ import MobileHeader from "./layout/MobileHeader";
 import MobileTweetButton from "./layout/MobileTweetButton";
 import MobileNavbar from "./layout/MobileNavbar";
 import UserSearchContainer from "./layout/UserSearchContainer";
+import AppContainer from "./layout/AppContainer";
 
 function App() {
   const user = useSelector((state) => state.users.user);
@@ -24,14 +25,6 @@ function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [tweetModal, setTweetModal] = useState(false);
-  const [searchModal, setSearchModal] = useState(false);
-  const [allUsers, setAllUsers] = useState([]);
-  const [searchedUsers, setSearchedUsers] = useState([]);
-  const [searchInput, setSearchInput] = useState("");
-
-  const handleCloseTweetModal = () => setTweetModal(false);
-  const handleOpenTweetModal = () => setTweetModal(true);
 
   useEffect(() => {
     const auth = getAuth();
@@ -49,36 +42,38 @@ function App() {
   return (
     <>
       {user ? (
-        <>
-          <MobileHeader />
-          <MobileTweetButton openModal={handleOpenTweetModal} />
-          <MobileNavbar openModal={() => setSearchModal(true)} />
 
-          <div className="w-full grid grid-cols-9 mx-auto lg:max-w-6xl h-screen">
-            <div className="hidden sm:flex sm:col-span-1 md:flex md:col-span-2 lg:flex lg:col-span-2">
-              <Sidebar />
-            </div>
-            <div className="relative border-x col-span-9 pb-16 sm:mb-0 sm:col-span-7 sm:border-x md:col-span-7 md:border-x lg:col-span-5 lg:border-x xl:border-x">
-              <Routes>
-                {routes.map((route, idx) => (
-                  <Route
-                    key={idx}
-                    exact={route.exact}
-                    path={route.path}
-                    name={route.name}
-                    fetchData={() => dispatch(route.fetchData())}
-                    element={<route.component />}
-                  />
-                ))}
-              </Routes>
-            </div>
-            <div className="hidden sm:col-span-2 lg:inline px-2 mt-2  overflow-x-hidden">
-              <Widgets />
-            </div>
-          </div>
-          {searchModal && <UserSearchContainer />}
-          {tweetModal && <TweetModal closeModal={handleCloseTweetModal} />}
-        </>
+        <AppContainer />
+        // <>
+        //   <MobileHeader />
+        //   <MobileTweetButton openModal={handleOpenTweetModal} />
+        //   <MobileNavbar openModal={() => setSearchModal(true)} />
+
+        //   <div className="w-full grid grid-cols-9 mx-auto lg:max-w-6xl h-screen">
+        //     <div className="hidden sm:flex sm:col-span-1 md:flex md:col-span-2 lg:flex lg:col-span-2">
+        //       <Sidebar />
+        //     </div>
+        //     <div className="relative border-x col-span-9 pb-16 sm:mb-0 sm:col-span-7 sm:border-x md:col-span-7 md:border-x lg:col-span-5 lg:border-x xl:border-x">
+        //       <Routes>
+        //         {routes.map((route, idx) => (
+        //           <Route
+        //             key={idx}
+        //             exact={route.exact}
+        //             path={route.path}
+        //             name={route.name}
+        //             fetchData={() => dispatch(route.fetchData())}
+        //             element={<route.component />}
+        //           />
+        //         ))}
+        //       </Routes>
+        //     </div>
+        //     <div className="hidden sm:col-span-2 lg:inline px-2 mt-2  overflow-x-hidden">
+        //       <Widgets />
+        //     </div>
+        //   </div>
+        //   {searchModal && <UserSearchContainer />}
+        //   {tweetModal && <TweetModal closeModal={handleCloseTweetModal} />}
+        // </>
       ) : (
         <Landing />
       )}
