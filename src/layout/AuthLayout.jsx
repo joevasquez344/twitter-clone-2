@@ -1,20 +1,20 @@
 import React from 'react'
 
 import { Route, Routes } from "react-router-dom";
-import Sidebar from "../layout/Sidebar";
-import Widgets from "../layout/Widgets";
+import Sidebar from "./Sidebar";
+import Widgets from "./Widgets";
 import routes from "../routes";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 
 import TweetModal from "../components/TweetModal";
-import MobileHeader from "../layout/MobileHeader";
-import MobileTweetButton from "../layout/MobileTweetButton";
-import MobileNavbar from "../layout/MobileNavbar";
-import UserSearchContainer from "../layout/UserSearchContainer";
+import MobileHeader from "./MobileHeader";
+import MobileTweetButton from "./MobileTweetButton";
+import MobileNavbar from "./MobileNavbar";
+import UserSearchContainer from "./UserSearchContainer";
 
 
-const AppContainer = () => {
+const AuthLayout = () => {
 
   const dispatch = useDispatch();
 
@@ -58,4 +58,4 @@ const AppContainer = () => {
   )
 }
 
-export default AppContainer
+export default AuthLayout
