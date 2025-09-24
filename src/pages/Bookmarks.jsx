@@ -330,12 +330,11 @@ const Bookmarks = () => {
                 {notification !== null ? notification : null}
               </div>
 
-              {bookmarks.map((post, idx) => (
+              {bookmarks.map((post) => (
                 <div key={post.id}>
                   <div className="relative px-4 pt-2 sm:pb-1 sm:pt-3 w-full flex overflow-hidden hover:bg-gray-50 transition ease-in-out cursor-pointer duration-200 border-b">
                     {post.commentModal ? (
                       <CommentModal
-                        key={idx}
                         post={post}
                         createPost={createPost}
                         input={input}
