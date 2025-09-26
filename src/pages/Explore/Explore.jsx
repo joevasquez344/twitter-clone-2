@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from "react";
 import Loader from "../../components/Loader";
+import { Route, Routes } from "react-router-dom";
+import ExploreList from "./ExploreList";
+import routes from "../../routes";
+import { forYouData } from "../../mock_data/explore.data";
 
 const Explore = () => {
   const [activeTab, setActiveTab] = useState("For You");
-  const [forYouData, setForYouData] = useState([]);
+  const [forYouItems, setForYouItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Fetch for you data
-    setForYouData(forYouItems);
+    setForYouItems(forYouData);
     setLoading(false);
   }, []);
 
@@ -99,68 +103,20 @@ const Explore = () => {
         </div>
       </div>
 
-      {loading ? (
-        <Loader />
-      ) : (
-        <div className="m-6 flex flex-col space-y-6">
-          {forYouData.map((item) => (
-            <Item item={item} />
-          ))}
-        </div>
-      )}
+      {/* <Routes>
+        <Route
+          key={idx}
+          exact={true}
+          path="/explore/for_you"
+          name="For You"
+          // fetchData={() => dispatch(route.fetchData())}
+          element={<route.component />}
+        />
+      </Routes> */}
+
+      {loading ? <Loader /> : <ExploreList items={forYouItems} />}
     </div>
   );
 };
 
 export default Explore;
-
-const Item = ({ item }) => {
-  return (
-    <div className="">
-      <div className="text-gray-500">
-        <span>{item.genre}</span> <span>.</span>
-        <span>{item.topic}</span>
-      </div>
-      <div className="">{item.title}</div>
-      <div className="text-gray-500">{item.tweets}</div>
-    </div>
-  );
-};
-
-const forYouItems = () => [
-  {
-    id: 1,
-    genre: "Sports",
-    topic: "Trending in Sports",
-    title: "NBA Finals",
-    tweets: "1.2K Tweets",
-  },
-  {
-    id: 2,
-    genre: "Entertainment",
-    topic: "Trending in Entertainment",
-    title: "The Weeknd",
-    tweets: "3,400 Tweets",
-  },
-  {
-    id: 3,
-    genre: "News",
-    topic: "Trending in News",
-    title: "Ukraine",
-    tweets: "12.3K Tweets",
-  },
-  {
-    id: 4,
-    genre: "Sports",
-    topic: "Trending in Sports",
-    title: "World Cup",
-    tweets: "5,400 Tweets",
-  },
-  {
-    id: 5,
-    genre: "Entertainment",
-    topic: "Trending in Entertainment",
-    title: "Oscars",
-    tweets: "2,300 Tweets",
-  },
-];
