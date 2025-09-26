@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Loader from "../../components/Loader";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import ExploreList from "./ExploreList";
-import routes from "../../routes";
+import { exploreRoutes } from "../../routes";
 import { forYouData } from "../../mock_data/explore.data";
 
 const Explore = () => {
@@ -10,13 +10,18 @@ const Explore = () => {
   const [forYouItems, setForYouItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     // Fetch for you data
     setForYouItems(forYouData);
     setLoading(false);
   }, []);
 
-  const forYouRoute = () => {};
+  const forYouRoute = () => {
+    setActiveTab("For You");
+    navigate("/explore/tabs/for_you");
+  };
   const trendingRoute = () => {};
   const newsRoute = () => {};
   const entertainmentRoute = () => {};
@@ -31,7 +36,7 @@ const Explore = () => {
 
         <div className="flex justify-between h-16 mt-1">
           <div
-            onClick={() => setActiveTab("For You")}
+            onClick={forYouRoute}
             className="w-full px-6 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-all duration-600"
           >
             <div
@@ -104,13 +109,26 @@ const Explore = () => {
       </div>
 
       {/* <Routes>
+        {exploreRoutes.map((route, index) => (
+          <Route
+            key={index}
+            exact={route.exact}
+            path={route.path}
+            name={route.name}
+            // fetchData={() => dispatch(route.fetchData())}
+            element={<route.component />}
+          />
+        ))}
+      </Routes> */}
+
+      {/* <Routes>
         <Route
-          key={idx}
+          // key={idx}
           exact={true}
-          path="/explore/for_you"
+          path="/explore"
           name="For You"
           // fetchData={() => dispatch(route.fetchData())}
-          element={<route.component />}
+          element={<ExploreList items={forYouItems} />}
         />
       </Routes> */}
 
