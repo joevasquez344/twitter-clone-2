@@ -11,6 +11,7 @@ import {
   } from 'react-redux-firebase'
 import themeReducer from './theme/theme.reducer';
 import exploreReducer from './explore/explore.reducer';
+import bookmarksReducer from './bookmarks/bookmarks.reducer';
 
 const rootReducer = combineReducers({
     tweets: tweetsReducer,
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
     users: usersReducer,
     profile: profileReducer,
     explore:exploreReducer,
+    bookmarks: bookmarksReducer,
     theme: themeReducer,
     firebase: firebaseReducer,
     firestore: firestoreReducer

@@ -64,7 +64,7 @@ export const fetchPosts = async (filter, authId) => {
         likes: await getLikes(doc.id),
         comments: await getComments(doc.id),
         // replyToUsers: await getPostsByThreadId({ id: doc.id, ...doc.data() }),
-        bookmarkedByAuthUser: await getBookmarks(authId),
+        bookmarkedByAuthUser: await fetchBookmarks(authId),
         ...doc.data(),
       }))
     );
@@ -285,7 +285,7 @@ export const addBookmarkById = async (postId, authId) => {
   return postId;
 };
 
-export const getBookmarks = async (userId) => {
+export const fetchBookmarks = async (userId) => {
   const userRef = doc(db, `users/${userId}`);
   const bookmarksRef = collection(db, "bookmarks");
   const bookmarksQuery = query(bookmarksRef, where("userRef", "==", userRef));

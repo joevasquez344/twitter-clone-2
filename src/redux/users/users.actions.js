@@ -46,7 +46,7 @@ import {
 } from "../../utils/api/posts";
 import { handleProfileCreatedAt } from "../../utils/handlers";
 
-const loadUser = (authUser) => async (dispatch) => {
+const getAuthUser = (authUser) => async (dispatch) => {
   const userRef = doc(db, "users", authUser);
 
   const user = await getDoc(userRef);
@@ -266,7 +266,7 @@ export {
   login,
   register,
   logout,
-  loadUser,
+  getAuthUser,
   getProfile,
   followProfile,
   unfollowProfile,

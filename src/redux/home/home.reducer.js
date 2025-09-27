@@ -1,4 +1,4 @@
-import { ADD_BOOKMARK } from "../bookmarks/bookmarks.actions";
+import { ADD_BOOKMARK } from "../bookmarks/bookmarks.types";
 import {
   CREATE_BOOKMARK,
   CREATE_POST,

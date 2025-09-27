@@ -44,6 +44,7 @@ const AuthLayout = () => {
                   fetchData={() => dispatch(route.fetchData())}
                   element={<route.component />}
                 />
+                
               ))}
               <Route
                 exact={true}

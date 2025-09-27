@@ -4,8 +4,9 @@ import { useEffect } from "react";
 import Landing from "./pages/Landing/Landing";
 import { useSelector, useDispatch } from "react-redux";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { loadUser, logout } from "./redux/users/users.actions";
+import { getAuthUser, logout } from "./redux/users/users.actions";
 import AuthLayout from "./layout/AuthLayout";
+import { getBookmarks } from "./redux/bookmarks/bookmarks.actions";
 
 function App() {
   const user = useSelector((state) => state.users.user);
@@ -13,12 +14,19 @@ function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const loadUser = (authId) => {
+        dispatch(getAuthUser(authId));
+        dispatch(getBookmarks(authId))
+
+  }
+
 
   useEffect(() => {
     const auth = getAuth();
     onAuthStateChanged(auth, (userCredentials) => {
       if (userCredentials) {
-        dispatch(loadUser(userCredentials.uid));
+        // dispatch(getAuth(userCredentials.uid));
+        loadUser(userCredentials.uid);
         navigate("/home");
       } else {
         dispatch(logout());

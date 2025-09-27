@@ -1,25 +1,19 @@
-import {
-    CREATE_BOOKMARK,
-    DELETE_BOOKMARK,
-    DELETE_POST,
-    FOLLOW_USER,
-    GET_POSTS,
-    REFRESH_POST,
-    TOGGLE_LIKE_POST,
-    UNFOLLOW_USER,
-  } from "./home.types";
-  
-  const initialState = {
-    bookmarks: [],
-  };
-  
-  const bookmarksReducer = (state = initialState, { type, payload }) => {
-    switch (type) {
-     
-      default:
-        return state;
-    }
-  };
-  
-  export default bookmarksReducer;
-  
+import { GET_BOOKMARKS } from "./bookmarks.types";
+
+const initialState = {
+  bookmarks: [],
+};
+
+const bookmarksReducer = (state = initialState, { type, payload }) => {
+  switch (type) {
+    case GET_BOOKMARKS:
+      return {
+        ...state,
+        bookmarks: payload,
+      };
+    default:
+      return state;
+  }
+};
+
+export default bookmarksReducer;

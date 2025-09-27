@@ -13,6 +13,8 @@ import { getPosts } from "./redux/home/home.actions";
 import ExploreList from "./pages/Explore/ExploreList";
 
 const LazyHome = lazy(() => import("./pages/Home"));
+const LazyHome2  = lazy(() => import("./pages/Home2"));
+
 const LazyTweetDetails = lazy(() =>
   import("./pages/TweetDetails/TweetDetails")
 );
@@ -28,7 +30,7 @@ export const routes = [
   {
     path: "/home",
     exact: true,
-    component: LazyHome,
+    component: LazyHome2,
     name: "Home",
     fetchData: getPosts,
     private: true,

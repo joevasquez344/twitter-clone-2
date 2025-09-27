@@ -5,7 +5,7 @@ import cageImage from "../images/cage.png";
 import { Tooltip } from "@material-tailwind/react";
 
 import {
-  getBookmarks,
+  fetchBookmarks,
   toggleLikePost,
   clearBookmarks,
   deleteBookmarkById,
@@ -60,8 +60,8 @@ const Bookmarks = () => {
   const [input, setInput] = useState("");
   const navigate = useNavigate();
 
-  const fetchBookmarks = async () => {
-    let bookmarks = await getBookmarks(user.id);
+  const getBookmarks = async () => {
+    let bookmarks = await fetchBookmarks(user.id);
 
     bookmarks.map((post) => {
       const userLiked = post.likes.find((uid) => uid === user.id);
@@ -235,7 +235,7 @@ const Bookmarks = () => {
 
     setInput("");
 
-    fetchBookmarks();
+    getBookmarks();
   };
 
   const handleInputChange = (e) => setInput(e.target.value);
@@ -278,7 +278,7 @@ const Bookmarks = () => {
   };
 
   useEffect(() => {
-    fetchBookmarks();
+    getBookmarks();
   }, []);
 
   console.log("Bookmarks: ", bookmarks);

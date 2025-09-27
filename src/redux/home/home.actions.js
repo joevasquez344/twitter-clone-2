@@ -31,7 +31,7 @@ import {
   unfollowUser,
 } from "../../utils/api/users";
 
-import { ADD_BOOKMARK } from "../bookmarks/bookmarks.actions";
+import { ADD_BOOKMARK } from "../bookmarks/bookmarks.types";
 import { DELETE_POST } from "../profile/profile.types";
 import {
   CREATE_BOOKMARK,
