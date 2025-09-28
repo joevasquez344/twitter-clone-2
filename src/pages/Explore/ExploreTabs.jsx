@@ -1,42 +1,10 @@
-import React, { useEffect, useState } from "react";
-import Loader from "../../components/Loader";
-import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
-import ExploreList from "./ExploreList";
-import ExploreTabs from "./ExploreTabs";
-import { ExploreProvider, useExplore } from "./ExploreContext";
+import React from 'react'
+import { useExplore } from './ExploreContext'
 
-
-
-const Explore = () => {
-const {routeOnMount} = useExplore()
-  const [loading, setLoading] = useState(true);
-
-  const navigate = useNavigate();
-  const endpoint = useLocation().pathname
-  console.log('Endpoitn: ', endpoint)
-
-
-
-  useEffect(() => {
-    // Fetch for you data
-  routeOnMount(endpoint)
-    setLoading(false);
-  }, [endpoint]);
-
- 
- 
+const ExploreTabs = ({}) => {
+    const {forYouRoute, trendingRoute, newsRoute, sportsRoute, entertainmentRoute, activeTab} = useExplore();
   return (
-    <>
-      <div className="">
-      <div className="pb-1 pt-6 px-6 border-b">
-        <input
-          className="bg-gray-100 rounded-full p-3 w-full outline-none"
-          type="text"
-        />
-
-        <ExploreTabs />
-
-        {/* <div className="flex justify-between h-16 mt-1">
+   <div className="flex justify-between h-16 mt-1">
           <div
             onClick={forYouRoute}
             className="w-full px-6 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-all duration-600"
@@ -52,7 +20,7 @@ const {routeOnMount} = useExplore()
             </div>
           </div>
           <div
-            onClick={() => setActiveTab("Trending")}
+            onClick={trendingRoute}
             className="w-full px-6 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-all duration-600"
           >
             <div
@@ -66,7 +34,7 @@ const {routeOnMount} = useExplore()
             </div>
           </div>
           <div
-            onClick={() => setActiveTab("News")}
+            onClick={newsRoute}
             className="w-full px-6 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-all duration-600"
           >
             <div
@@ -80,7 +48,7 @@ const {routeOnMount} = useExplore()
             </div>
           </div>
           <div
-            onClick={() => setActiveTab("Sports")}
+            onClick={sportsRoute}
             className="w-full px-6 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-all duration-600"
           >
             <div
@@ -94,7 +62,7 @@ const {routeOnMount} = useExplore()
             </div>
           </div>
           <div
-            onClick={() => setActiveTab("Entertainment")}
+            onClick={entertainmentRoute}
             className="w-full px-6 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-all duration-600"
           >
             <div
@@ -107,37 +75,8 @@ const {routeOnMount} = useExplore()
               Entertainment
             </div>
           </div>
-        </div> */}
-      </div>
+        </div>
+  )
+}
 
-      {/* <Routes>
-        {exploreRoutes.map((route, index) => (
-          <Route
-            key={index}
-            exact={route.exact}
-            path={route.path}
-            name={route.name}
-            // fetchData={() => dispatch(route.fetchData())}
-            element={<route.component />}
-          />
-        ))}
-      </Routes> */}
-
-      {/* <Routes>
-        <Route
-          // key={idx}
-          exact={true}
-          path="/explore"
-          name="For You"
-          // fetchData={() => dispatch(route.fetchData())}
-          element={<ExploreList items={forYouItems} />}
-        />
-      </Routes> */}
-
-      {loading ? <Loader /> : <ExploreList />}
-    </div>
-    </>
-  );
-};
-
-export default Explore;
+export default ExploreTabs

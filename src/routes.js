@@ -102,6 +102,7 @@ export const exploreRoutes = [
     path: "/explore/tabs/for_you",
     exact: true,
     name: "For You",
+
     component: ExploreList,
     private: true,
   },

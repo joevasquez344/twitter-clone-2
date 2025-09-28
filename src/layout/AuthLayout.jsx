@@ -13,6 +13,7 @@ import MobileTweetButton from "./MobileTweetButton";
 import MobileNavbar from "./MobileNavbar";
 import UserSearchContainer from "./UserSearchContainer";
 import Loader from "../components/Loader";
+import { ExploreProvider } from "../pages/Explore/ExploreContext";
 
 const AuthLayout = () => {
   const dispatch = useDispatch();
@@ -44,14 +45,17 @@ const AuthLayout = () => {
                   fetchData={() => dispatch(route.fetchData())}
                   element={<route.component />}
                 />
-                
               ))}
               <Route
                 exact={true}
                 path="/explore"
                 name="Explore"
                 // fetchData={() => dispatch(route.fetchData())}
-                element={<LazyExplore />}
+                element={
+                  <ExploreProvider>
+                    <LazyExplore />
+                  </ExploreProvider>
+                }
               >
                 {exploreRoutes.map((route, idx) => (
                   <Route

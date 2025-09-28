@@ -7,6 +7,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getAuthUser, logout } from "./redux/users/users.actions";
 import AuthLayout from "./layout/AuthLayout";
 import { getBookmarks } from "./redux/bookmarks/bookmarks.actions";
+import { ExploreProvider } from "./pages/Explore/ExploreContext";
 
 function App() {
   const user = useSelector((state) => state.users.user);
@@ -27,7 +28,7 @@ function App() {
       if (userCredentials) {
         // dispatch(getAuth(userCredentials.uid));
         loadUser(userCredentials.uid);
-        navigate("/home");
+        // navigate("/explore");
       } else {
         dispatch(logout());
         navigate("/");
